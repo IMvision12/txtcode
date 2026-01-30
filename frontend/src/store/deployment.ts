@@ -13,7 +13,6 @@ interface DeploymentConfig {
   target: 'aws' | 'gcp' | 'local';
   optimizations: {
     quantization: 'none' | '4bit' | '8bit';
-    lora: boolean;
     vllm: boolean;
   };
 }
@@ -44,7 +43,6 @@ export const useDeploymentStore = create<DeploymentStore>((set) => ({
     target: 'aws',
     optimizations: {
       quantization: 'none',
-      lora: false,
       vllm: false,
     },
   },

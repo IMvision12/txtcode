@@ -1,15 +1,15 @@
 # DeployLLM - AI Model Marketplace & Deployment Platform
 
-Deploy optimized LLMs from Hugging Face to AWS, GCP, or locally with automatic quantization, LoRA fine-tuning, and vLLM optimization.
+Deploy optimized LLMs from Hugging Face to AWS, GCP, or locally with automatic quantization and vLLM optimization for efficient inference.
 
 ## Features
 
 - **Model Browser**: Browse and search popular LLMs from Hugging Face
 - **Flexible Deployment**: Deploy to AWS, GCP, or local infrastructure
-- **Optimization Pipeline**:
-  - BitsAndBytes quantization (4-bit/8-bit)
-  - LoRA fine-tuning
-  - vLLM compilation for efficient inference
+- **Inference Optimization Pipeline**:
+  - BitsAndBytes quantization (4-bit/8-bit) for reduced memory usage
+  - vLLM compilation for high-throughput inference
+  - Optimized model serving configurations
 - **Real-time Monitoring**: Track deployment progress with WebSocket updates
 - **Cost Estimation**: Preview cloud deployment costs (coming soon)
 
@@ -100,7 +100,7 @@ Access the application:
 1. **Browse Models**: Search and select an LLM from the model browser
 2. **Configure Deployment**:
    - Choose target: AWS, GCP, or Local
-   - Select optimizations: quantization, LoRA, vLLM
+   - Select inference optimizations: quantization, vLLM
 3. **Deploy**: Monitor real-time progress as your model is optimized and deployed
 4. **Access Endpoint**: Use the provided endpoint for inference
 
@@ -181,8 +181,8 @@ Components are in `frontend/src/components/`. Modify or create new components as
 - [ ] Model performance benchmarking
 - [ ] Multi-region deployment support
 - [ ] Custom model upload
-- [ ] Fine-tuning dataset management
 - [ ] API key management for deployed models
+- [ ] Advanced inference configurations (temperature, top-k, etc.)
 - [ ] Usage analytics and monitoring
 
 ## License

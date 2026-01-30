@@ -148,7 +148,8 @@ export default function Home() {
 
             {/* Enhanced data flow lines - removed old SVG */}
             
-            <div className="relative grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-24">
+            <div className="relative grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] gap-0 md:gap-0 items-center">
+              
               {/* Source: Model Repository - Enhanced */}
               <div className="flex flex-col items-center space-y-6">
                 <div className="text-blue-400 text-xs font-bold tracking-wider mb-2 uppercase">Source</div>
@@ -184,37 +185,91 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Arrow 1: Source to Processing */}
-              <div className="hidden md:block absolute left-[26%] top-[42%] w-[15%] z-20">
-                <svg width="100%" height="40" viewBox="0 0 200 40" className="overflow-visible">
+              {/* Arrow 1: Source to Processing - 2 arrows */}
+              <div className="hidden md:flex items-center justify-center px-4">
+                <svg width="120" height="120" viewBox="0 0 120 120" className="overflow-visible">
                   <defs>
                     <linearGradient id="arrowGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#3b82f6" />
-                      <stop offset="100%" stopColor="#8b5cf6" />
+                      <stop offset="50%" stopColor="#8b5cf6" />
+                      <stop offset="100%" stopColor="#a78bfa" />
                     </linearGradient>
+                    <filter id="glow1">
+                      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                      <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                      </feMerge>
+                    </filter>
                   </defs>
-                  {/* Dashed line */}
-                  <line 
-                    x1="0" y1="20" x2="180" y2="20" 
+                  
+                  {/* First arrow - top */}
+                  <path 
+                    d="M 10 35 Q 35 25, 60 35 T 100 35" 
                     stroke="url(#arrowGrad1)" 
-                    strokeWidth="2.5" 
-                    strokeDasharray="6 4"
+                    strokeWidth="6" 
+                    strokeOpacity="0.3"
+                    fill="none"
+                    filter="url(#glow1)"
+                  />
+                  <path 
+                    d="M 10 35 Q 35 25, 60 35 T 100 35" 
+                    stroke="url(#arrowGrad1)" 
+                    strokeWidth="3" 
+                    strokeDasharray="8 5"
+                    strokeLinecap="round"
+                    fill="none"
                     className="animate-dash-flow"
                   />
-                  {/* Arrow head */}
                   <polygon 
-                    points="180,20 170,15 170,25" 
-                    fill="#8b5cf6"
+                    points="105,35 95,30 95,40" 
+                    fill="#a78bfa"
+                    filter="url(#glow1)"
                   />
-                  {/* Animated dots */}
-                  <circle r="3" fill="#3b82f6" className="animate-dot-travel">
-                    <animate attributeName="cx" from="0" to="180" dur="2s" repeatCount="indefinite" />
+                  
+                  {/* Second arrow - bottom */}
+                  <path 
+                    d="M 10 75 Q 35 85, 60 75 T 100 75" 
+                    stroke="url(#arrowGrad1)" 
+                    strokeWidth="6" 
+                    strokeOpacity="0.3"
+                    fill="none"
+                    filter="url(#glow1)"
+                  />
+                  <path 
+                    d="M 10 75 Q 35 85, 60 75 T 100 75" 
+                    stroke="url(#arrowGrad1)" 
+                    strokeWidth="3" 
+                    strokeDasharray="8 5"
+                    strokeLinecap="round"
+                    fill="none"
+                    className="animate-dash-flow"
+                    style={{ animationDelay: '0.5s' }}
+                  />
+                  <polygon 
+                    points="105,75 95,70 95,80" 
+                    fill="#a78bfa"
+                    filter="url(#glow1)"
+                  />
+                  
+                  {/* Animated dots on first arrow */}
+                  <circle r="4" fill="#60a5fa" filter="url(#glow1)">
+                    <animateMotion dur="2s" repeatCount="indefinite" path="M 10 35 Q 35 25, 60 35 T 100 35" />
                     <animate attributeName="opacity" values="0;1;1;0" dur="2s" repeatCount="indefinite" />
                   </circle>
-                  <circle r="3" fill="#60a5fa" className="animate-dot-travel">
-                    <animate attributeName="cx" from="0" to="180" dur="2s" begin="0.5s" repeatCount="indefinite" />
-                    <animate attributeName="cy" from="20" to="20" dur="2s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0;1;1;0" dur="2s" begin="0.5s" repeatCount="indefinite" />
+                  <circle r="4" fill="#8b5cf6" filter="url(#glow1)">
+                    <animateMotion dur="2s" begin="0.7s" repeatCount="indefinite" path="M 10 35 Q 35 25, 60 35 T 100 35" />
+                    <animate attributeName="opacity" values="0;1;1;0" dur="2s" begin="0.7s" repeatCount="indefinite" />
+                  </circle>
+                  
+                  {/* Animated dots on second arrow */}
+                  <circle r="4" fill="#60a5fa" filter="url(#glow1)">
+                    <animateMotion dur="2s" begin="0.3s" repeatCount="indefinite" path="M 10 75 Q 35 85, 60 75 T 100 75" />
+                    <animate attributeName="opacity" values="0;1;1;0" dur="2s" begin="0.3s" repeatCount="indefinite" />
+                  </circle>
+                  <circle r="4" fill="#8b5cf6" filter="url(#glow1)">
+                    <animateMotion dur="2s" begin="1s" repeatCount="indefinite" path="M 10 75 Q 35 85, 60 75 T 100 75" />
+                    <animate attributeName="opacity" values="0;1;1;0" dur="2s" begin="1s" repeatCount="indefinite" />
                   </circle>
                 </svg>
               </div>
@@ -259,39 +314,92 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Arrow 2: Processing to Deployment */}
-              <div className="hidden md:block absolute left-[59%] top-[42%] w-[15%] z-20">
-                <svg width="100%" height="40" viewBox="0 0 200 40" className="overflow-visible">
+              {/* Arrow 2: Processing to Deployment - 2 arrows */}
+              <div className="hidden md:flex items-center justify-center px-4">
+                <svg width="120" height="120" viewBox="0 0 120 120" className="overflow-visible">
                   <defs>
                     <linearGradient id="arrowGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#8b5cf6" />
-                      <stop offset="100%" stopColor="#06b6d4" />
+                      <stop offset="0%" stopColor="#a78bfa" />
+                      <stop offset="50%" stopColor="#06b6d4" />
+                      <stop offset="100%" stopColor="#22d3ee" />
                     </linearGradient>
+                    <filter id="glow2">
+                      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                      <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                      </feMerge>
+                    </filter>
                   </defs>
-                  {/* Dashed line */}
-                  <line 
-                    x1="0" y1="20" x2="180" y2="20" 
+                  
+                  {/* First arrow - top */}
+                  <path 
+                    d="M 10 35 Q 35 25, 60 35 T 100 35" 
                     stroke="url(#arrowGrad2)" 
-                    strokeWidth="2.5" 
-                    strokeDasharray="6 4"
+                    strokeWidth="6" 
+                    strokeOpacity="0.3"
+                    fill="none"
+                    filter="url(#glow2)"
+                  />
+                  <path 
+                    d="M 10 35 Q 35 25, 60 35 T 100 35" 
+                    stroke="url(#arrowGrad2)" 
+                    strokeWidth="3" 
+                    strokeDasharray="8 5"
+                    strokeLinecap="round"
+                    fill="none"
                     className="animate-dash-flow"
-                    style={{ animationDelay: '0.5s' }}
+                    style={{ animationDelay: '0.2s' }}
                   />
-                  {/* Arrow head */}
                   <polygon 
-                    points="180,20 170,15 170,25" 
-                    fill="#06b6d4"
+                    points="105,35 95,30 95,40" 
+                    fill="#22d3ee"
+                    filter="url(#glow2)"
                   />
-                  {/* Animated dots */}
-                  <circle r="3" fill="#8b5cf6" className="animate-dot-travel">
-                    <animate attributeName="cx" from="0" to="180" dur="2s" begin="0.3s" repeatCount="indefinite" />
-                    <animate attributeName="cy" from="20" to="20" dur="2s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0;1;1;0" dur="2s" begin="0.3s" repeatCount="indefinite" />
+                  
+                  {/* Second arrow - bottom */}
+                  <path 
+                    d="M 10 75 Q 35 85, 60 75 T 100 75" 
+                    stroke="url(#arrowGrad2)" 
+                    strokeWidth="6" 
+                    strokeOpacity="0.3"
+                    fill="none"
+                    filter="url(#glow2)"
+                  />
+                  <path 
+                    d="M 10 75 Q 35 85, 60 75 T 100 75" 
+                    stroke="url(#arrowGrad2)" 
+                    strokeWidth="3" 
+                    strokeDasharray="8 5"
+                    strokeLinecap="round"
+                    fill="none"
+                    className="animate-dash-flow"
+                    style={{ animationDelay: '0.7s' }}
+                  />
+                  <polygon 
+                    points="105,75 95,70 95,80" 
+                    fill="#22d3ee"
+                    filter="url(#glow2)"
+                  />
+                  
+                  {/* Animated dots on first arrow */}
+                  <circle r="4" fill="#a78bfa" filter="url(#glow2)">
+                    <animateMotion dur="2s" begin="0.2s" repeatCount="indefinite" path="M 10 35 Q 35 25, 60 35 T 100 35" />
+                    <animate attributeName="opacity" values="0;1;1;0" dur="2s" begin="0.2s" repeatCount="indefinite" />
                   </circle>
-                  <circle r="3" fill="#a78bfa" className="animate-dot-travel">
-                    <animate attributeName="cx" from="0" to="180" dur="2s" begin="0.8s" repeatCount="indefinite" />
-                    <animate attributeName="cy" from="20" to="20" dur="2s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0;1;1;0" dur="2s" begin="0.8s" repeatCount="indefinite" />
+                  <circle r="4" fill="#06b6d4" filter="url(#glow2)">
+                    <animateMotion dur="2s" begin="0.9s" repeatCount="indefinite" path="M 10 35 Q 35 25, 60 35 T 100 35" />
+                    <animate attributeName="opacity" values="0;1;1;0" dur="2s" begin="0.9s" repeatCount="indefinite" />
+                  </circle>
+                  
+                  {/* Animated dots on second arrow */}
+                  <circle r="4" fill="#a78bfa" filter="url(#glow2)">
+                    <animateMotion dur="2s" begin="0.5s" repeatCount="indefinite" path="M 10 75 Q 35 85, 60 75 T 100 75" />
+                    <animate attributeName="opacity" values="0;1;1;0" dur="2s" begin="0.5s" repeatCount="indefinite" />
+                  </circle>
+                  <circle r="4" fill="#06b6d4" filter="url(#glow2)">
+                    <animateMotion dur="2s" begin="1.2s" repeatCount="indefinite" path="M 10 75 Q 35 85, 60 75 T 100 75" />
+                    <animate attributeName="opacity" values="0;1;1;0" dur="2s" begin="1.2s" repeatCount="indefinite" />
                   </circle>
                 </svg>
               </div>

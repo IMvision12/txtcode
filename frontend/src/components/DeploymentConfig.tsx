@@ -55,7 +55,7 @@ export default function DeploymentConfig({
 
       <div className="bg-white/10 backdrop-blur-lg rounded-lg p-8 border border-white/20">
         <h2 className="text-3xl font-bold text-white mb-2">{model.name}</h2>
-        <p className="text-gray-300 mb-8">Configure deployment settings</p>
+        <p className="text-gray-300 mb-8">Configure inference deployment settings</p>
 
         <div className="space-y-8">
           <div>
@@ -83,11 +83,11 @@ export default function DeploymentConfig({
           </div>
 
           <div>
-            <h3 className="text-xl font-semibold text-white mb-4">Optimizations</h3>
+            <h3 className="text-xl font-semibold text-white mb-4">Inference Optimizations</h3>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-white mb-2">Quantization</label>
+                <label className="block text-white mb-2">Quantization (Reduce Memory)</label>
                 <select
                   value={config.optimizations.quantization}
                   onChange={(e) =>
@@ -102,28 +102,10 @@ export default function DeploymentConfig({
                   className="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none focus:border-purple-500"
                 >
                   <option value="none">None</option>
-                  <option value="4bit">4-bit</option>
-                  <option value="8bit">8-bit</option>
+                  <option value="4bit">4-bit (75% memory reduction)</option>
+                  <option value="8bit">8-bit (50% memory reduction)</option>
                 </select>
               </div>
-
-              <label className="flex items-center gap-3 text-white cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={config.optimizations.lora}
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      optimizations: {
-                        ...config.optimizations,
-                        lora: e.target.checked,
-                      },
-                    })
-                  }
-                  className="w-5 h-5"
-                />
-                <span>Apply LoRA Fine-tuning</span>
-              </label>
 
               <label className="flex items-center gap-3 text-white cursor-pointer">
                 <input
@@ -140,7 +122,7 @@ export default function DeploymentConfig({
                   }
                   className="w-5 h-5"
                 />
-                <span>Enable vLLM Optimization</span>
+                <span>Enable vLLM (High-Throughput Inference)</span>
               </label>
             </div>
           </div>

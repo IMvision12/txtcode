@@ -8,7 +8,6 @@ export interface DeploymentConfig {
   target: 'aws' | 'gcp' | 'local';
   optimizations: {
     quantization?: 'none' | '4bit' | '8bit';
-    lora?: boolean;
     vllm?: boolean;
   };
 }
@@ -31,13 +30,8 @@ export async function processDeployment(
     await simulateDelay(3000);
   }
 
-  if (config.optimizations.lora) {
-    onProgress('optimization', 50, 'Applying LoRA fine-tuning');
-    await simulateDelay(2000);
-  }
-
   if (config.optimizations.vllm) {
-    onProgress('optimization', 60, 'Compiling with vLLM');
+    onProgress('optimization', 60, 'Compiling with vLLM for optimized inference');
     await simulateDelay(2000);
   }
 
