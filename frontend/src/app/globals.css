@@ -453,3 +453,20 @@ body {
 .animate-dot-travel {
   filter: drop-shadow(0 0 4px currentColor);
 }
+
+@keyframes float-orbit {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-15px) scale(1.05);
+  }
+}
+
+.animate-float-orbit {
+  animation: float-orbit 4s ease-in-out infinite;
+}
+
+.animate-dot-orbit {
+  filter: drop-shadow(0 0 6px currentColor);
+}
