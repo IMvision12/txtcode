@@ -8,7 +8,7 @@ export interface DeploymentConfig {
   target: 'aws' | 'gcp' | 'local';
   optimizations: {
     quantization?: 'none' | '4bit' | '8bit';
-    vllm?: boolean;
+    engine?: 'vllm' | 'tensorrt' | 'sglang' | 'tgi';
   };
 }
 
@@ -30,8 +30,14 @@ export async function processDeployment(
     await simulateDelay(3000);
   }
 
-  if (config.optimizations.vllm) {
-    onProgress('optimization', 60, 'Compiling with vLLM for optimized inference');
+  if (config.optimizations.engine) {
+    const engineNames = {
+      vllm: 'vLLM for high-throughput inference',
+      tensorrt: 'TensorRT-LLM for low latency',
+      sglang: 'SGLang for structured generation',
+      tgi: 'Text Generation Inference (TGI)'
+    };
+    onProgress('optimization', 60, `Compiling with ${engineNames[config.optimizations.engine]}`);
     await simulateDelay(2000);
   }
 

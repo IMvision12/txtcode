@@ -83,47 +83,116 @@ export default function DeploymentConfig({
           </div>
 
           <div>
-            <h3 className="text-xl font-semibold text-white mb-4">Inference Optimizations</h3>
+            <h3 className="text-xl font-semibold text-white mb-4">Inference Configuration</h3>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-white mb-2">Quantization (Reduce Memory)</label>
+                <label className="block text-white mb-2">Inference Engine</label>
                 <select
-                  value={config.optimizations.quantization}
+                  value={config.optimizations.engine || 'vllm'}
                   onChange={(e) =>
                     setConfig({
                       ...config,
                       optimizations: {
                         ...config.optimizations,
-                        quantization: e.target.value as any,
+                        engine: e.target.value as any,
                       },
                     })
                   }
                   className="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none focus:border-purple-500"
                 >
-                  <option value="none">None</option>
-                  <option value="4bit">4-bit (75% memory reduction)</option>
-                  <option value="8bit">8-bit (50% memory reduction)</option>
+                  <option value="vllm">vLLM</option>
+                  <option value="tgi">TGI (Text Generation Inference)</option>
+                  <option value="tensorrt">TensorRT-LLM</option>
+                  <option value="sglang">SGLang</option>
                 </select>
               </div>
 
-              <label className="flex items-center gap-3 text-white cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={config.optimizations.vllm}
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      optimizations: {
-                        ...config.optimizations,
-                        vllm: e.target.checked,
-                      },
-                    })
-                  }
-                  className="w-5 h-5"
-                />
-                <span>Enable vLLM (High-Throughput Inference)</span>
-              </label>
+              <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-lg p-5">
+                {config.optimizations.engine === 'vllm' && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-2xl">⚡</span>
+                      <h4 className="text-white font-semibold text-lg">vLLM - High-Throughput Inference</h4>
+                    </div>
+                    <p className="text-sm text-blue-200 mb-3">Optimized for high throughput batch inference with advanced memory management</p>
+                    <div className="space-y-2">
+                      <div className="text-xs text-gray-300">
+                        <span className="font-semibold text-white">Quantization:</span> INT4, INT8, FP8
+                      </div>
+                      <div className="text-xs text-gray-300">
+                        <span className="font-semibold text-white">Features:</span> Paged Attention, Continuous Batching
+                      </div>
+                      <div className="text-xs text-gray-300">
+                        <span className="font-semibold text-white">Best for:</span> High-throughput serving, batch processing
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {config.optimizations.engine === 'tgi' && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-2xl">🔥</span>
+                      <h4 className="text-white font-semibold text-lg">TGI - Production-Ready Inference</h4>
+                    </div>
+                    <p className="text-sm text-blue-200 mb-3">HuggingFace's official inference server with enterprise features</p>
+                    <div className="space-y-2">
+                      <div className="text-xs text-gray-300">
+                        <span className="font-semibold text-white">Quantization:</span> INT4, INT8, GPTQ, AWQ
+                      </div>
+                      <div className="text-xs text-gray-300">
+                        <span className="font-semibold text-white">Features:</span> Token Streaming, Tensor Parallelism, Flash Attention
+                      </div>
+                      <div className="text-xs text-gray-300">
+                        <span className="font-semibold text-white">Best for:</span> Production deployments, streaming responses
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {config.optimizations.engine === 'tensorrt' && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-2xl">🚀</span>
+                      <h4 className="text-white font-semibold text-lg">TensorRT-LLM - Ultra Low Latency</h4>
+                    </div>
+                    <p className="text-sm text-blue-200 mb-3">NVIDIA's optimized engine for lowest latency on NVIDIA GPUs</p>
+                    <div className="space-y-2">
+                      <div className="text-xs text-gray-300">
+                        <span className="font-semibold text-white">Quantization:</span> INT4, INT8, FP8, AWQ
+                      </div>
+                      <div className="text-xs text-gray-300">
+                        <span className="font-semibold text-white">Features:</span> In-flight Batching, Multi-GPU Support, KV Cache Optimization
+                      </div>
+                      <div className="text-xs text-gray-300">
+                        <span className="font-semibold text-white">Best for:</span> Real-time applications, lowest latency requirements
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {config.optimizations.engine === 'sglang' && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-2xl">📝</span>
+                      <h4 className="text-white font-semibold text-lg">SGLang - Structured Generation</h4>
+                    </div>
+                    <p className="text-sm text-blue-200 mb-3">Optimized for structured outputs and complex prompt workflows</p>
+                    <div className="space-y-2">
+                      <div className="text-xs text-gray-300">
+                        <span className="font-semibold text-white">Quantization:</span> INT4, INT8, FP8
+                      </div>
+                      <div className="text-xs text-gray-300">
+                        <span className="font-semibold text-white">Features:</span> RadixAttention, Constrained Decoding, JSON Mode
+                      </div>
+                      <div className="text-xs text-gray-300">
+                        <span className="font-semibold text-white">Best for:</span> Structured outputs, complex prompts, function calling
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

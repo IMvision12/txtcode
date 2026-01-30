@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Logo from '@/components/Logo';
 
 export default function Home() {
-  const [showSignIn, setShowSignIn] = useState(false);
-  const [showSignUp, setShowSignUp] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -49,13 +48,8 @@ export default function Home() {
       </div>
 
       {/* Navigation */}
-      <nav className="relative z-10 container mx-auto px-6 py-6 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xl">D</span>
-          </div>
-          <span className="text-white text-2xl font-bold">DeployLLM</span>
-        </div>
+      <nav className="relative z-10 container mx-auto px-6 py-4 flex items-center justify-between">
+        <Logo />
         
         <div className="hidden md:flex items-center space-x-8 text-gray-300">
           <Link href="#features" className="hover:text-white transition">Features</Link>
@@ -65,23 +59,23 @@ export default function Home() {
         </div>
 
         <div className="flex items-center space-x-4">
-          <button 
-            onClick={() => setShowSignIn(true)}
+          <Link 
+            href="/signin"
             className="text-white hover:text-gray-300 transition px-4 py-2"
           >
             Sign In
-          </button>
-          <button 
-            onClick={() => setShowSignUp(true)}
+          </Link>
+          <Link 
+            href="/signup"
             className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg hover:shadow-lg hover:shadow-blue-500/50 transition"
           >
             Sign Up
-          </button>
+          </Link>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <div className="relative z-10 container mx-auto px-6 pt-20 pb-32">
+      <div className="relative z-10 container mx-auto px-6 pt-12 pb-32">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-block mb-6 px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-full animate-slide-down">
             <span className="text-blue-400 text-sm font-medium">🚀 Deploy AI Models in Minutes</span>
@@ -99,12 +93,12 @@ export default function Home() {
           </p>
 
           <div className="flex items-center justify-center mb-16 animate-fade-in-delayed">
-            <button 
-              onClick={() => setShowSignUp(true)}
+            <Link 
+              href="/signup"
               className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:shadow-2xl hover:shadow-blue-500/50 transition transform hover:scale-105 animate-bounce-subtle"
             >
               Get Started Free
-            </button>
+            </Link>
           </div>
 
           {/* Stats */}
@@ -203,9 +197,9 @@ export default function Home() {
                     </filter>
                   </defs>
                   
-                  {/* First arrow - top */}
+                  {/* First arrow - top curved */}
                   <path 
-                    d="M 10 35 Q 35 25, 60 35 T 100 35" 
+                    d="M 15 40 Q 40 20, 70 30 T 105 35" 
                     stroke="url(#arrowGrad1)" 
                     strokeWidth="6" 
                     strokeOpacity="0.3"
@@ -213,7 +207,7 @@ export default function Home() {
                     filter="url(#glow1)"
                   />
                   <path 
-                    d="M 10 35 Q 35 25, 60 35 T 100 35" 
+                    d="M 15 40 Q 40 20, 70 30 T 105 35" 
                     stroke="url(#arrowGrad1)" 
                     strokeWidth="3" 
                     strokeDasharray="8 5"
@@ -222,14 +216,14 @@ export default function Home() {
                     className="animate-dash-flow"
                   />
                   <polygon 
-                    points="105,35 95,30 95,40" 
+                    points="110,35 100,30 100,40" 
                     fill="#a78bfa"
                     filter="url(#glow1)"
                   />
                   
-                  {/* Second arrow - bottom */}
+                  {/* Second arrow - bottom curved */}
                   <path 
-                    d="M 10 75 Q 35 85, 60 75 T 100 75" 
+                    d="M 15 80 Q 40 100, 70 90 T 105 85" 
                     stroke="url(#arrowGrad1)" 
                     strokeWidth="6" 
                     strokeOpacity="0.3"
@@ -237,7 +231,7 @@ export default function Home() {
                     filter="url(#glow1)"
                   />
                   <path 
-                    d="M 10 75 Q 35 85, 60 75 T 100 75" 
+                    d="M 15 80 Q 40 100, 70 90 T 105 85" 
                     stroke="url(#arrowGrad1)" 
                     strokeWidth="3" 
                     strokeDasharray="8 5"
@@ -247,28 +241,28 @@ export default function Home() {
                     style={{ animationDelay: '0.5s' }}
                   />
                   <polygon 
-                    points="105,75 95,70 95,80" 
+                    points="110,85 100,80 100,90" 
                     fill="#a78bfa"
                     filter="url(#glow1)"
                   />
                   
                   {/* Animated dots on first arrow */}
                   <circle r="4" fill="#60a5fa" filter="url(#glow1)">
-                    <animateMotion dur="2s" repeatCount="indefinite" path="M 10 35 Q 35 25, 60 35 T 100 35" />
+                    <animateMotion dur="2s" repeatCount="indefinite" path="M 15 40 Q 40 20, 70 30 T 105 35" />
                     <animate attributeName="opacity" values="0;1;1;0" dur="2s" repeatCount="indefinite" />
                   </circle>
                   <circle r="4" fill="#8b5cf6" filter="url(#glow1)">
-                    <animateMotion dur="2s" begin="0.7s" repeatCount="indefinite" path="M 10 35 Q 35 25, 60 35 T 100 35" />
+                    <animateMotion dur="2s" begin="0.7s" repeatCount="indefinite" path="M 15 40 Q 40 20, 70 30 T 105 35" />
                     <animate attributeName="opacity" values="0;1;1;0" dur="2s" begin="0.7s" repeatCount="indefinite" />
                   </circle>
                   
                   {/* Animated dots on second arrow */}
                   <circle r="4" fill="#60a5fa" filter="url(#glow1)">
-                    <animateMotion dur="2s" begin="0.3s" repeatCount="indefinite" path="M 10 75 Q 35 85, 60 75 T 100 75" />
+                    <animateMotion dur="2s" begin="0.3s" repeatCount="indefinite" path="M 15 80 Q 40 100, 70 90 T 105 85" />
                     <animate attributeName="opacity" values="0;1;1;0" dur="2s" begin="0.3s" repeatCount="indefinite" />
                   </circle>
                   <circle r="4" fill="#8b5cf6" filter="url(#glow1)">
-                    <animateMotion dur="2s" begin="1s" repeatCount="indefinite" path="M 10 75 Q 35 85, 60 75 T 100 75" />
+                    <animateMotion dur="2s" begin="1s" repeatCount="indefinite" path="M 15 80 Q 40 100, 70 90 T 105 85" />
                     <animate attributeName="opacity" values="0;1;1;0" dur="2s" begin="1s" repeatCount="indefinite" />
                   </circle>
                 </svg>
@@ -276,41 +270,42 @@ export default function Home() {
 
               {/* Processing: Optimization Pipeline - Enhanced */}
               <div className="flex flex-col items-center space-y-6">
-                <div className="text-purple-400 text-xs font-bold tracking-wider mb-2 uppercase">Processing</div>
+                <div className="text-purple-400 text-xs font-bold tracking-wider mb-2 uppercase flex items-center gap-2">
+                  <span className="text-lg">⚡</span>
+                  Processing
+                </div>
                 <div className="space-y-4 w-full">
-                  {[
-                    { name: 'Quantization', icon: '🔢', progress: 85, color: 'from-purple-500 to-pink-500' },
-                    { name: 'vLLM Compile', icon: '⚡', progress: 92, color: 'from-pink-500 to-orange-500' }
-                  ].map((step, i) => (
-                    <div key={i} className="relative group">
-                      <div 
-                        className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-2xl p-5 backdrop-blur-sm animate-slide-in-right hover:border-purple-400/50 transition-all shadow-lg hover:shadow-purple-500/20"
-                        style={{ animationDelay: `${i * 0.3}s` }}
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center space-x-3">
-                            <span className="text-2xl">{step.icon}</span>
-                            <span className="text-white text-sm font-semibold">{step.name}</span>
+                  <div className="relative group">
+                    <div 
+                      className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-2xl p-6 backdrop-blur-sm animate-slide-in-right hover:border-purple-400/50 transition-all shadow-lg hover:shadow-purple-500/20"
+                    >
+                      <div className="mb-4">
+                        <h4 className="text-white text-base font-bold mb-1">Inference Engines</h4>
+                        <p className="text-purple-200 text-sm font-medium">
+                          vLLM • TGI • TensorRT • SGLang
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <div className="text-purple-300 text-xs font-semibold mb-1">QUANTIZATION</div>
+                          <div className="text-gray-200 text-sm">
+                            INT4 • INT8 • FP8 • GPTQ • AWQ
                           </div>
-                          <span className="text-xs text-purple-400 font-mono">{step.progress}%</span>
                         </div>
-                        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full bg-gradient-to-r ${step.color} rounded-full animate-progress-bar relative`}
-                            style={{ 
-                              animationDelay: `${i * 0.5}s`,
-                              width: `${step.progress}%`
-                            }}
-                          >
-                            <div className="absolute inset-0 bg-white/30 animate-shimmer"></div>
+                        
+                        <div>
+                          <div className="text-purple-300 text-xs font-semibold mb-1">FEATURES</div>
+                          <div className="text-gray-200 text-sm">
+                            Paged Attention • Flash Attention
                           </div>
                         </div>
                       </div>
-                      {/* Enhanced floating particles */}
-                      <div className="absolute -right-3 top-1/2 w-3 h-3 bg-purple-400 rounded-full animate-float-right shadow-lg shadow-purple-400/50"></div>
-                      <div className="absolute -right-5 top-1/3 w-2 h-2 bg-pink-400 rounded-full animate-float-right" style={{ animationDelay: '0.3s' }}></div>
                     </div>
-                  ))}
+                    {/* Enhanced floating particles */}
+                    <div className="absolute -right-3 top-1/2 w-3 h-3 bg-purple-400 rounded-full animate-float-right shadow-lg shadow-purple-400/50"></div>
+                    <div className="absolute -right-5 top-1/3 w-2 h-2 bg-pink-400 rounded-full animate-float-right" style={{ animationDelay: '0.3s' }}></div>
+                  </div>
                 </div>
               </div>
 
@@ -332,9 +327,9 @@ export default function Home() {
                     </filter>
                   </defs>
                   
-                  {/* First arrow - top */}
+                  {/* First arrow - top curved */}
                   <path 
-                    d="M 10 35 Q 35 25, 60 35 T 100 35" 
+                    d="M 15 40 Q 40 20, 70 30 T 105 35" 
                     stroke="url(#arrowGrad2)" 
                     strokeWidth="6" 
                     strokeOpacity="0.3"
@@ -342,7 +337,7 @@ export default function Home() {
                     filter="url(#glow2)"
                   />
                   <path 
-                    d="M 10 35 Q 35 25, 60 35 T 100 35" 
+                    d="M 15 40 Q 40 20, 70 30 T 105 35" 
                     stroke="url(#arrowGrad2)" 
                     strokeWidth="3" 
                     strokeDasharray="8 5"
@@ -352,14 +347,14 @@ export default function Home() {
                     style={{ animationDelay: '0.2s' }}
                   />
                   <polygon 
-                    points="105,35 95,30 95,40" 
+                    points="110,35 100,30 100,40" 
                     fill="#22d3ee"
                     filter="url(#glow2)"
                   />
                   
-                  {/* Second arrow - bottom */}
+                  {/* Second arrow - bottom curved */}
                   <path 
-                    d="M 10 75 Q 35 85, 60 75 T 100 75" 
+                    d="M 15 80 Q 40 100, 70 90 T 105 85" 
                     stroke="url(#arrowGrad2)" 
                     strokeWidth="6" 
                     strokeOpacity="0.3"
@@ -367,7 +362,7 @@ export default function Home() {
                     filter="url(#glow2)"
                   />
                   <path 
-                    d="M 10 75 Q 35 85, 60 75 T 100 75" 
+                    d="M 15 80 Q 40 100, 70 90 T 105 85" 
                     stroke="url(#arrowGrad2)" 
                     strokeWidth="3" 
                     strokeDasharray="8 5"
@@ -377,28 +372,28 @@ export default function Home() {
                     style={{ animationDelay: '0.7s' }}
                   />
                   <polygon 
-                    points="105,75 95,70 95,80" 
+                    points="110,85 100,80 100,90" 
                     fill="#22d3ee"
                     filter="url(#glow2)"
                   />
                   
                   {/* Animated dots on first arrow */}
                   <circle r="4" fill="#a78bfa" filter="url(#glow2)">
-                    <animateMotion dur="2s" begin="0.2s" repeatCount="indefinite" path="M 10 35 Q 35 25, 60 35 T 100 35" />
+                    <animateMotion dur="2s" begin="0.2s" repeatCount="indefinite" path="M 15 40 Q 40 20, 70 30 T 105 35" />
                     <animate attributeName="opacity" values="0;1;1;0" dur="2s" begin="0.2s" repeatCount="indefinite" />
                   </circle>
                   <circle r="4" fill="#06b6d4" filter="url(#glow2)">
-                    <animateMotion dur="2s" begin="0.9s" repeatCount="indefinite" path="M 10 35 Q 35 25, 60 35 T 100 35" />
+                    <animateMotion dur="2s" begin="0.9s" repeatCount="indefinite" path="M 15 40 Q 40 20, 70 30 T 105 35" />
                     <animate attributeName="opacity" values="0;1;1;0" dur="2s" begin="0.9s" repeatCount="indefinite" />
                   </circle>
                   
                   {/* Animated dots on second arrow */}
                   <circle r="4" fill="#a78bfa" filter="url(#glow2)">
-                    <animateMotion dur="2s" begin="0.5s" repeatCount="indefinite" path="M 10 75 Q 35 85, 60 75 T 100 75" />
+                    <animateMotion dur="2s" begin="0.5s" repeatCount="indefinite" path="M 15 80 Q 40 100, 70 90 T 105 85" />
                     <animate attributeName="opacity" values="0;1;1;0" dur="2s" begin="0.5s" repeatCount="indefinite" />
                   </circle>
                   <circle r="4" fill="#06b6d4" filter="url(#glow2)">
-                    <animateMotion dur="2s" begin="1.2s" repeatCount="indefinite" path="M 10 75 Q 35 85, 60 75 T 100 75" />
+                    <animateMotion dur="2s" begin="1.2s" repeatCount="indefinite" path="M 15 80 Q 40 100, 70 90 T 105 85" />
                     <animate attributeName="opacity" values="0;1;1;0" dur="2s" begin="1.2s" repeatCount="indefinite" />
                   </circle>
                 </svg>
@@ -539,60 +534,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-      {/* Sign In Modal */}
-      {showSignIn && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowSignIn(false)}>
-          <div className="bg-slate-900 border border-white/10 rounded-2xl p-8 w-full max-w-md m-4" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-2xl font-bold text-white mb-6">Sign In</h2>
-            <form className="space-y-4">
-              <div>
-                <label className="block text-gray-300 mb-2">Email</label>
-                <input type="email" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500" placeholder="you@example.com" />
-              </div>
-              <div>
-                <label className="block text-gray-300 mb-2">Password</label>
-                <input type="password" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500" placeholder="••••••••" />
-              </div>
-              <button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg transition">
-                Sign In
-              </button>
-            </form>
-            <p className="text-gray-400 text-center mt-4">
-              Don't have an account? <button onClick={() => { setShowSignIn(false); setShowSignUp(true); }} className="text-blue-400 hover:underline">Sign Up</button>
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Sign Up Modal */}
-      {showSignUp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowSignUp(false)}>
-          <div className="bg-slate-900 border border-white/10 rounded-2xl p-8 w-full max-w-md m-4" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-2xl font-bold text-white mb-6">Create Account</h2>
-            <form className="space-y-4">
-              <div>
-                <label className="block text-gray-300 mb-2">Full Name</label>
-                <input type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500" placeholder="John Doe" />
-              </div>
-              <div>
-                <label className="block text-gray-300 mb-2">Email</label>
-                <input type="email" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500" placeholder="you@example.com" />
-              </div>
-              <div>
-                <label className="block text-gray-300 mb-2">Password</label>
-                <input type="password" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500" placeholder="••••••••" />
-              </div>
-              <button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg transition">
-                Create Account
-              </button>
-            </form>
-            <p className="text-gray-400 text-center mt-4">
-              Already have an account? <button onClick={() => { setShowSignUp(false); setShowSignIn(true); }} className="text-blue-400 hover:underline">Sign In</button>
-            </p>
-          </div>
-        </div>
-      )}
     </main>
   );
 }

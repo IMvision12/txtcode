@@ -13,7 +13,7 @@ interface DeploymentConfig {
   target: 'aws' | 'gcp' | 'local';
   optimizations: {
     quantization: 'none' | '4bit' | '8bit';
-    vllm: boolean;
+    engine: 'vllm' | 'tensorrt' | 'sglang' | 'tgi';
   };
 }
 
@@ -43,7 +43,7 @@ export const useDeploymentStore = create<DeploymentStore>((set) => ({
     target: 'aws',
     optimizations: {
       quantization: 'none',
-      vllm: false,
+      engine: 'vllm',
     },
   },
   progress: {
