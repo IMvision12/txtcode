@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import Logo from '@/components/Logo';
 
 export default function Home() {
@@ -185,7 +186,9 @@ export default function Home() {
                     <div className="relative group">
                       <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-yellow-500/20 rounded-2xl blur-lg opacity-50"></div>
                       <div className="relative bg-gradient-to-br from-orange-500/20 to-yellow-500/20 border-2 border-orange-500/40 rounded-2xl p-4 backdrop-blur-sm hover:scale-105 transition-all">
-                        <div className="text-3xl mb-2">☁️</div>
+                        <div className="mb-2">
+                          <Image src="/aws.png" alt="AWS" width={32} height={32} className="object-contain" />
+                        </div>
                         <div className="text-white text-xs font-bold mb-2">AWS</div>
                         <div className="absolute top-2 right-2 flex space-x-1">
                           <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-blink"></div>
@@ -213,7 +216,9 @@ export default function Home() {
                     <div className="relative group">
                       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl blur-lg opacity-50"></div>
                       <div className="relative bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-2 border-blue-500/40 rounded-2xl p-4 backdrop-blur-sm hover:scale-105 transition-all">
-                        <div className="text-3xl mb-2">🌐</div>
+                        <div className="mb-2">
+                          <Image src="/gcp.png" alt="GCP" width={32} height={32} className="object-contain" />
+                        </div>
                         <div className="text-white text-xs font-bold mb-2">GCP</div>
                         <div className="absolute top-2 right-2 flex space-x-1">
                           <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-blink"></div>
@@ -241,7 +246,9 @@ export default function Home() {
                     <div className="relative group">
                       <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl blur-lg opacity-50"></div>
                       <div className="relative bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border-2 border-cyan-500/40 rounded-2xl p-4 backdrop-blur-sm hover:scale-105 transition-all">
-                        <div className="text-3xl mb-2">⚡</div>
+                        <div className="mb-2">
+                          <Image src="/asure.png" alt="Azure" width={32} height={32} className="object-contain" />
+                        </div>
                         <div className="text-white text-xs font-bold mb-2">Azure</div>
                         <div className="absolute top-2 right-2 flex space-x-1">
                           <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-blink"></div>
@@ -265,12 +272,16 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Local */}
+                    {/* Self-Hosted */}
                     <div className="relative group">
                       <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl blur-lg opacity-50"></div>
                       <div className="relative bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-2 border-green-500/40 rounded-2xl p-4 backdrop-blur-sm hover:scale-105 transition-all">
-                        <div className="text-3xl mb-2">💻</div>
-                        <div className="text-white text-xs font-bold mb-2">Local</div>
+                        <div className="mb-2">
+                          <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z" fill="#10B981"/>
+                          </svg>
+                        </div>
+                        <div className="text-white text-xs font-bold mb-2">Self-Hosted</div>
                         <div className="absolute top-2 right-2 flex space-x-1">
                           <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-blink"></div>
                           <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-blink" style={{ animationDelay: '0.3s' }}></div>
@@ -398,7 +409,9 @@ export default function Home() {
               className="bg-black/40 backdrop-blur-sm border border-gray-800 rounded-xl p-8 hover:border-[#46C8BC]/50 transition-all group animate-fade-in"
               style={{ animationDelay: `${i * 0.1}s` }}
             >
-              <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">{feature.icon}</div>
+              <div className="w-16 h-16 bg-gradient-to-br from-[#46C8BC]/20 to-blue-500/20 border-2 border-white/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:border-[#46C8BC]/50 transition-all">
+                <span className="text-3xl">{feature.icon}</span>
+              </div>
               <h3 className="text-white text-xl font-bold mb-3">{feature.title}</h3>
               <p className="text-gray-400 leading-relaxed">{feature.desc}</p>
             </div>
