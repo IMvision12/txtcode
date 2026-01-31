@@ -49,9 +49,9 @@ export default function SignUp() {
               <Image 
                 src="/logo.png" 
                 alt="DeployLLM" 
-                width={150} 
-                height={45}
-                className="h-16 w-auto"
+                width={280} 
+                height={84}
+                className="h-20 w-auto"
                 style={{
                   filter: 'brightness(1.8) contrast(1.3) saturate(1.2) drop-shadow(0 0 15px rgba(59, 130, 246, 0.6))'
                 }}
