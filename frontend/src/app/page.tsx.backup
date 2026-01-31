@@ -77,10 +77,10 @@ export default function Home() {
               }}></div>
 
               {/* Three Column Layout with Arrows */}
-              <div className="relative flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6">
+              <div className="relative flex flex-col md:flex-row items-center justify-between gap-8 md:gap-4">
                 
                 {/* SOURCE Section */}
-                <div className="flex flex-col items-center space-y-6 flex-shrink-0">
+                <div className="flex flex-col items-center space-y-6 relative">
                   <div className="text-blue-400 text-xs font-bold tracking-wider uppercase mb-2">Source</div>
                   
                   {/* Hugging Face Card */}
@@ -110,34 +110,21 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Arrow 1 */}
-                <div className="hidden md:flex items-center justify-center flex-shrink-0 w-24">
-                  <svg width="100%" height="80" viewBox="0 0 100 80" preserveAspectRatio="xMidYMid meet">
-                    <defs>
-                      <linearGradient id="blueArrow" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#3b82f6" stopOpacity="1"/>
-                        <stop offset="100%" stopColor="#60a5fa" stopOpacity="1"/>
-                      </linearGradient>
-                      <filter id="glow">
-                        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                        <feMerge>
-                          <feMergeNode in="coloredBlur"/>
-                          <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                      </filter>
-                    </defs>
-                    {/* Simple solid arrow */}
-                    <path d="M 5 35 L 5 45 L 75 45 L 75 50 L 95 40 L 75 30 L 75 35 Z" fill="url(#blueArrow)" filter="url(#glow)"/>
-                  </svg>
+                  {/* Arrow 1: Source to Processing */}
+                  <div className="hidden md:flex absolute -right-12 lg:-right-16 top-32 items-center justify-center z-30">
+                    <div className="flex items-center w-20 lg:w-28">
+                      <div className="flex-1 h-1 bg-gradient-to-r from-blue-500 to-blue-400" style={{ boxShadow: '0 0 10px rgba(59, 130, 246, 0.6)' }}></div>
+                      <div className="w-0 h-0 border-t-[10px] border-t-transparent border-b-[10px] border-b-transparent border-l-[16px] border-l-blue-400" style={{ filter: 'drop-shadow(0 0 6px rgba(59, 130, 246, 0.8))' }}></div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* PROCESSING Section */}
-                <div className="flex flex-col items-center space-y-6 flex-shrink-0">
+                <div className="flex flex-col items-center space-y-6 relative">
                   <div className="text-purple-400 text-xs font-bold tracking-wider uppercase mb-2">Processing</div>
                   
-                  <div className="space-y-4 w-full max-w-[240px]">
+                  <div className="space-y-4 w-full">
                     {/* Quantization */}
                     <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-2xl p-4 backdrop-blur-sm">
                       <div className="flex items-center justify-between mb-2">
@@ -170,27 +157,14 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Arrow 2 */}
-                <div className="hidden md:flex items-center justify-center flex-shrink-0 w-24">
-                  <svg width="100%" height="80" viewBox="0 0 100 80" preserveAspectRatio="xMidYMid meet">
-                    <defs>
-                      <linearGradient id="purpleArrow" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#a855f7" stopOpacity="1"/>
-                        <stop offset="100%" stopColor="#c084fc" stopOpacity="1"/>
-                      </linearGradient>
-                      <filter id="glow2">
-                        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                        <feMerge>
-                          <feMergeNode in="coloredBlur"/>
-                          <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                      </filter>
-                    </defs>
-                    {/* Simple solid arrow */}
-                    <path d="M 5 35 L 5 45 L 75 45 L 75 50 L 95 40 L 75 30 L 75 35 Z" fill="url(#purpleArrow)" filter="url(#glow2)"/>
-                  </svg>
+                  {/* Arrow 2: Processing to Deployment */}
+                  <div className="hidden md:flex absolute -right-12 lg:-right-16 top-20 items-center justify-center z-30">
+                    <div className="flex items-center w-20 lg:w-28">
+                      <div className="flex-1 h-1 bg-gradient-to-r from-purple-500 to-purple-400" style={{ boxShadow: '0 0 10px rgba(168, 85, 247, 0.6)' }}></div>
+                      <div className="w-0 h-0 border-t-[10px] border-t-transparent border-b-[10px] border-b-transparent border-l-[16px] border-l-purple-400" style={{ filter: 'drop-shadow(0 0 6px rgba(168, 85, 247, 0.8))' }}></div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* DEPLOYMENT Section */}
