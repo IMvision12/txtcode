@@ -2,79 +2,144 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import Logo from '@/components/Logo';
 
 export default function Home() {
 
   return (
-    <main className="min-h-screen bg-[#0f0f0f] relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-[#0f0f0f]"></div>
+    <main className="min-h-screen bg-[#0a0a0f] relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Mesh Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0f] via-[#1a1a2e] to-[#0a0a0f]"></div>
+        
+        {/* Animated Gradient Orbs */}
+        <div className="absolute top-0 -left-40 w-[500px] h-[500px] bg-gradient-to-br from-blue-600/20 to-cyan-600/20 rounded-full blur-3xl animate-blob"></div>
+        <div className="absolute top-0 -right-40 w-[500px] h-[500px] bg-gradient-to-br from-cyan-600/20 to-teal-600/20 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-40 left-1/2 w-[500px] h-[500px] bg-gradient-to-br from-indigo-600/20 to-blue-600/20 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+        
+        {/* Subtle Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.05)_1px,transparent_1px)] bg-[size:64px_64px]"></div>
+        
+        {/* Radial Gradient Overlay */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(10,10,15,0.8)_100%)]"></div>
+      </div>
 
       {/* Navigation */}
-      <nav className="relative z-10 container mx-auto px-6 py-5 flex items-center justify-between">
-        <Logo />
-        
-        <div className="hidden md:flex items-center space-x-8 text-gray-400 text-sm">
-          <Link href="#features" className="hover:text-white transition">Features</Link>
-          <Link href="#pricing" className="hover:text-white transition">Pricing</Link>
-          <Link href="#docs" className="hover:text-white transition">Docs</Link>
-          <Link href="#community" className="hover:text-white transition">Community</Link>
-        </div>
+      <nav className="relative z-10 container mx-auto px-6 py-3">
+        <div className="flex items-center justify-between backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl px-4 py-2 shadow-2xl">
+          <Link href="/" className="flex items-center gap-2">
+            <Image 
+              src="/logo.png" 
+              alt="DeployLLM" 
+              width={200} 
+              height={60}
+              className="h-10 w-auto"
+              style={{
+                filter: 'brightness(1.8) contrast(1.3) saturate(1.2) drop-shadow(0 0 15px rgba(59, 130, 246, 0.6))'
+              }}
+              priority
+            />
+            <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+              DeployLLM
+            </span>
+          </Link>
+          
+          <div className="hidden md:flex items-center space-x-6 text-gray-300 text-sm font-medium">
+            <Link href="#features" className="hover:text-cyan-400 transition-colors">Features</Link>
+            <Link href="#pricing" className="hover:text-cyan-400 transition-colors">Pricing</Link>
+            <Link href="#docs" className="hover:text-cyan-400 transition-colors">Docs</Link>
+            <Link href="#community" className="hover:text-cyan-400 transition-colors">Community</Link>
+          </div>
 
-        <div className="flex items-center space-x-3">
-          <Link 
-            href="/signin"
-            className="text-gray-400 hover:text-white transition px-4 py-2 text-sm"
-          >
-            Sign In
-          </Link>
-          <Link 
-            href="/signup"
-            className="bg-[#46C8BC] hover:bg-[#3db5aa] text-black px-6 py-2.5 rounded-lg transition text-sm font-semibold"
-          >
-            Get Started
-          </Link>
+          <div className="flex items-center space-x-3">
+            <Link 
+              href="/signin"
+              className="text-gray-300 hover:text-white transition-colors px-3 py-1.5 text-sm font-medium"
+            >
+              Sign In
+            </Link>
+            <Link 
+              href="/signup"
+              className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-4 py-1.5 rounded-lg transition-all text-sm font-semibold shadow-lg shadow-blue-500/50 hover:shadow-xl hover:shadow-cyan-500/60 transform hover:scale-105"
+            >
+              Get Started
+            </Link>
+          </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <div className="relative z-10 container mx-auto px-6 pt-20 pb-32">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-white mb-8 leading-tight">
-              Deploy LLMs to<br />production in minutes
+      <div className="relative z-10 container mx-auto px-6 pt-16 pb-24">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            {/* Badge */}
+            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-full px-6 py-2 mb-8 backdrop-blur-xl">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+              </span>
+              <span className="text-sm font-medium bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                Deploy LLMs in seconds, not hours
+              </span>
+            </div>
+
+            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-8 leading-tight">
+              <span className="bg-gradient-to-r from-white via-blue-200 to-cyan-200 bg-clip-text text-transparent">
+                Deploy LLMs to
+              </span>
+              <br />
+              <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent animate-gradient">
+                production in minutes
+              </span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed">
-              Browse Hugging Face models, optimize with vLLM or TensorRT,<br />
+            <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+              Browse Hugging Face models, optimize with vLLM or TensorRT,
               and deploy to AWS, GCP, or your own infrastructure.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
               <Link 
                 href="/signup"
-                className="px-8 py-4 bg-[#46C8BC] hover:bg-[#3db5aa] text-black rounded-lg font-semibold transition-all text-lg"
+                className="group relative px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-semibold text-lg shadow-2xl shadow-blue-500/50 hover:shadow-cyan-500/70 transform hover:scale-105 transition-all overflow-hidden"
               >
-                Start deploying free
+                <span className="relative z-10">Start deploying free</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </Link>
               <Link 
                 href="#demo"
-                className="px-8 py-4 border-2 border-gray-700 hover:border-[#46C8BC] text-white rounded-lg font-semibold transition-all text-lg"
+                className="px-8 py-4 backdrop-blur-xl bg-white/5 border-2 border-white/10 hover:border-cyan-500/50 text-white rounded-xl font-semibold text-lg transition-all hover:bg-white/10"
               >
                 Watch demo
               </Link>
             </div>
+
+            {/* Stats */}
+            <div className="flex flex-wrap items-center justify-center gap-8 text-sm">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-gray-400">10,000+ models supported</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+                <span className="text-gray-400">99.9% uptime SLA</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                <span className="text-gray-400">Deploy in &lt;5 minutes</span>
+              </div>
+            </div>
           </div>
 
           {/* Deployment Pipeline Visualization */}
-          <div className="relative w-full mx-auto px-4">
-            <div className="relative bg-gradient-to-br from-slate-900/80 to-blue-900/40 backdrop-blur-xl border-2 border-gray-800 rounded-2xl p-8 md:p-16 overflow-hidden min-h-[550px]">
-              {/* Grid background */}
-              <div className="absolute inset-0 opacity-20" style={{
-                backgroundImage: 'linear-gradient(rgba(70, 200, 188, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(70, 200, 188, 0.3) 1px, transparent 1px)',
-                backgroundSize: '40px 40px'
-              }}></div>
+          <div className="relative w-full mx-auto">
+            <div className="relative backdrop-blur-2xl bg-gradient-to-br from-blue-900/20 via-cyan-900/20 to-blue-900/20 border-2 border-blue-500/20 rounded-3xl p-8 md:p-16 overflow-hidden shadow-2xl">
+              {/* Animated Grid background */}
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.1)_1px,transparent_1px)] bg-[size:40px_40px] animate-pulse"></div>
+              
+              {/* Glow Effects */}
+              <div className="absolute top-0 left-1/4 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl"></div>
+              <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-cyan-500/20 rounded-full blur-3xl"></div>
 
               {/* Three Column Layout with Arrows */}
               <div className="relative flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6">
@@ -84,29 +149,29 @@ export default function Home() {
                   <div className="text-blue-400 text-xs font-bold tracking-wider uppercase mb-2">Source</div>
                   
                   {/* Hugging Face Card */}
-                  <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-3xl blur-xl"></div>
-                    <div className="relative w-44 h-44 bg-gradient-to-br from-blue-600/40 to-purple-600/40 rounded-3xl border-2 border-blue-500/40 flex items-center justify-center backdrop-blur-sm shadow-xl">
-                      <div className="text-8xl">🤗</div>
+                  <div className="relative group cursor-pointer">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/40 to-cyan-500/40 rounded-3xl blur-2xl group-hover:blur-3xl transition-all"></div>
+                    <div className="relative w-48 h-48 bg-gradient-to-br from-blue-600/30 to-cyan-600/30 backdrop-blur-xl rounded-3xl border-2 border-blue-400/30 flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:border-blue-400/50 transition-all">
+                      <div className="text-9xl group-hover:scale-110 transition-transform">🤗</div>
                     </div>
                     {/* Status indicator */}
                     <div className="absolute -top-3 -right-3">
-                      <div className="w-8 h-8 bg-green-500 rounded-full animate-ping absolute"></div>
-                      <div className="w-8 h-8 bg-green-500 rounded-full relative flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">✓</span>
+                      <div className="w-10 h-10 bg-green-400 rounded-full animate-ping absolute"></div>
+                      <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-400 rounded-full relative flex items-center justify-center shadow-lg shadow-green-400/50">
+                        <span className="text-white text-sm font-bold">✓</span>
                       </div>
                     </div>
                   </div>
-                  <div className="text-white font-bold text-lg">Hugging Face</div>
+                  <div className="text-white font-bold text-xl bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Hugging Face</div>
                   
                   {/* Upload Option */}
                   <div className="relative w-full mt-4">
-                    <div className="text-gray-500 text-xs text-center mb-2">OR</div>
-                    <div className="bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border-2 border-dashed border-teal-500/30 rounded-xl p-4 backdrop-blur-sm hover:border-teal-500/50 transition-all cursor-pointer">
-                      <div className="flex flex-col items-center space-y-2">
-                        <div className="text-3xl">📤</div>
-                        <div className="text-teal-400 text-sm font-semibold">Upload Model</div>
-                        <div className="text-gray-500 text-xs">Custom models supported</div>
+                    <div className="text-gray-400 text-xs text-center mb-3 font-medium">OR</div>
+                    <div className="backdrop-blur-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-2 border-dashed border-cyan-400/30 rounded-2xl p-5 hover:border-cyan-400/60 hover:bg-cyan-500/20 transition-all cursor-pointer group">
+                      <div className="flex flex-col items-center space-y-3">
+                        <div className="text-4xl group-hover:scale-110 transition-transform">📤</div>
+                        <div className="text-cyan-400 text-sm font-bold">Upload Model</div>
+                        <div className="text-gray-400 text-xs">Custom models supported</div>
                       </div>
                     </div>
                   </div>
@@ -135,37 +200,37 @@ export default function Home() {
 
                 {/* PROCESSING Section */}
                 <div className="flex flex-col items-center space-y-6 flex-shrink-0">
-                  <div className="text-purple-400 text-xs font-bold tracking-wider uppercase mb-2">Processing</div>
+                  <div className="text-cyan-400 text-xs font-bold tracking-wider uppercase mb-2">Processing</div>
                   
-                  <div className="space-y-4 w-full max-w-[240px]">
+                  <div className="space-y-5 w-full max-w-[260px]">
                     {/* Quantization */}
-                    <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-2xl p-4 backdrop-blur-sm">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xl">🔢</span>
-                          <span className="text-white text-sm font-semibold">Quantization</span>
+                    <div className="backdrop-blur-xl bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border-2 border-blue-400/30 rounded-2xl p-5 hover:border-blue-400/60 hover:scale-105 transition-all group cursor-pointer shadow-lg">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <span className="text-2xl group-hover:scale-110 transition-transform">🔢</span>
+                          <span className="text-white text-sm font-bold">Quantization</span>
                         </div>
-                        <span className="text-xs text-purple-400 font-mono">85%</span>
+                        <span className="text-xs text-blue-300 font-mono font-bold">85%</span>
                       </div>
-                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" style={{ width: '85%' }}>
-                          <div className="h-full bg-white/30 animate-shimmer"></div>
+                      <div className="h-2.5 bg-black/30 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-500 rounded-full relative" style={{ width: '85%' }}>
+                          <div className="absolute inset-0 bg-white/30 animate-shimmer"></div>
                         </div>
                       </div>
                     </div>
 
                     {/* vLLM Compile */}
-                    <div className="bg-gradient-to-r from-pink-500/10 to-orange-500/10 border border-pink-500/30 rounded-2xl p-4 backdrop-blur-sm">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xl">⚡</span>
-                          <span className="text-white text-sm font-semibold">vLLM Compile</span>
+                    <div className="backdrop-blur-xl bg-gradient-to-r from-cyan-500/20 to-teal-500/20 border-2 border-cyan-400/30 rounded-2xl p-5 hover:border-cyan-400/60 hover:scale-105 transition-all group cursor-pointer shadow-lg">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <span className="text-2xl group-hover:scale-110 transition-transform">⚡</span>
+                          <span className="text-white text-sm font-bold">vLLM Compile</span>
                         </div>
-                        <span className="text-xs text-pink-400 font-mono">92%</span>
+                        <span className="text-xs text-cyan-300 font-mono font-bold">92%</span>
                       </div>
-                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-pink-500 to-orange-500 rounded-full" style={{ width: '92%' }}>
-                          <div className="h-full bg-white/30 animate-shimmer"></div>
+                      <div className="h-2.5 bg-black/30 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-cyan-500 via-teal-500 to-cyan-500 rounded-full relative" style={{ width: '92%' }}>
+                          <div className="absolute inset-0 bg-white/30 animate-shimmer"></div>
                         </div>
                       </div>
                     </div>
@@ -176,9 +241,9 @@ export default function Home() {
                 <div className="hidden md:flex items-center justify-center flex-shrink-0 w-24">
                   <svg width="100%" height="80" viewBox="0 0 100 80" preserveAspectRatio="xMidYMid meet">
                     <defs>
-                      <linearGradient id="purpleArrow" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#a855f7" stopOpacity="1"/>
-                        <stop offset="100%" stopColor="#c084fc" stopOpacity="1"/>
+                      <linearGradient id="cyanArrow" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#06b6d4" stopOpacity="1"/>
+                        <stop offset="100%" stopColor="#22d3ee" stopOpacity="1"/>
                       </linearGradient>
                       <filter id="glow2">
                         <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
@@ -189,7 +254,7 @@ export default function Home() {
                       </filter>
                     </defs>
                     {/* Simple solid arrow */}
-                    <path d="M 5 35 L 5 45 L 75 45 L 75 50 L 95 40 L 75 30 L 75 35 Z" fill="url(#purpleArrow)" filter="url(#glow2)"/>
+                    <path d="M 5 35 L 5 45 L 75 45 L 75 50 L 95 40 L 75 30 L 75 35 Z" fill="url(#cyanArrow)" filter="url(#glow2)"/>
                   </svg>
                 </div>
 
@@ -336,23 +401,12 @@ export default function Home() {
                   <span className="text-gray-400"><span className="text-white font-bold">12</span> Active Endpoints</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
                   <span className="text-gray-400"><span className="text-white font-bold">99.9%</span> Uptime</span>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Partner Logos */}
-      <div className="relative z-10 container mx-auto px-6 py-16 border-t border-gray-800">
-        <div className="flex flex-wrap items-center justify-center gap-12 opacity-40 grayscale">
-          <div className="text-2xl font-bold text-gray-600">NVIDIA</div>
-          <div className="text-2xl font-bold text-gray-600">AWS</div>
-          <div className="text-2xl font-bold text-gray-600">Google Cloud</div>
-          <div className="text-2xl font-bold text-gray-600">Azure</div>
-          <div className="text-2xl font-bold text-gray-600">Hugging Face</div>
         </div>
       </div>
 
@@ -370,24 +424,39 @@ export default function Home() {
           </div>
 
           <div className="space-y-8">
-            <div className="bg-black/40 backdrop-blur-sm border border-gray-800 rounded-xl p-6 hover:border-[#46C8BC]/50 transition-all">
-              <h3 className="text-white text-xl font-bold mb-3">Browse 10,000+ models</h3>
+            <div className="bg-black/40 backdrop-blur-sm border border-gray-800 rounded-xl p-6 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group cursor-pointer">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:bg-blue-500/30 transition-all">
+                  <span className="text-2xl">🔍</span>
+                </div>
+                <h3 className="text-white text-xl font-bold group-hover:text-blue-400 transition-colors">Browse 10,000+ models</h3>
+              </div>
               <p className="text-gray-400 leading-relaxed">
                 Search and filter Hugging Face models by task, size, and performance. 
                 Preview model cards and select the perfect model for your use case.
               </p>
             </div>
 
-            <div className="bg-black/40 backdrop-blur-sm border border-gray-800 rounded-xl p-6 hover:border-[#46C8BC]/50 transition-all">
-              <h3 className="text-white text-xl font-bold mb-3">Advanced inference optimization</h3>
+            <div className="bg-black/40 backdrop-blur-sm border border-gray-800 rounded-xl p-6 hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all group cursor-pointer">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center group-hover:bg-cyan-500/30 transition-all">
+                  <span className="text-2xl">⚡</span>
+                </div>
+                <h3 className="text-white text-xl font-bold group-hover:text-cyan-400 transition-colors">Advanced inference optimization</h3>
+              </div>
               <p className="text-gray-400 leading-relaxed">
                 Choose from vLLM, TensorRT-LLM, TGI, or SGLang engines. Apply INT4, INT8, 
                 FP8, GPTQ, or AWQ quantization for optimal performance.
               </p>
             </div>
 
-            <div className="bg-black/40 backdrop-blur-sm border border-gray-800 rounded-xl p-6 hover:border-[#46C8BC]/50 transition-all">
-              <h3 className="text-white text-xl font-bold mb-3">Deploy anywhere</h3>
+            <div className="bg-black/40 backdrop-blur-sm border border-gray-800 rounded-xl p-6 hover:border-teal-500/50 hover:bg-teal-500/5 transition-all group cursor-pointer">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center group-hover:bg-cyan-500/30 transition-all">
+                  <span className="text-2xl">☁️</span>
+                </div>
+                <h3 className="text-white text-xl font-bold group-hover:text-cyan-400 transition-colors">Deploy anywhere</h3>
+              </div>
               <p className="text-gray-400 leading-relaxed">
                 One-click deployment to AWS, Google Cloud, Azure, or your own GPU infrastructure. 
                 Automatic scaling and load balancing included.
@@ -418,7 +487,8 @@ export default function Home() {
                 </svg>
               ), 
               title: 'Model browser', 
-              desc: 'Search and filter 10,000+ models from Hugging Face. Preview model cards and performance metrics.' 
+              desc: 'Search and filter 10,000+ models from Hugging Face. Preview model cards and performance metrics.',
+              color: 'blue'
             },
             { 
               icon: (
@@ -427,7 +497,8 @@ export default function Home() {
                 </svg>
               ), 
               title: 'Inference engines', 
-              desc: 'Choose from vLLM, TensorRT-LLM, Text Generation Inference, or SGLang for optimal performance.' 
+              desc: 'Choose from vLLM, TensorRT-LLM, Text Generation Inference, or SGLang for optimal performance.',
+              color: 'cyan'
             },
             { 
               icon: (
@@ -438,7 +509,8 @@ export default function Home() {
                 </svg>
               ), 
               title: 'Quantization', 
-              desc: 'Apply INT4, INT8, FP8, GPTQ, or AWQ quantization to reduce memory and increase throughput.' 
+              desc: 'Apply INT4, INT8, FP8, GPTQ, or AWQ quantization to reduce memory and increase throughput.',
+              color: 'teal'
             },
             { 
               icon: (
@@ -447,7 +519,8 @@ export default function Home() {
                 </svg>
               ), 
               title: 'Multi-cloud deploy', 
-              desc: 'Deploy to AWS, Google Cloud, Azure, or your own GPU servers with one click.' 
+              desc: 'Deploy to AWS, Google Cloud, Azure, or your own GPU servers with one click.',
+              color: 'cyan'
             },
             { 
               icon: (
@@ -457,7 +530,8 @@ export default function Home() {
                 </svg>
               ), 
               title: 'Real-time monitoring', 
-              desc: 'Track latency, throughput, GPU utilization, and costs in real-time dashboards.' 
+              desc: 'Track latency, throughput, GPU utilization, and costs in real-time dashboards.',
+              color: 'green'
             },
             { 
               icon: (
@@ -471,7 +545,8 @@ export default function Home() {
                 </svg>
               ), 
               title: 'Auto-scaling', 
-              desc: 'Automatically scale replicas based on request volume and response time targets.' 
+              desc: 'Automatically scale replicas based on request volume and response time targets.',
+              color: 'orange'
             },
             { 
               icon: (
@@ -481,7 +556,8 @@ export default function Home() {
                 </svg>
               ), 
               title: 'Secure endpoints', 
-              desc: 'API keys, rate limiting, and request logging built-in for production security.' 
+              desc: 'API keys, rate limiting, and request logging built-in for production security.',
+              color: 'red'
             },
             { 
               icon: (
@@ -491,7 +567,8 @@ export default function Home() {
                 </svg>
               ), 
               title: 'OpenAI compatible', 
-              desc: 'Drop-in replacement for OpenAI API with streaming support and function calling.' 
+              desc: 'Drop-in replacement for OpenAI API with streaming support and function calling.',
+              color: 'teal'
             },
             { 
               icon: (
@@ -501,28 +578,42 @@ export default function Home() {
                 </svg>
               ), 
               title: 'Cost tracking', 
-              desc: 'Monitor GPU hours, inference costs, and optimize spending across deployments.' 
+              desc: 'Monitor GPU hours, inference costs, and optimize spending across deployments.',
+              color: 'yellow'
             },
-          ].map((feature, i) => (
-            <div 
-              key={i}
-              className="bg-black/40 backdrop-blur-sm border border-gray-800 rounded-xl p-8 hover:border-[#46C8BC]/50 transition-all group animate-fade-in"
-              style={{ animationDelay: `${i * 0.1}s` }}
-            >
-              <div className="w-16 h-16 bg-black border-2 border-white/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:border-[#46C8BC]/50 transition-all text-white">
-                {feature.icon}
+          ].map((feature, i) => {
+            const colorClasses = {
+              blue: 'hover:border-blue-500/50 hover:bg-blue-500/5 group-hover:bg-blue-500/20 group-hover:text-blue-400',
+              cyan: 'hover:border-cyan-500/50 hover:bg-cyan-500/5 group-hover:bg-cyan-500/20 group-hover:text-cyan-400',
+              teal: 'hover:border-teal-500/50 hover:bg-teal-500/5 group-hover:bg-teal-500/20 group-hover:text-teal-400',
+              green: 'hover:border-green-500/50 hover:bg-green-500/5 group-hover:bg-green-500/20 group-hover:text-green-400',
+              orange: 'hover:border-orange-500/50 hover:bg-orange-500/5 group-hover:bg-orange-500/20 group-hover:text-orange-400',
+              red: 'hover:border-red-500/50 hover:bg-red-500/5 group-hover:bg-red-500/20 group-hover:text-red-400',
+              yellow: 'hover:border-yellow-500/50 hover:bg-yellow-500/5 group-hover:bg-yellow-500/20 group-hover:text-yellow-400',
+            };
+            
+            return (
+              <div 
+                key={i}
+                className={`bg-black/40 backdrop-blur-sm border border-gray-800 rounded-xl p-8 transition-all group cursor-pointer transform hover:scale-105 ${colorClasses[feature.color as keyof typeof colorClasses].split(' ')[0]} ${colorClasses[feature.color as keyof typeof colorClasses].split(' ')[1]}`}
+                style={{ animationDelay: `${i * 0.1}s` }}
+              >
+                <div className={`w-16 h-16 bg-black border-2 border-white/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-all text-white ${colorClasses[feature.color as keyof typeof colorClasses].split(' ')[2]}`}>
+                  {feature.icon}
+                </div>
+                <h3 className={`text-white text-xl font-bold mb-3 transition-colors ${colorClasses[feature.color as keyof typeof colorClasses].split(' ')[3]}`}>{feature.title}</h3>
+                <p className="text-gray-400 leading-relaxed">{feature.desc}</p>
               </div>
-              <h3 className="text-white text-xl font-bold mb-3">{feature.title}</h3>
-              <p className="text-gray-400 leading-relaxed">{feature.desc}</p>
-            </div>
-          ))}
+            );
+          })} 
+        
         </div>
       </div>
 
       {/* Deployment Options Section */}
       <div className="relative z-10 container mx-auto px-6 py-24">
         <div className="max-w-7xl mx-auto">
-          <div className="inline-block bg-[#46C8BC]/10 text-[#46C8BC] px-4 py-2 rounded-full text-sm font-semibold mb-8">
+          <div className="inline-block bg-blue-500/10 text-blue-400 px-4 py-2 rounded-full text-sm font-semibold mb-8">
             Flexible Deployment
           </div>
           
@@ -538,11 +629,11 @@ export default function Home() {
             </div>
 
             <div className="relative">
-              <div className="relative bg-black/40 backdrop-blur-sm border-2 border-[#46C8BC]/30 rounded-2xl p-12 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#46C8BC]/5 to-transparent"></div>
+              <div className="relative bg-black/40 backdrop-blur-sm border-2 border-blue-500/30 rounded-2xl p-12 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent"></div>
                 <div className="relative flex items-center justify-center">
-                  <div className="w-64 h-48 border-4 border-[#46C8BC] rounded-lg flex items-center justify-center bg-black/60">
-                    <div className="text-6xl text-[#46C8BC] animate-pulse-slow">☁️</div>
+                  <div className="w-64 h-48 border-4 border-blue-500 rounded-lg flex items-center justify-center bg-black/60">
+                    <div className="text-6xl text-blue-400 animate-pulse-slow">☁️</div>
                   </div>
                 </div>
               </div>
@@ -567,7 +658,7 @@ export default function Home() {
             ].map((feature, i) => (
               <div 
                 key={i}
-                className="bg-black/40 backdrop-blur-sm border border-gray-800 rounded-xl p-6 hover:border-[#46C8BC]/50 transition-all"
+                className="bg-black/40 backdrop-blur-sm border border-gray-800 rounded-xl p-6 hover:border-blue-500/50 transition-all"
               >
                 <div className="w-16 h-16 bg-black border-2 border-white/20 rounded-xl flex items-center justify-center mb-4 text-white">
                   {feature.logo ? (
@@ -580,15 +671,6 @@ export default function Home() {
                 <p className="text-gray-400 text-sm leading-relaxed">{feature.desc}</p>
               </div>
             ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <Link 
-              href="/signup"
-              className="inline-block px-8 py-4 bg-[#46C8BC] hover:bg-[#3db5aa] text-black rounded-lg font-semibold transition-all text-lg"
-            >
-              Start deploying now
-            </Link>
           </div>
         </div>
       </div>
@@ -604,7 +686,7 @@ export default function Home() {
           </p>
           <Link 
             href="/signup"
-            className="inline-block px-10 py-5 bg-[#46C8BC] hover:bg-[#3db5aa] text-black rounded-lg font-bold transition-all text-xl"
+            className="inline-block px-10 py-5 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-lg font-bold transition-all text-xl shadow-lg shadow-blue-500/50 hover:shadow-cyan-500/60"
           >
             Get started free
           </Link>
