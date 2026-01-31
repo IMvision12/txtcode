@@ -121,10 +121,6 @@ export default function Home() {
                 <span className="text-gray-400">10,000+ models supported</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
-                <span className="text-gray-400">99.9% uptime SLA</span>
-              </div>
-              <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
                 <span className="text-gray-400">Deploy in &lt;5 minutes</span>
               </div>
@@ -232,14 +228,6 @@ export default function Home() {
                           <span className="px-2 py-1 bg-indigo-500/30 border border-indigo-400/40 rounded text-xs text-indigo-200 font-medium">INT8</span>
                           <span className="px-2 py-1 bg-violet-500/30 border border-violet-400/40 rounded text-xs text-violet-200 font-medium">INT4</span>
                           <span className="px-2 py-1 bg-blue-500/30 border border-blue-400/40 rounded text-xs text-blue-200 font-medium">FP8</span>
-                        </div>
-                      </div>
-                      
-                      {/* Paged Attention Badge */}
-                      <div className="mt-4 pt-4 border-t border-white/10">
-                        <div className="flex items-center justify-center space-x-2">
-                          <span className="text-green-400 text-sm">✓</span>
-                          <span className="text-gray-300 text-xs font-medium">Paged Attention Enabled</span>
                         </div>
                       </div>
                     </div>
@@ -396,22 +384,6 @@ export default function Home() {
                   </div>
                   
                   <div className="text-gray-400 text-xs mt-2">4 Active Deployments</div>
-                </div>
-              </div>
-
-              {/* Status indicators at bottom */}
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-wrap items-center justify-center gap-6 text-sm">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-gray-400"><span className="text-white font-bold">3</span> Models Deploying</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                  <span className="text-gray-400"><span className="text-white font-bold">12</span> Active Endpoints</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
-                  <span className="text-gray-400"><span className="text-white font-bold">99.9%</span> Uptime</span>
                 </div>
               </div>
             </div>
