@@ -94,7 +94,7 @@ export default function Home() {
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
-              Browse Hugging Face models, optimize with vLLM or TensorRT,
+              Browse Hugging Face models, optimize with vLLM, SGLang or TensorRT,
               and deploy to AWS, GCP, or your own infrastructure.
             </p>
 
@@ -202,35 +202,44 @@ export default function Home() {
                 <div className="flex flex-col items-center space-y-6 flex-shrink-0">
                   <div className="text-cyan-400 text-xs font-bold tracking-wider uppercase mb-2">Processing</div>
                   
-                  <div className="space-y-5 w-full max-w-[260px]">
-                    {/* Quantization */}
-                    <div className="backdrop-blur-xl bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border-2 border-blue-400/30 rounded-2xl p-5 hover:border-blue-400/60 hover:scale-105 transition-all group cursor-pointer shadow-lg">
-                      <div className="flex items-center justify-between mb-3">
+                  <div className="w-full max-w-[280px]">
+                    {/* Single Optimization Card */}
+                    <div className="backdrop-blur-xl bg-gradient-to-br from-blue-500/20 via-cyan-500/20 to-teal-500/20 border-2 border-cyan-400/30 rounded-2xl p-6 hover:border-cyan-400/60 hover:scale-105 transition-all group cursor-pointer shadow-lg">
+                      <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3">
-                          <span className="text-2xl group-hover:scale-110 transition-transform">🔢</span>
-                          <span className="text-white text-sm font-bold">Quantization</span>
+                          <span className="text-3xl group-hover:scale-110 transition-transform">⚡</span>
+                          <span className="text-white text-base font-bold">Optimization</span>
                         </div>
-                        <span className="text-xs text-blue-300 font-mono font-bold">85%</span>
+                        <span className="text-xs text-cyan-300 font-mono font-bold">Ready</span>
                       </div>
-                      <div className="h-2.5 bg-black/30 rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-500 rounded-full relative" style={{ width: '85%' }}>
-                          <div className="absolute inset-0 bg-white/30 animate-shimmer"></div>
+                      
+                      {/* Inference Engines */}
+                      <div className="mb-4">
+                        <div className="text-gray-400 text-xs font-semibold mb-2">Inference Engines:</div>
+                        <div className="flex flex-wrap gap-2">
+                          <span className="px-2 py-1 bg-blue-500/30 border border-blue-400/40 rounded text-xs text-blue-200 font-medium">vLLM</span>
+                          <span className="px-2 py-1 bg-cyan-500/30 border border-cyan-400/40 rounded text-xs text-cyan-200 font-medium">SGLang</span>
+                          <span className="px-2 py-1 bg-teal-500/30 border border-teal-400/40 rounded text-xs text-teal-200 font-medium">TensorRT</span>
                         </div>
                       </div>
-                    </div>
-
-                    {/* vLLM Compile */}
-                    <div className="backdrop-blur-xl bg-gradient-to-r from-cyan-500/20 to-teal-500/20 border-2 border-cyan-400/30 rounded-2xl p-5 hover:border-cyan-400/60 hover:scale-105 transition-all group cursor-pointer shadow-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                          <span className="text-2xl group-hover:scale-110 transition-transform">⚡</span>
-                          <span className="text-white text-sm font-bold">vLLM Compile</span>
+                      
+                      {/* Quantization Methods */}
+                      <div>
+                        <div className="text-gray-400 text-xs font-semibold mb-2">Quantization:</div>
+                        <div className="flex flex-wrap gap-2">
+                          <span className="px-2 py-1 bg-purple-500/30 border border-purple-400/40 rounded text-xs text-purple-200 font-medium">GPTQ</span>
+                          <span className="px-2 py-1 bg-pink-500/30 border border-pink-400/40 rounded text-xs text-pink-200 font-medium">AWQ</span>
+                          <span className="px-2 py-1 bg-indigo-500/30 border border-indigo-400/40 rounded text-xs text-indigo-200 font-medium">INT8</span>
+                          <span className="px-2 py-1 bg-violet-500/30 border border-violet-400/40 rounded text-xs text-violet-200 font-medium">INT4</span>
+                          <span className="px-2 py-1 bg-blue-500/30 border border-blue-400/40 rounded text-xs text-blue-200 font-medium">FP8</span>
                         </div>
-                        <span className="text-xs text-cyan-300 font-mono font-bold">92%</span>
                       </div>
-                      <div className="h-2.5 bg-black/30 rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-cyan-500 via-teal-500 to-cyan-500 rounded-full relative" style={{ width: '92%' }}>
-                          <div className="absolute inset-0 bg-white/30 animate-shimmer"></div>
+                      
+                      {/* Paged Attention Badge */}
+                      <div className="mt-4 pt-4 border-t border-white/10">
+                        <div className="flex items-center justify-center space-x-2">
+                          <span className="text-green-400 text-sm">✓</span>
+                          <span className="text-gray-300 text-xs font-medium">Paged Attention Enabled</span>
                         </div>
                       </div>
                     </div>
