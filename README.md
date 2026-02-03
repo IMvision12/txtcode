@@ -1,194 +1,167 @@
-# DeployLLM - AI Model Marketplace & Deployment Platform
+# LLM Engine 🚀
 
-Deploy optimized LLMs from Hugging Face to AWS, GCP, or locally with automatic quantization and vLLM optimization for efficient inference.
+**One interface to rule them all** - Unified inference engine for Large Language Models.
+
+Stop learning different APIs for vLLM, SGLang, TGI, TensorRT-LLM, and more. Use one simple interface for all inference engines and quantization methods.
 
 ## Features
 
-- **Model Browser**: Browse and search popular LLMs from Hugging Face
-- **Flexible Deployment**: Deploy to AWS, GCP, or local infrastructure
-- **Inference Optimization Pipeline**:
-  - BitsAndBytes quantization (4-bit/8-bit) for reduced memory usage
-  - vLLM compilation for high-throughput inference
-  - Optimized model serving configurations
-- **Real-time Monitoring**: Track deployment progress with WebSocket updates
-- **Cost Estimation**: Preview cloud deployment costs (coming soon)
+- 🎯 **Unified API** - One interface for all major inference engines
+- ⚡ **Auto-Selection** - Automatically picks the best engine for your hardware
+- 🔧 **Easy Quantization** - Simple 4-bit, 8-bit, AWQ, GPTQ support
+- 📊 **Benchmarking** - Compare performance across engines
+- 🐍 **Python & CLI** - Use as library or command-line tool
+- 🔌 **OpenAI Compatible** - Drop-in replacement for OpenAI API
+
+## Supported Engines
+
+| Engine | Status | Best For |
+|--------|--------|----------|
+| vLLM | ✅ | High throughput, large batches |
+| SGLang | ✅ | Structured generation, complex prompts |
+| TGI | ✅ | Production deployments |
+| TensorRT-LLM | 🚧 | NVIDIA GPUs, lowest latency |
+| ExLlamaV2 | 🚧 | Consumer GPUs, GPTQ models |
+| llama.cpp | 🚧 | CPU inference, Apple Silicon |
+
+## Supported Quantization
+
+- ✅ BitsAndBytes (4-bit, 8-bit)
+- ✅ AWQ (4-bit)
+- ✅ GPTQ (2-8 bit)
+- 🚧 GGUF (llama.cpp format)
+
+## Quick Start
+
+### Installation
+
+```bash
+# Basic installation
+pip install llm-engine
+
+# With specific engine
+pip install llm-engine[vllm]
+pip install llm-engine[sglang]
+
+# With all engines (large install)
+pip install llm-engine[all]
+```
+
+### Python API
+
+```python
+from llm_engine import serve
+
+# Simplest usage - auto-selects best engine
+server = serve("meta-llama/Llama-2-7b-hf")
+
+# With specific engine and quantization
+server = serve(
+    model="meta-llama/Llama-2-7b-hf",
+    engine="vllm",
+    quantization="4bit",
+    port=8000
+)
+
+# Generate text
+response = server.generate("What is the meaning of life?")
+print(response)
+```
 
 ## Architecture
 
 ```
-├── frontend/          # Next.js React application
-│   ├── src/
-│   │   ├── app/       # Next.js app router pages
-│   │   ├── components/# React components
-│   │   ├── lib/       # API and socket clients
-│   │   └── store/     # Zustand state management
-│
-├── backend/           # Node.js Express API
-│   ├── src/
-│   │   ├── routes/    # API endpoints
-│   │   ├── services/  # Business logic
-│   │   │   ├── cloud/ # AWS, GCP, Local deployment
-│   │   │   ├── deployment.ts
-│   │   │   ├── queue.ts
-│   │   │   └── huggingface.ts
-│   │   └── index.ts
-│
-└── docker-compose.yml # Container orchestration
+llm-engine/
+├── llm_engine/
+│   ├── core/           # Model loading, quantization, server management
+│   ├── engines/        # Engine adapters (vLLM, SGLang, etc.)
+│   ├── quantizers/     # Quantization methods (BitsAndBytes, AWQ, etc.)
+│   ├── utils/          # Hardware detection, benchmarking
+│   └── cli.py          # Command-line interface
 ```
 
-## Quick Start
+## Examples
 
-### Prerequisites
+### Compare Engines
 
-- Node.js 20+
-- Docker & Docker Compose
-- Redis (included in docker-compose)
-- AWS/GCP credentials (for cloud deployments)
+```python
+from llm_engine import benchmark
 
-### Installation
+results = benchmark(
+    model="mistral-7b",
+    engines=["vllm", "sglang"],
+    quantizations=["none", "4bit"],
+    prompts=["Tell me a joke", "Explain quantum physics"]
+)
 
-1. Clone the repository:
-```bash
-cd infer
+print(results.summary())
 ```
 
-2. Copy environment variables:
-```bash
-copy .env.example .env
+### Custom Configuration
+
+```python
+from llm_engine import serve, EngineConfig, QuantizationConfig
+
+server = serve(
+    model="meta-llama/Llama-2-70b-hf",
+    engine=EngineConfig(
+        name="vllm",
+        tensor_parallel=4,  # Multi-GPU
+        max_batch_size=128
+    ),
+    quantization=QuantizationConfig(
+        method="awq",
+        bits=4
+    )
+)
 ```
-
-3. Configure your credentials in `.env`:
-   - AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY for AWS
-   - GCP_PROJECT_ID and GCP_KEY_FILE for GCP
-   - HUGGINGFACE_TOKEN for model access
-
-4. Install dependencies:
-```bash
-npm install
-cd frontend && npm install
-cd ../backend && npm install
-cd ..
-```
-
-### Development
-
-Run with Docker Compose:
-```bash
-docker-compose up
-```
-
-Or run locally:
-```bash
-# Terminal 1 - Backend
-cd backend
-npm run dev
-
-# Terminal 2 - Frontend
-cd frontend
-npm run dev
-
-# Terminal 3 - Redis
-redis-server
-```
-
-Access the application:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:3001
-
-## Usage
-
-1. **Browse Models**: Search and select an LLM from the model browser
-2. **Configure Deployment**:
-   - Choose target: AWS, GCP, or Local
-   - Select inference optimizations: quantization, vLLM
-3. **Deploy**: Monitor real-time progress as your model is optimized and deployed
-4. **Access Endpoint**: Use the provided endpoint for inference
-
-## API Endpoints
-
-### Models
-- `GET /api/models/popular` - Get popular models
-- `GET /api/models/search?query=` - Search models
-
-### Deployments
-- `POST /api/deployments` - Create deployment job
-- `GET /api/deployments/:jobId` - Get deployment status
-
-### WebSocket Events
-- `deployment:progress` - Real-time progress updates
-- `deployment:complete` - Deployment success
-- `deployment:failed` - Deployment failure
-
-## Extending the Platform
-
-### Adding New Cloud Providers
-
-Create a new file in `backend/src/services/cloud/`:
-
-```typescript
-import { DeploymentConfig, ProgressCallback } from '../deployment';
-
-export async function deployToProvider(
-  config: DeploymentConfig,
-  onProgress: ProgressCallback
-) {
-  // Implementation
-}
-```
-
-### Custom Optimizations
-
-Extend `backend/src/services/deployment.ts` to add new optimization steps.
-
-### Frontend Customization
-
-Components are in `frontend/src/components/`. Modify or create new components as needed.
-
-## Tech Stack
-
-**Frontend:**
-- Next.js 14 (App Router)
-- React 18
-- TypeScript
-- Tailwind CSS
-- Zustand (state management)
-- Socket.IO Client
-- Axios
-
-**Backend:**
-- Node.js
-- Express
-- TypeScript
-- Socket.IO
-- Bull (job queue)
-- Redis
-- AWS SDK
-- Google Cloud SDK
-
-## Security Notes
-
-- Never commit `.env` files
-- Use IAM roles with minimal permissions for cloud deployments
-- Implement authentication before production use
-- Models and datasets are not persisted unnecessarily
-- Validate all user inputs
 
 ## Roadmap
 
-- [ ] User authentication and authorization
-- [ ] Cost estimation for cloud deployments
-- [ ] LangChain pipeline builder (drag-and-drop)
-- [ ] Model performance benchmarking
-- [ ] Multi-region deployment support
-- [ ] Custom model upload
-- [ ] API key management for deployed models
-- [ ] Advanced inference configurations (temperature, top-k, etc.)
-- [ ] Usage analytics and monitoring
-
-## License
-
-MIT
+- [x] Core architecture
+- [x] vLLM adapter
+- [x] SGLang adapter
+- [x] BitsAndBytes quantization
+- [ ] TensorRT-LLM adapter
+- [ ] ExLlamaV2 adapter
+- [ ] llama.cpp adapter
+- [ ] AWQ quantization
+- [ ] GPTQ quantization
+- [ ] Benchmarking tools
+- [ ] Auto-selection logic
+- [ ] OpenAI-compatible API server
 
 ## Contributing
 
-Contributions welcome! Please open an issue or submit a PR.
+Contributions welcome! Please check out our [Contributing Guide](CONTRIBUTING.md).
+
+## License
+
+Apache 2.0 - See [LICENSE](LICENSE) for details.
+
+### Third-Party Licenses
+
+This library wraps the following open-source projects:
+
+- **vLLM** - Apache 2.0 License
+- **SGLang** - Apache 2.0 License  
+- **TensorRT-LLM** - Apache 2.0 License
+- **Text Generation Inference (TGI)** - Apache 2.0 License
+- **bitsandbytes** - MIT License
+- **llama.cpp** - MIT License
+- **ExLlamaV2** - MIT License
+
+See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for full license texts.
+
+## Citation
+
+If you use LLM Engine in your research, please cite:
+
+```bibtex
+@software{llm_engine,
+  title = {LLM Engine: Unified Inference for Large Language Models},
+  author = {LLM Engine Contributors},
+  year = {2025},
+  url = {https://github.com/yourusername/llm-engine}
+}
+```
