@@ -43,9 +43,9 @@ engines = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/benchx/benchx"
+Homepage = "https://github.com/IMvision12/benchx"
 Documentation = "https://benchx.readthedocs.io"
-Repository = "https://github.com/benchx/benchx"
+Repository = "https://github.com/IMvision12/benchx"
 
 [tool.setuptools.packages.find]
 where = ["."]
