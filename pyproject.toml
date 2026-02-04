@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "benchx"
+version = "0.1.0"
+description = "The standard for comparing LLM inference engines (vLLM, SGLang, TensorRT-LLM, LMDeploy)"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "BenchX Team"}
+]
+keywords = ["llm", "inference", "benchmark", "vllm", "sglang", "tensorrt"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+dependencies = [
+    "pydantic>=2.0.0",
+    "httpx>=0.24.0",
+    "psutil>=5.9.0",
+    "pandas>=2.0.0",
+    "jinja2>=3.1.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+]
+engines = [
+    "vllm>=0.6.0",
+    "sglang>=0.3.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/benchx/benchx"
+Documentation = "https://benchx.readthedocs.io"
+Repository = "https://github.com/benchx/benchx"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["benchx*"]
+
+[tool.black]
+line-length = 100
+
+[tool.ruff]
+line-length = 100
