@@ -6,24 +6,59 @@ from benchx.engines.base import BaseEngine, EngineConfig
 
 
 class VLLMEngine(BaseEngine):
-    """Adapter for vLLM inference engine."""
+    """Adapter for vLLM inference engine.
+    
+    Supports all vLLM parameters including:
+    - Quantization: awq, gptq, marlin, gguf, bitsandbytes, fp8, etc.
+    - Parallelism: tensor_parallel_size, pipeline_parallel_size, etc.
+    - Memory: gpu_memory_utilization, swap_space, kv_cache_dtype
+    - Optimization: enable_prefix_caching, enforce_eager, etc.
+    
+    Example:
+        config = EngineConfig(
+            model="Qwen/Qwen2.5-32B-Instruct-AWQ",
+            quantization="awq",
+            gpu_memory_utilization=0.8,
+            tensor_parallel_size=2,
+            engine_kwargs={
+                "max_model_len": 4096,
+                "enable_prefix_caching": True,
+                "kv_cache_dtype": "fp8",
+                "enforce_eager": False,
+            }
+        )
+        engine = VLLMEngine(config)
+    """
     
     def initialize(self) -> None:
-        """Initialize vLLM engine."""
+        """Initialize vLLM engine with full parameter support."""
         try:
             from vllm import LLM, SamplingParams
             self.SamplingParams = SamplingParams
             
             print(f"    Loading model: {self.config.model}")
-            self.engine = LLM(
-                model=self.config.model,
-                tensor_parallel_size=self.config.tensor_parallel_size,
-                gpu_memory_utilization=self.config.gpu_memory_utilization,
-                dtype=self.config.dtype,
-                trust_remote_code=True,
-                **self.config.extra_params
-            )
+            
+            # Build vLLM initialization arguments
+            vllm_args = {
+                "model": self.config.model,
+                "tensor_parallel_size": self.config.tensor_parallel_size,
+                "pipeline_parallel_size": self.config.pipeline_parallel_size,
+                "gpu_memory_utilization": self.config.gpu_memory_utilization,
+                "dtype": self.config.dtype,
+                "quantization": self.config.quantization,
+                "trust_remote_code": self.config.trust_remote_code,
+            }
+            
+            # Add all engine-specific kwargs
+            vllm_args.update(self.config.engine_kwargs)
+            
+            # Remove None values
+            vllm_args = {k: v for k, v in vllm_args.items() if v is not None}
+            
+            self.engine = LLM(**vllm_args)
+            
             print(f"    ✓ Model loaded successfully")
+            
         except ImportError:
             raise ImportError(
                 "vLLM not installed. Install with: pip install vllm\n"
@@ -38,11 +73,18 @@ class VLLMEngine(BaseEngine):
             max_tokens=max_tokens,
             temperature=kwargs.get("temperature", 0.7),
             top_p=kwargs.get("top_p", 1.0),
+            top_k=kwargs.get("top_k", -1),
+            presence_penalty=kwargs.get("presence_penalty", 0.0),
+            frequency_penalty=kwargs.get("frequency_penalty", 0.0),
+            repetition_penalty=kwargs.get("repetition_penalty", 1.0),
+            stop=kwargs.get("stop"),
+            stop_token_ids=kwargs.get("stop_token_ids"),
+            ignore_eos=kwargs.get("ignore_eos", False),
+            logprobs=kwargs.get("logprobs"),
         )
         
         # Track timing
         start_time = time.perf_counter()
-        first_token_time = None
         
         try:
             outputs = self.engine.generate([prompt], sampling_params)
@@ -53,7 +95,6 @@ class VLLMEngine(BaseEngine):
             tokens_generated = len(output.outputs[0].token_ids)
             
             # Estimate TTFT (vLLM doesn't provide this directly in offline mode)
-            # In a real implementation, you'd use the online API or streaming
             total_time = end_time - start_time
             estimated_ttft = total_time * 0.1  # Rough estimate: 10% of total time
             
@@ -86,6 +127,14 @@ class VLLMEngine(BaseEngine):
             max_tokens=max_tokens,
             temperature=kwargs.get("temperature", 0.7),
             top_p=kwargs.get("top_p", 1.0),
+            top_k=kwargs.get("top_k", -1),
+            presence_penalty=kwargs.get("presence_penalty", 0.0),
+            frequency_penalty=kwargs.get("frequency_penalty", 0.0),
+            repetition_penalty=kwargs.get("repetition_penalty", 1.0),
+            stop=kwargs.get("stop"),
+            stop_token_ids=kwargs.get("stop_token_ids"),
+            ignore_eos=kwargs.get("ignore_eos", False),
+            logprobs=kwargs.get("logprobs"),
         )
         
         start_time = time.perf_counter()

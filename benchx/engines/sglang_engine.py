@@ -6,24 +6,58 @@ from benchx.engines.base import BaseEngine, EngineConfig
 
 
 class SGLangEngine(BaseEngine):
-    """Adapter for SGLang inference engine."""
+    """Adapter for SGLang inference engine.
+    
+    Supports all SGLang parameters including:
+    - Quantization: fp8, awq, gptq, marlin, bitsandbytes, gguf, torchao
+    - Parallelism: tp_size, pp_size, dp_size, ep_size
+    - Memory: mem_fraction_static, max_total_tokens, chunked_prefill_size
+    - Optimization: attention_backend, enable_radix_cache, speculative_algorithm
+    - Structured outputs: json_schema, regex, ebnf via sampling_params
+    
+    Example:
+        config = EngineConfig(
+            model="meta-llama/Meta-Llama-3-8B-Instruct",
+            quantization="fp8",
+            gpu_memory_utilization=0.85,  # Maps to mem_fraction_static
+            tensor_parallel_size=2,        # Maps to tp_size
+            engine_kwargs={
+                "max_running_requests": 128,
+                "chunked_prefill_size": 8192,
+                "attention_backend": "fa3",
+                "enable_lora": True,
+                "max_lora_rank": 64,
+            }
+        )
+        engine = SGLangEngine(config)
+    """
     
     def initialize(self) -> None:
-        """Initialize SGLang engine."""
+        """Initialize SGLang engine with full parameter support."""
         try:
             from sglang import Engine
             
             print(f"    Loading model: {self.config.model}")
             
+            # Build SGLang initialization arguments
+            sglang_args = {
+                "model_path": self.config.model,
+                "tp_size": self.config.tensor_parallel_size,
+                "pp_size": self.config.pipeline_parallel_size,
+                "mem_fraction_static": self.config.gpu_memory_utilization,
+                "dtype": self.config.dtype if self.config.dtype != "auto" else None,
+                "quantization": self.config.quantization,
+                "trust_remote_code": self.config.trust_remote_code,
+            }
+            
+            # Add all engine-specific kwargs
+            sglang_args.update(self.config.engine_kwargs)
+            
+            # Remove None values
+            sglang_args = {k: v for k, v in sglang_args.items() if v is not None}
+            
             # Initialize SGLang offline engine
-            self.engine = Engine(
-                model_path=self.config.model,
-                tp_size=self.config.tensor_parallel_size,
-                mem_fraction_static=self.config.gpu_memory_utilization,
-                dtype=self.config.dtype if self.config.dtype != "auto" else None,
-                trust_remote_code=True,
-                **self.config.extra_params
-            )
+            self.engine = Engine(**sglang_args)
             
             print(f"    ✓ Model loaded successfully")
             
@@ -45,7 +79,25 @@ class SGLangEngine(BaseEngine):
                 "max_new_tokens": max_tokens,
                 "temperature": kwargs.get("temperature", 0.7),
                 "top_p": kwargs.get("top_p", 1.0),
+                "top_k": kwargs.get("top_k", -1),
+                "presence_penalty": kwargs.get("presence_penalty", 0.0),
+                "frequency_penalty": kwargs.get("frequency_penalty", 0.0),
+                "repetition_penalty": kwargs.get("repetition_penalty", 1.0),
+                "stop": kwargs.get("stop"),
+                "stop_token_ids": kwargs.get("stop_token_ids"),
+                "ignore_eos": kwargs.get("ignore_eos", False),
             }
+            
+            # Add structured output constraints if provided
+            if "json_schema" in kwargs:
+                sampling_params["json_schema"] = kwargs["json_schema"]
+            if "regex" in kwargs:
+                sampling_params["regex"] = kwargs["regex"]
+            if "ebnf" in kwargs:
+                sampling_params["ebnf"] = kwargs["ebnf"]
+            
+            # Remove None values
+            sampling_params = {k: v for k, v in sampling_params.items() if v is not None}
             
             outputs = self.engine.generate(
                 [prompt],
@@ -84,7 +136,25 @@ class SGLangEngine(BaseEngine):
                 "max_new_tokens": max_tokens,
                 "temperature": kwargs.get("temperature", 0.7),
                 "top_p": kwargs.get("top_p", 1.0),
+                "top_k": kwargs.get("top_k", -1),
+                "presence_penalty": kwargs.get("presence_penalty", 0.0),
+                "frequency_penalty": kwargs.get("frequency_penalty", 0.0),
+                "repetition_penalty": kwargs.get("repetition_penalty", 1.0),
+                "stop": kwargs.get("stop"),
+                "stop_token_ids": kwargs.get("stop_token_ids"),
+                "ignore_eos": kwargs.get("ignore_eos", False),
             }
+            
+            # Add structured output constraints if provided
+            if "json_schema" in kwargs:
+                sampling_params["json_schema"] = kwargs["json_schema"]
+            if "regex" in kwargs:
+                sampling_params["regex"] = kwargs["regex"]
+            if "ebnf" in kwargs:
+                sampling_params["ebnf"] = kwargs["ebnf"]
+            
+            # Remove None values
+            sampling_params = {k: v for k, v in sampling_params.items() if v is not None}
             
             outputs = self.engine.generate(
                 prompts,

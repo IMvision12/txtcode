@@ -2,23 +2,32 @@
 
 from abc import ABC, abstractmethod
 from typing import Dict, Any, List, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
 class EngineConfig:
-    """Normalized configuration across engines."""
+    """Normalized configuration across engines.
+    
+    This config passes through all engine-specific parameters via **kwargs,
+    allowing users full control over quantization, parallelism, and optimization settings.
+    """
     
     model: str
     tensor_parallel_size: int = 1
+    pipeline_parallel_size: int = 1
     max_tokens: int = 2048
     gpu_memory_utilization: float = 0.9
     dtype: str = "auto"
-    extra_params: Dict[str, Any] = None
+    quantization: Optional[str] = None
+    trust_remote_code: bool = False
+    
+    # All other engine-specific parameters
+    engine_kwargs: Dict[str, Any] = field(default_factory=dict)
     
     def __post_init__(self):
-        if self.extra_params is None:
-            self.extra_params = {}
+        if self.engine_kwargs is None:
+            self.engine_kwargs = {}
 
 
 class BaseEngine(ABC):
@@ -52,14 +61,3 @@ class BaseEngine(ABC):
     def shutdown(self) -> None:
         """Clean up resources."""
         pass
-    
-    def normalize_config(self, raw_config: Dict[str, Any]) -> EngineConfig:
-        """Normalize engine-specific config to standard format."""
-        return EngineConfig(
-            model=raw_config.get("model"),
-            tensor_parallel_size=raw_config.get("tp", raw_config.get("tensor_parallel_size", 1)),
-            max_tokens=raw_config.get("max_tokens", 2048),
-            gpu_memory_utilization=raw_config.get("gpu_memory_utilization", 0.9),
-            dtype=raw_config.get("dtype", "auto"),
-            extra_params=raw_config.get("extra_params", {})
-        )

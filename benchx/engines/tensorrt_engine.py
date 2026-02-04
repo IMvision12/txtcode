@@ -6,23 +6,53 @@ from benchx.engines.base import BaseEngine, EngineConfig
 
 
 class TensorRTEngine(BaseEngine):
-    """Adapter for TensorRT-LLM inference engine."""
+    """Adapter for TensorRT-LLM inference engine.
+    
+    Supports all TensorRT-LLM parameters including:
+    - Quantization: fp8, int4, int8, awq, gptq
+    - Parallelism: tensor_parallel_size, pipeline_parallel_size
+    - Optimization: max_batch_size, max_input_len, max_output_len
+    
+    Example:
+        config = EngineConfig(
+            model="meta-llama/Meta-Llama-3-8B-Instruct",
+            quantization="fp8",
+            tensor_parallel_size=2,
+            engine_kwargs={
+                "max_batch_size": 128,
+                "max_input_len": 2048,
+                "max_output_len": 512,
+                "kv_cache_free_gpu_memory_fraction": 0.9,
+            }
+        )
+        engine = TensorRTEngine(config)
+    """
     
     def initialize(self) -> None:
-        """Initialize TensorRT-LLM engine."""
+        """Initialize TensorRT-LLM engine with full parameter support."""
         try:
             from tensorrt_llm import LLM, SamplingParams
             
             print(f"    Loading model: {self.config.model}")
             
+            # Build TensorRT-LLM initialization arguments
+            trt_args = {
+                "model": self.config.model,
+                "tensor_parallel_size": self.config.tensor_parallel_size,
+                "pipeline_parallel_size": self.config.pipeline_parallel_size,
+                "dtype": self.config.dtype if self.config.dtype != "auto" else None,
+                "quantization": self.config.quantization,
+                "trust_remote_code": self.config.trust_remote_code,
+            }
+            
+            # Add all engine-specific kwargs
+            trt_args.update(self.config.engine_kwargs)
+            
+            # Remove None values
+            trt_args = {k: v for k, v in trt_args.items() if v is not None}
+            
             # Initialize TensorRT-LLM using the high-level LLM API
-            self.engine = LLM(
-                model=self.config.model,
-                tensor_parallel_size=self.config.tensor_parallel_size,
-                dtype=self.config.dtype if self.config.dtype != "auto" else None,
-                trust_remote_code=True,
-                **self.config.extra_params
-            )
+            self.engine = LLM(**trt_args)
             
             self.SamplingParams = SamplingParams
             
@@ -46,6 +76,12 @@ class TensorRTEngine(BaseEngine):
                 max_tokens=max_tokens,
                 temperature=kwargs.get("temperature", 0.7),
                 top_p=kwargs.get("top_p", 1.0),
+                top_k=kwargs.get("top_k", 0),
+                repetition_penalty=kwargs.get("repetition_penalty", 1.0),
+                presence_penalty=kwargs.get("presence_penalty", 0.0),
+                frequency_penalty=kwargs.get("frequency_penalty", 0.0),
+                length_penalty=kwargs.get("length_penalty", 1.0),
+                beam_width=kwargs.get("beam_width", 1),
             )
             
             outputs = self.engine.generate(
@@ -83,6 +119,12 @@ class TensorRTEngine(BaseEngine):
                 max_tokens=max_tokens,
                 temperature=kwargs.get("temperature", 0.7),
                 top_p=kwargs.get("top_p", 1.0),
+                top_k=kwargs.get("top_k", 0),
+                repetition_penalty=kwargs.get("repetition_penalty", 1.0),
+                presence_penalty=kwargs.get("presence_penalty", 0.0),
+                frequency_penalty=kwargs.get("frequency_penalty", 0.0),
+                length_penalty=kwargs.get("length_penalty", 1.0),
+                beam_width=kwargs.get("beam_width", 1),
             )
             
             outputs = self.engine.generate(
