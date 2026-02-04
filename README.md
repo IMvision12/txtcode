@@ -11,7 +11,6 @@ BenchX is the neutral, automated benchmarking framework that lets infrastructure
 - **Cost Modeling**: Shows $/1M tokens, not just tok/s
 - **Regression Tracking**: Monitor performance across engine versions
 - **Hardware Agnostic**: Test on H100, A100, A10, RTX4090, or cloud instances
-- **Mock Engine**: Test without GPU for development and CI/CD
 
 ## Quick Start
 
@@ -20,7 +19,7 @@ from benchx import InferenceBenchmark, Workload
 
 # Define test matrix
 benchmark = InferenceBenchmark(
-    engines=["vllm", "sglang"],  # or ["mock"] for testing
+    engines=["vllm", "sglang"],
     models=["meta-llama/Meta-Llama-3-8B"],
     hardware=["H100"],
     workloads=[
@@ -57,7 +56,6 @@ See [INSTALL.md](INSTALL.md) for detailed installation instructions.
 - ✅ Cost analysis with cloud pricing
 - ✅ Performance regression detection
 - ✅ HTML/Markdown/JSON reports
-- ✅ Mock engine for testing without GPU
 
 ## Workload Types
 
@@ -94,28 +92,10 @@ Workload.tool_calling(parallel_tools=5)
 - **GPU Memory**: Memory usage across GPUs
 - **Cost**: $/1M tokens based on cloud pricing
 
-## Testing Without GPU
-
-Use the mock engine for development and CI/CD:
-
-```python
-benchmark = InferenceBenchmark(
-    engines=["mock"],  # No GPU required!
-    models=["meta-llama/Meta-Llama-3-8B"],
-    hardware=["CPU"],
-    workloads=[Workload.chat(concurrency=[1, 5, 10])],
-    metrics=["ttft", "tpot", "throughput"]
-)
-```
-
-See `examples/test_mock_engine.py` for a complete example.
-
 ## Examples
 
-- `examples/test_mock_engine.py` - Test without GPU
 - `examples/basic_benchmark.py` - Simple benchmark
 - `examples/advanced_benchmark.py` - Comprehensive test matrix
-- `examples/compare_engines.py` - Head-to-head comparison
 - `examples/cost_analysis.py` - Cost modeling
 - `examples/fairness_check.py` - Config validation
 
