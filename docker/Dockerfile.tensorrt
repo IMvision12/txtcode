@@ -1,0 +1,34 @@
+FROM nvidia/cuda:12.1.0-devel-ubuntu22.04
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+
+# Install Python and dependencies
+RUN apt-get update && apt-get install -y \
+    python3.10 \
+    python3-pip \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip
+RUN pip3 install --upgrade pip
+
+# Install TensorRT-LLM and server dependencies
+RUN pip3 install tensorrt-llm fastapi uvicorn psutil
+
+# Create app directory
+WORKDIR /app
+
+# Copy server script
+COPY servers/tensorrt_server.py /app/server.py
+
+# Expose port
+EXPOSE 8002
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD python3 -c "import requests; requests.get('http://localhost:8002/health')"
+
+# Run server
+CMD ["python3", "server.py", "--host", "0.0.0.0", "--port", "8002"]

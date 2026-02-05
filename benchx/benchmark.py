@@ -113,7 +113,7 @@ class Benchmark:
                 
                 # Extract EngineConfig parameters
                 configs[engine_name] = EngineConfig(
-                    model=config_dict.get("model"),
+                    model=config_dict.get("model", ""),
                     tensor_parallel_size=config_dict.get("tensor_parallel_size", 1),
                     pipeline_parallel_size=config_dict.get("pipeline_parallel_size", 1),
                     gpu_memory_utilization=config_dict.get("gpu_memory_utilization", 0.9),
@@ -159,7 +159,14 @@ class Benchmark:
     
     def _run_engine(self, engine_name: str, config: EngineConfig) -> Dict[str, Any]:
         """Run benchmark for a single engine."""
-        engine_class = ENGINE_REGISTRY[engine_name]
+        engine_class = ENGINE_REGISTRY.get(engine_name)
+        if not engine_class:
+            return {
+                "success": False,
+                "error": f"Unknown engine: {engine_name}",
+                "total_time": 0,
+            }
+        
         engine = engine_class(config)
         
         try:
