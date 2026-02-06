@@ -392,6 +392,14 @@ class BenchXCLI:
             print(f"Model: {global_model}")
         print(f"Prompts: {len(config.get('prompts', []))}")
         print(f"Max Tokens: {config.get('max_tokens', 256)}")
+        
+        # Warning for local mode with multiple engines
+        if use_local and len(engines) > 1:
+            print("\n⚠ WARNING: Running multiple engines in local mode")
+            print("Each engine will load the model into GPU memory sequentially.")
+            print("Make sure you have enough GPU memory or lower gpu_memory_utilization.")
+            print("Tip: Set 'gpu_memory_utilization': 0.4 for each engine to share GPU.")
+        
         print("="*80)
         
         # Check if containers are running
@@ -579,6 +587,14 @@ class BenchXCLI:
                 print(f"\n  ✓ Complete")
                 print(f"    Throughput: {throughput:.2f} tokens/sec")
                 print(f"    Avg Latency: {avg_latency:.3f}s")
+                
+                # Shutdown engine in local mode to free GPU memory for next engine
+                if use_local:
+                    try:
+                        print(f"  Shutting down {engine_name} to free GPU memory...")
+                        requests.post(f"{base_url}/shutdown", timeout=30)
+                    except:
+                        pass  # Ignore shutdown errors
             else:
                 results[engine_name] = {"error": "All requests failed"}
                 print(f"\n  ✗ All requests failed")

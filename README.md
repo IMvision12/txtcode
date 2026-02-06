@@ -408,6 +408,8 @@ BenchX CLI
 | **Production Ready** | ✅ Yes | ⚠️ Testing only |
 | **Cross-Platform** | ✅ Identical everywhere | ⚠️ Platform differences |
 | **Debugging** | `docker logs` | Direct Python logs |
+| **Multi-Engine** | Parallel execution | Sequential (one at a time) |
+| **GPU Memory** | Isolated per container | Shared, may need tuning |
 
 **Recommendation:**
 - **Production/Local Dev:** Use Docker mode
@@ -433,6 +435,41 @@ services:
 ```
 
 ## Troubleshooting
+
+### Local Mode: Multiple engines running out of memory
+
+When benchmarking multiple engines in local mode, they run sequentially but each loads the full model into GPU memory. If you see OOM errors:
+
+**Solution 1: Lower memory usage per engine**
+```json
+{
+  "model": "meta-llama/Llama-3.2-1B",
+  "engines": {
+    "vllm": {
+      "gpu_memory_utilization": 0.4
+    },
+    "sglang": {
+      "gpu_memory_utilization": 0.4
+    }
+  },
+  "prompts": ["Test"],
+  "max_tokens": 256
+}
+```
+
+**Solution 2: Benchmark one engine at a time**
+```json
+{
+  "model": "meta-llama/Llama-3.2-1B",
+  "engines": {
+    "vllm": {}
+  },
+  "prompts": ["Test"],
+  "max_tokens": 256
+}
+```
+
+Note: Docker mode doesn't have this issue as each container has isolated GPU access.
 
 ### Local Mode: Servers not responding
 
