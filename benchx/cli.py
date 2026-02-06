@@ -503,10 +503,13 @@ class BenchXCLI:
                 "tensor_parallel_size": engine_config.get("tensor_parallel_size", 1),
                 "gpu_memory_utilization": engine_config.get("gpu_memory_utilization", 0.9),
                 "dtype": engine_config.get("dtype", "auto"),
-                "quantization": engine_config.get("quantization"),
                 "trust_remote_code": engine_config.get("trust_remote_code", False),
                 "engine_kwargs": engine_config.get("engine_kwargs", {}),
             }
+            
+            # Only add quantization if specified (don't send None)
+            if engine_config.get("quantization"):
+                init_data["quantization"] = engine_config["quantization"]
             
             try:
                 response = requests.post(f"{base_url}/initialize", json=init_data, timeout=300)

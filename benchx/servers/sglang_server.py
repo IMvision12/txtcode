@@ -2,7 +2,7 @@
 
 import argparse
 import time
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import uvicorn
@@ -30,7 +30,7 @@ class InitializeRequest(BaseModel):
     tensor_parallel_size: int = 1
     gpu_memory_utilization: float = 0.9
     dtype: str = "auto"
-    quantization: str = None
+    quantization: Optional[str] = None
     trust_remote_code: bool = False
     engine_kwargs: Dict[str, Any] = {}
 
