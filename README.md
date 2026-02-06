@@ -1,35 +1,58 @@
 # BenchX - LLM Inference Benchmarking
 
-**Compare vLLM, SGLang, and TensorRT-LLM side-by-side using Docker**
+**Compare vLLM, SGLang, and TensorRT-LLM side-by-side**
 
-BenchX is a CLI tool that uses Docker containers to benchmark LLM inference engines fairly and reproducibly, solving the dependency conflict problem.
+BenchX supports two modes:
+- **Docker Mode** (Recommended) - Production-ready, reproducible, works everywhere
+- **Local Mode** - For Google Colab, quick testing, or when Docker isn't available
 
 ## Why BenchX?
 
 **Problem:** vLLM, SGLang, and TensorRT-LLM have conflicting dependencies and cannot be installed together.
 
-**Solution:** BenchX runs each engine in its own Docker container, allowing fair comparisons without dependency conflicts.
+**Solution:** BenchX isolates each engine (via Docker containers or separate venvs) for fair comparisons.
 
-**Result:** Reproducible benchmarks that work identically on any machine with Docker + GPU support.
+**Result:** Reproducible benchmarks with comprehensive metrics.
 
 ## Features
 
-- 🐳 **Docker-Based** - Each engine in isolated container
+- 🐳 **Docker Mode** - Production-ready with full isolation
+- 🐍 **Local Mode** - Works on Google Colab and systems without Docker
 - 📊 **Fair Comparisons** - Same prompts, same metrics, same conditions
-- 🔄 **Reproducible** - Identical results across all machines
-- ⚡ **Easy Setup** - Just Docker + one command
+- 🔄 **Reproducible** - Consistent results across environments
+- ⚡ **Easy Setup** - One command to get started
 - 🎯 **Comprehensive Metrics** - Throughput, latency, memory usage
 - 🌍 **Cross-Platform** - Works on Windows, Linux, Mac
 
-## Prerequisites
+## Quick Start
+
+### Choose Your Mode
+
+**Docker Mode** (Recommended for production/local machines):
+- ✅ Complete isolation
+- ✅ 100% reproducible
+- ✅ Production-ready
+- ❌ Requires Docker + NVIDIA Container Toolkit
+
+**Local Mode** (For Colab/testing):
+- ✅ Works on Google Colab
+- ✅ No Docker required
+- ✅ Faster iteration
+- ❌ Less isolated (but still works!)
+
+---
+
+## Docker Mode (Recommended)
+
+### Prerequisites
 
 - **Docker** with GPU support ([NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html))
 - **NVIDIA GPU** with CUDA support
 - **8GB+ GPU memory** (for 8B models)
 
-## Quick Start
+### Setup
 
-### 1. Install Docker
+**1. Install Docker**
 
 **Linux:**
 ```bash
@@ -49,13 +72,13 @@ sudo systemctl restart docker
 - Install [Docker Desktop](https://www.docker.com/products/docker-desktop)
 - Enable GPU support in settings
 
-### 2. Install BenchX
+**2. Install BenchX**
 
 ```bash
 pip install benchx
 ```
 
-### 3. Build Docker Images
+**3. Build Docker Images**
 
 ```bash
 # Build all engine images (takes 10-15 minutes first time)
@@ -65,27 +88,17 @@ benchx build
 benchx build --engines vllm sglang
 ```
 
-### 4. Run Benchmark
+**4. Run Benchmark**
 
 Create `benchmark.json`:
 ```json
 {
   "engines": {
-    "vllm": {
-      "model": "meta-llama/Meta-Llama-3-8B-Instruct"
-    },
-    "sglang": {
-      "model": "meta-llama/Meta-Llama-3-8B-Instruct"
-    },
-    "tensorrt": {
-      "model": "meta-llama/Meta-Llama-3-8B-Instruct"
-    }
+    "vllm": {"model": "meta-llama/Meta-Llama-3-8B-Instruct"},
+    "sglang": {"model": "meta-llama/Meta-Llama-3-8B-Instruct"},
+    "tensorrt": {"model": "meta-llama/Meta-Llama-3-8B-Instruct"}
   },
-  "prompts": [
-    "What is machine learning?",
-    "Explain quantum computing.",
-    "What are neural networks?"
-  ],
+  "prompts": ["What is AI?", "Explain ML"],
   "max_tokens": 256
 }
 ```
@@ -95,7 +108,66 @@ Run it:
 benchx run --config benchmark.json
 ```
 
-### Example Output
+---
+
+## Local Mode (For Colab/Testing)
+
+### Setup
+
+**1. Install BenchX**
+
+```bash
+pip install benchx
+```
+
+**2. Setup Environments**
+
+```bash
+# Setup all engines (creates separate venvs)
+benchx setup
+
+# Or setup specific engines
+benchx setup --engines vllm sglang
+```
+
+**3. Run Benchmark**
+
+```bash
+benchx run --local --config benchmark.json
+```
+
+### Google Colab Usage
+
+```python
+# In Colab notebook
+
+# Install BenchX
+!pip install benchx
+
+# Setup environments (takes 5-10 minutes)
+!benchx setup
+
+# Create config
+config = {
+    "engines": {
+        "vllm": {"model": "meta-llama/Meta-Llama-3-8B-Instruct"},
+        "sglang": {"model": "meta-llama/Meta-Llama-3-8B-Instruct"}
+    },
+    "prompts": ["What is AI?"],
+    "max_tokens": 256
+}
+
+import json
+with open("benchmark.json", "w") as f:
+    json.dump(config, f)
+
+# Run benchmark
+!benchx run --local --config benchmark.json
+```
+
+---
+
+## Example Output
 
 ```
 ================================================================================
@@ -115,35 +187,46 @@ Results saved to: benchmark_results.json
 
 ## CLI Commands
 
-### Build Images
+### Docker Mode
 
 ```bash
-# Build all engines
+# Build images
 benchx build
+benchx build --engines vllm
 
-# Build specific engines
-benchx build --engines vllm sglang
-```
-
-### Manage Containers
-
-```bash
-# Start containers
+# Manage containers
 benchx container start
-benchx container start --engines vllm
-
-# Stop containers
 benchx container stop
-benchx container stop --engines sglang
-
-# Check status
 benchx container status
+
+# Run benchmark
+benchx run --config benchmark.json
 ```
 
-### Run Benchmarks
+### Local Mode
 
 ```bash
-benchx run --config benchmark.json
+# Setup environments
+benchx setup
+benchx setup --engines vllm sglang
+
+# Start servers
+benchx server start vllm --local
+benchx server start sglang --local --foreground
+
+# Run benchmark
+benchx run --local --config benchmark.json
+```
+
+### Universal Commands
+
+```bash
+# Check status (works for both modes)
+benchx server status
+
+# Run benchmark (specify mode)
+benchx run --config benchmark.json          # Docker mode
+benchx run --local --config benchmark.json  # Local mode
 ```
 
 ## Configuration
@@ -286,18 +369,40 @@ benchx run --config benchmark.json
 
 ## Architecture
 
+### Docker Mode
 ```
-BenchX CLI (User's machine)
+BenchX CLI
     ↓ docker-compose
     ├─→ vLLM Container (:8000)
-    │   └─ vLLM + FastAPI server
     ├─→ SGLang Container (:8001)
-    │   └─ SGLang + FastAPI server
     └─→ TensorRT Container (:8002)
-        └─ TensorRT + FastAPI server
-
-All containers access GPU(s) via NVIDIA Container Toolkit
 ```
+
+### Local Mode
+```
+BenchX CLI
+    ↓ subprocess
+    ├─→ vLLM Server (envs/venv_vllm :8000)
+    ├─→ SGLang Server (envs/venv_sglang :8001)
+    └─→ TensorRT Server (envs/venv_tensorrt :8002)
+```
+
+## Mode Comparison
+
+| Feature | Docker Mode | Local Mode |
+|---------|-------------|------------|
+| **Isolation** | Complete (OS-level) | Python venv only |
+| **Reproducibility** | 100% | ~95% |
+| **Setup Time** | 10-15 min (first time) | 5-10 min |
+| **Disk Space** | ~20 GB | ~15 GB |
+| **Google Colab** | ❌ Not supported | ✅ Works |
+| **Production Ready** | ✅ Yes | ⚠️ Testing only |
+| **Cross-Platform** | ✅ Identical everywhere | ⚠️ Platform differences |
+| **Debugging** | `docker logs` | Direct Python logs |
+
+**Recommendation:**
+- **Production/Local Dev:** Use Docker mode
+- **Google Colab/Quick Testing:** Use Local mode
 
 ## Use Different GPUs per Engine
 

@@ -1,4 +1,9 @@
-"""BenchX CLI - Docker-based LLM inference benchmarking."""
+"""BenchX CLI - Multi-mode LLM inference benchmarking.
+
+Supports two modes:
+1. Docker mode (default) - Production-ready, reproducible
+2. Local mode - For Google Colab, quick testing
+"""
 
 import argparse
 import json
@@ -16,11 +21,13 @@ class BenchXCLI:
     def __init__(self):
         self.project_root = Path(__file__).parent.parent
         self.docker_dir = self.project_root / "docker"
+        self.envs_dir = self.project_root / "envs"
+        self.servers_dir = self.project_root / "servers"
         
         self.engines = {
-            "vllm": {"port": 8000, "container": "benchx-vllm"},
-            "sglang": {"port": 8001, "container": "benchx-sglang"},
-            "tensorrt": {"port": 8002, "container": "benchx-tensorrt"},
+            "vllm": {"port": 8000, "container": "benchx-vllm", "venv": "venv_vllm"},
+            "sglang": {"port": 8001, "container": "benchx-sglang", "venv": "venv_sglang"},
+            "tensorrt": {"port": 8002, "container": "benchx-tensorrt", "venv": "venv_tensorrt"},
         }
     
     def check_docker(self):
@@ -120,6 +127,105 @@ class BenchXCLI:
         print("  benchx run --config benchmark.json")
         return True
     
+    def setup_local(self, engines: List[str] = None):
+        """Setup local venv environments for specified engines."""
+        if engines is None:
+            engines = ["vllm", "sglang", "tensorrt"]
+        
+        print("="*80)
+        print("BenchX Local Environment Setup")
+        print("="*80)
+        print(f"\nSetting up environments for: {', '.join(engines)}\n")
+        
+        self.envs_dir.mkdir(exist_ok=True)
+        
+        for i, engine in enumerate(engines, 1):
+            print(f"[{i}/{len(engines)}] Setting up {engine}...")
+            venv_path = self.envs_dir / self.engines[engine]["venv"]
+            
+            # Create venv
+            print(f"  Creating virtual environment...")
+            subprocess.run([sys.executable, "-m", "venv", str(venv_path)], check=True)
+            
+            # Get pip path
+            if sys.platform == "win32":
+                pip = venv_path / "Scripts" / "pip.exe"
+                python = venv_path / "Scripts" / "python.exe"
+            else:
+                pip = venv_path / "bin" / "pip"
+                python = venv_path / "bin" / "python"
+            
+            # Upgrade pip
+            print(f"  Upgrading pip...")
+            subprocess.run([str(pip), "install", "--upgrade", "pip"], 
+                         check=True, capture_output=True)
+            
+            # Install dependencies
+            print(f"  Installing {engine} and dependencies...")
+            deps = ["fastapi", "uvicorn", "psutil", "torch"]
+            
+            if engine == "vllm":
+                deps.append("vllm")
+            elif engine == "sglang":
+                deps.append("sglang[all]")
+            elif engine == "tensorrt":
+                deps.append("tensorrt-llm")
+            
+            subprocess.run([str(pip), "install"] + deps, 
+                         check=True, capture_output=True)
+            
+            print(f"  ✓ {engine} environment ready\n")
+        
+        print("="*80)
+        print("Setup Complete!")
+        print("="*80)
+        print("\nYou can now run benchmarks with:")
+        print("  benchx run --local --config benchmark.json")
+        return True
+    
+    def start_local_server(self, engine: str, background: bool = True):
+        """Start a local venv-based server."""
+        if engine not in self.engines:
+            print(f"Error: Unknown engine '{engine}'")
+            return False
+        
+        venv_path = self.envs_dir / self.engines[engine]["venv"]
+        port = self.engines[engine]["port"]
+        
+        if not venv_path.exists():
+            print(f"Error: Environment for {engine} not found. Run 'benchx setup --local' first.")
+            return False
+        
+        # Get python path
+        if sys.platform == "win32":
+            python = venv_path / "Scripts" / "python.exe"
+        else:
+            python = venv_path / "bin" / "python"
+        
+        server_script = self.servers_dir / f"{engine}_server.py"
+        
+        print(f"Starting {engine} server on port {port}...")
+        
+        if background:
+            # Start in background
+            if sys.platform == "win32":
+                subprocess.Popen(
+                    [str(python), str(server_script), "--port", str(port)],
+                    creationflags=subprocess.CREATE_NEW_CONSOLE
+                )
+            else:
+                subprocess.Popen(
+                    [str(python), str(server_script), "--port", str(port)],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+            print(f"✓ {engine} server started in background")
+        else:
+            # Start in foreground
+            subprocess.run([str(python), str(server_script), "--port", str(port)])
+        
+        return True
+    
     def start_containers(self, engines: List[str] = None):
         """Start Docker containers."""
         if engines is None:
@@ -203,8 +309,13 @@ class BenchXCLI:
         print("-" * 40)
         return statuses
     
-    def run_benchmark(self, config_path: str):
-        """Run benchmark from config file."""
+    def run_benchmark(self, config_path: str, use_local: bool = False):
+        """Run benchmark from config file.
+        
+        Args:
+            config_path: Path to benchmark config JSON
+            use_local: If True, use local venv servers. If False, use Docker.
+        """
         config_file = Path(config_path)
         if not config_file.exists():
             print(f"✗ Config file not found: {config_path}")
@@ -215,8 +326,10 @@ class BenchXCLI:
         
         engines = list(config.get("engines", {}).keys())
         
+        mode = "Local (venv)" if use_local else "Docker"
+        
         print("="*80)
-        print("BenchX - Docker-Based Benchmark")
+        print(f"BenchX - {mode} Benchmark")
         print("="*80)
         print(f"\nEngines: {', '.join(engines)}")
         print(f"Prompts: {len(config.get('prompts', []))}")
@@ -230,18 +343,30 @@ class BenchXCLI:
         all_running = all("Running" in status for status in statuses.values())
         
         if not all_running:
-            print("\n⚠ Not all containers are running!")
-            print("\nStart containers with:")
-            for engine, status in statuses.items():
-                if "Running" not in status:
-                    print(f"  docker-compose up -d {engine}")
+            print(f"\n⚠ Not all {'containers' if not use_local else 'servers'} are running!")
             
-            response = input("\nStart containers automatically? (y/n): ")
+            if use_local:
+                print("\nStart servers with:")
+                for engine, status in statuses.items():
+                    if "Running" not in status:
+                        print(f"  benchx server start --local {engine}")
+            else:
+                print("\nStart containers with:")
+                for engine, status in statuses.items():
+                    if "Running" not in status:
+                        print(f"  docker-compose up -d {engine}")
+            
+            response = input(f"\nStart {'servers' if use_local else 'containers'} automatically? (y/n): ")
             if response.lower() == 'y':
                 try:
-                    self.start_containers(engines)
+                    if use_local:
+                        for engine in engines:
+                            if "Running" not in statuses[engine]:
+                                self.start_local_server(engine, background=True)
+                    else:
+                        self.start_containers(engines)
                     
-                    print("\nWaiting for containers to be ready...")
+                    print(f"\nWaiting for {'servers' if use_local else 'containers'} to be ready...")
                     time.sleep(10)
                     
                     # Check again
@@ -249,16 +374,16 @@ class BenchXCLI:
                     all_running = all("Running" in status for status in statuses.values())
                     
                     if not all_running:
-                        print("\n✗ Failed to start all containers. Exiting.")
+                        print(f"\n✗ Failed to start all {'servers' if use_local else 'containers'}. Exiting.")
                         return
                 except Exception as e:
-                    print(f"\n✗ Failed to start containers: {e}")
+                    print(f"\n✗ Failed to start {'servers' if use_local else 'containers'}: {e}")
                     return
             else:
-                print("\nExiting. Start containers manually and try again.")
+                print(f"\nExiting. Start {'servers' if use_local else 'containers'} manually and try again.")
                 return
         
-        print("\n✓ All containers ready\n")
+        print("\n✓ All {'servers' if use_local else 'containers'} ready\n")
         
         # Run benchmark
         print("Running benchmark...")
@@ -386,12 +511,21 @@ class BenchXCLI:
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        description="BenchX - Docker-based LLM inference benchmarking"
+        description="BenchX - Multi-mode LLM inference benchmarking (Docker or Local)"
     )
     
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
     
-    # Build command
+    # Setup command
+    setup_parser = subparsers.add_parser("setup", help="Setup local venv environments")
+    setup_parser.add_argument(
+        "--engines",
+        nargs="+",
+        choices=["vllm", "sglang", "tensorrt"],
+        help="Engines to setup (default: all)"
+    )
+    
+    # Build command (Docker only)
     build_parser = subparsers.add_parser("build", help="Build Docker images")
     build_parser.add_argument(
         "--engines",
@@ -400,20 +534,35 @@ def main():
         help="Engines to build (default: all)"
     )
     
-    # Container commands
-    container_parser = subparsers.add_parser("container", help="Manage containers")
+    # Server commands
+    server_parser = subparsers.add_parser("server", help="Manage servers")
+    server_subparsers = server_parser.add_subparsers(dest="server_command")
+    
+    start_parser = server_subparsers.add_parser("start", help="Start server")
+    start_parser.add_argument("engine", choices=["vllm", "sglang", "tensorrt"])
+    start_parser.add_argument("--local", action="store_true", help="Use local venv instead of Docker")
+    start_parser.add_argument("--foreground", action="store_true", help="Run in foreground")
+    
+    stop_parser = server_subparsers.add_parser("stop", help="Stop server")
+    stop_parser.add_argument("engine", choices=["vllm", "sglang", "tensorrt"])
+    stop_parser.add_argument("--local", action="store_true", help="Use local venv instead of Docker")
+    
+    server_subparsers.add_parser("status", help="Check server status")
+    
+    # Container commands (Docker only)
+    container_parser = subparsers.add_parser("container", help="Manage Docker containers")
     container_subparsers = container_parser.add_subparsers(dest="container_command")
     
-    start_parser = container_subparsers.add_parser("start", help="Start containers")
-    start_parser.add_argument(
+    cont_start_parser = container_subparsers.add_parser("start", help="Start containers")
+    cont_start_parser.add_argument(
         "--engines",
         nargs="+",
         choices=["vllm", "sglang", "tensorrt"],
         help="Engines to start (default: all)"
     )
     
-    stop_parser = container_subparsers.add_parser("stop", help="Stop containers")
-    stop_parser.add_argument(
+    cont_stop_parser = container_subparsers.add_parser("stop", help="Stop containers")
+    cont_stop_parser.add_argument(
         "--engines",
         nargs="+",
         choices=["vllm", "sglang", "tensorrt"],
@@ -425,13 +574,33 @@ def main():
     # Run command
     run_parser = subparsers.add_parser("run", help="Run benchmark")
     run_parser.add_argument("--config", required=True, help="Path to benchmark config JSON")
+    run_parser.add_argument("--local", action="store_true", help="Use local venv servers instead of Docker")
     
     args = parser.parse_args()
     
     cli = BenchXCLI()
     
-    if args.command == "build":
+    if args.command == "setup":
+        cli.setup_local(args.engines)
+    
+    elif args.command == "build":
         cli.build_images(args.engines)
+    
+    elif args.command == "server":
+        if args.server_command == "start":
+            if args.local:
+                cli.start_local_server(args.engine, background=not args.foreground)
+            else:
+                cli.start_containers([args.engine])
+        elif args.server_command == "stop":
+            if args.local:
+                print("Stop local servers manually (Ctrl+C or kill process)")
+            else:
+                cli.stop_containers([args.engine])
+        elif args.server_command == "status":
+            cli.check_containers()
+        else:
+            server_parser.print_help()
     
     elif args.command == "container":
         if args.container_command == "start":
@@ -444,7 +613,7 @@ def main():
             container_parser.print_help()
     
     elif args.command == "run":
-        cli.run_benchmark(args.config)
+        cli.run_benchmark(args.config, use_local=args.local)
     
     else:
         parser.print_help()
