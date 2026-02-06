@@ -321,11 +321,11 @@ class BenchXCLI:
         return True
     
     def check_containers(self, engines: List[str] = None):
-        """Check which containers are running."""
+        """Check which servers/containers are running."""
         if engines is None:
             engines = list(self.engines.keys())
         
-        print("\nContainer Status:")
+        print("\nServer Status:")
         print("-" * 40)
         
         statuses = {}
@@ -382,7 +382,7 @@ class BenchXCLI:
         print("="*80)
         
         # Check if containers are running
-        print("\nChecking containers...")
+        print("\nChecking servers...")
         statuses = self.check_containers(engines)
         
         all_running = all("Running" in status for status in statuses.values())
@@ -412,7 +412,7 @@ class BenchXCLI:
                         self.start_containers(engines)
                     
                     print(f"\nWaiting for {'servers' if use_local else 'containers'} to be ready...")
-                    time.sleep(10)
+                    time.sleep(15)  # Increased wait time for servers to start
                     
                     # Check again
                     statuses = self.check_containers(engines)
