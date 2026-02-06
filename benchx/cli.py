@@ -134,6 +134,25 @@ class BenchXCLI:
         if engines is None:
             engines = ["vllm", "sglang", "tensorrt"]
         
+        # Check for ninja if sglang is in engines
+        if "sglang" in engines:
+            try:
+                subprocess.run(
+                    ["ninja", "--version"],
+                    capture_output=True,
+                    check=True
+                )
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                print("⚠ WARNING: 'ninja' build tool not found!")
+                print("\nSGLang requires ninja for FlashInfer compilation.")
+                print("\nInstall ninja:")
+                print("  - Ubuntu/Debian: sudo apt-get install ninja-build")
+                print("  - macOS: brew install ninja")
+                print("  - Windows: choco install ninja")
+                print("  - Google Colab: !apt-get install -y ninja-build")
+                print("\nContinuing anyway, but SGLang may fail to initialize...")
+                time.sleep(3)
+        
         print("="*80)
         print("BenchX Local Environment Setup")
         print("="*80)

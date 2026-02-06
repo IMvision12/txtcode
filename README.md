@@ -142,6 +142,9 @@ benchx run local --config benchmark.json
 ```python
 # In Colab notebook
 
+# Install system dependencies (required for SGLang)
+!apt-get update && apt-get install -y ninja-build
+
 # Install BenchX
 !pip install benchx
 
@@ -781,6 +784,7 @@ benchx server logs sglang
 
 Common issues:
 - **Missing dependencies**: Check logs for import errors
+- **Missing build tools (SGLang)**: SGLang needs `ninja` for FlashInfer compilation
 - **CUDA not available**: Ensure GPU drivers are installed
 - **Port conflicts**: Another process using ports 8000-8002
 - **Slow startup**: Servers can take 30-60s to import heavy libraries
@@ -789,6 +793,47 @@ Manual health check:
 ```bash
 curl http://localhost:8000/health
 curl http://localhost:8001/health
+```
+
+### SGLang: Missing ninja build tool
+
+**Error:**
+```
+FileNotFoundError: [Errno 2] No such file or directory: 'ninja'
+```
+
+**Solution (Google Colab):**
+```bash
+# Install ninja
+!apt-get update && apt-get install -y ninja-build
+
+# Rebuild SGLang environment
+benchx build local --engines sglang
+```
+
+**Solution (Linux):**
+```bash
+# Ubuntu/Debian
+sudo apt-get install ninja-build
+
+# CentOS/RHEL
+sudo yum install ninja-build
+
+# Arch
+sudo pacman -S ninja
+```
+
+**Solution (macOS):**
+```bash
+brew install ninja
+```
+
+**Solution (Windows):**
+```bash
+# Using chocolatey
+choco install ninja
+
+# Or download from: https://github.com/ninja-build/ninja/releases
 ```
 
 ### Large Models: Out of Memory
