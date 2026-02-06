@@ -145,7 +145,22 @@ class BenchXCLI:
             
             # Create venv
             print(f"  Creating virtual environment...")
-            subprocess.run([sys.executable, "-m", "venv", str(venv_path)], check=True)
+            try:
+                import venv
+                venv.create(str(venv_path), with_pip=True)
+            except Exception as e:
+                print(f"  ✗ Failed to create venv: {e}")
+                print(f"  Trying alternative method...")
+                try:
+                    subprocess.run(
+                        [sys.executable, "-m", "venv", str(venv_path)],
+                        check=True,
+                        capture_output=True,
+                        text=True
+                    )
+                except subprocess.CalledProcessError as e:
+                    print(f"  ✗ Failed: {e.stderr}")
+                    continue
             
             # Get pip path
             if sys.platform == "win32":
@@ -157,8 +172,15 @@ class BenchXCLI:
             
             # Upgrade pip
             print(f"  Upgrading pip...")
-            subprocess.run([str(pip), "install", "--upgrade", "pip"], 
-                         check=True, capture_output=True)
+            try:
+                subprocess.run(
+                    [str(pip), "install", "--upgrade", "pip"],
+                    check=True,
+                    capture_output=True,
+                    text=True
+                )
+            except subprocess.CalledProcessError as e:
+                print(f"  Warning: Could not upgrade pip: {e.stderr}")
             
             # Install dependencies
             print(f"  Installing {engine} and dependencies...")
@@ -171,8 +193,18 @@ class BenchXCLI:
             elif engine == "tensorrt":
                 deps.append("tensorrt-llm")
             
-            subprocess.run([str(pip), "install"] + deps, 
-                         check=True, capture_output=True)
+            try:
+                subprocess.run(
+                    [str(pip), "install"] + deps,
+                    check=True,
+                    capture_output=True,
+                    text=True
+                )
+            except subprocess.CalledProcessError as e:
+                print(f"  ✗ Installation failed: {e.stderr}")
+                continue
+            
+            print(f"  ✓ {engine} environment ready\n")
             
             print(f"  ✓ {engine} environment ready\n")
         
