@@ -376,6 +376,262 @@ benchx run local --config benchmark.json   # Local mode
 }
 ```
 
+## Large Model Support
+
+BenchX supports very large models (70B, 405B+) through:
+
+### Important: GPU Memory Sharing Issue
+
+**The Problem:**
+- In **local mode**, all engines share the same GPUs
+- When vLLM loads a 1B model, it uses most GPU memory
+- SGLang then fails with OOM when trying to load
+- For 405B models, this is **much worse** - each engine needs 8+ GPUs
+
+**The Solution:**
+
+#### Local Mode: Sequential Benchmarking (Automatic)
+
+BenchX automatically shuts down each engine after benchmarking to free GPU memory:
+
+```bash
+# This works - engines run one at a time
+benchx run local --config 405b_model.json
+```
+
+**What happens:**
+1. vLLM loads on GPUs 0-7, runs benchmark, shuts down
+2. GPU memory is freed
+3. SGLang loads on GPUs 0-7, runs benchmark, shuts down
+
+**Limitation:** You can't benchmark engines in parallel in local mode.
+
+#### Docker Mode: Parallel with GPU Partitioning
+
+For parallel benchmarking of large models, use Docker with GPU partitioning:
+
+**Step 1:** Use the 405B docker-compose file:
+```bash
+cd benchx/docker
+cp docker-compose.405b.yml docker-compose.yml
+```
+
+**Step 2:** This allocates GPUs:
+- vLLM: GPUs 0-7
+- SGLang: GPUs 8-15
+
+**Step 3:** Run benchmark:
+```bash
+benchx run docker --config examples/405b_model.json
+```
+
+**What happens:**
+- Both engines load simultaneously on different GPU sets
+- No memory conflicts
+- True parallel benchmarking
+
+### 1. Tensor Parallelism (Multi-GPU)
+
+Split model across multiple GPUs:
+
+```json
+{
+  "model": "meta-llama/Meta-Llama-3.1-405B-Instruct",
+  "engines": {
+    "vllm": {
+      "tensor_parallel_size": 8,
+      "gpu_memory_utilization": 0.95
+    },
+    "sglang": {
+      "tensor_parallel_size": 8,
+      "gpu_memory_utilization": 0.95
+    }
+  },
+  "prompts": ["What is AI?"],
+  "max_tokens": 512
+}
+```
+
+**Notes:**
+- `tensor_parallel_size` must divide evenly into available GPUs
+- Each engine needs the same number of GPUs
+- In Docker mode, use `--gpus all` or specify GPU IDs
+
+### 2. Quantization
+
+Reduce memory footprint with quantization:
+
+**AWQ (4-bit):**
+```json
+{
+  "engines": {
+    "vllm": {
+      "model": "hugging-quants/Meta-Llama-3.1-70B-Instruct-AWQ-INT4",
+      "quantization": "awq",
+      "tensor_parallel_size": 2
+    }
+  }
+}
+```
+
+**FP8:**
+```json
+{
+  "engines": {
+    "vllm": {
+      "model": "neuralmagic/Meta-Llama-3.1-70B-Instruct-FP8",
+      "quantization": "fp8",
+      "tensor_parallel_size": 2
+    }
+  }
+}
+```
+
+**GPTQ (4-bit):**
+```json
+{
+  "engines": {
+    "vllm": {
+      "model": "TheBloke/Llama-2-70B-GPTQ",
+      "quantization": "gptq",
+      "tensor_parallel_size": 2
+    }
+  }
+}
+```
+
+### 3. Pipeline Parallelism (Coming Soon)
+
+For extremely large models, pipeline parallelism splits layers across GPUs:
+
+```json
+{
+  "engines": {
+    "vllm": {
+      "model": "meta-llama/Meta-Llama-3.1-405B-Instruct",
+      "tensor_parallel_size": 4,
+      "pipeline_parallel_size": 2,
+      "gpu_memory_utilization": 0.95
+    }
+  }
+}
+```
+
+### Memory Requirements
+
+Approximate GPU memory needed (FP16/BF16):
+
+| Model Size | No Quant | AWQ/GPTQ (4-bit) | FP8 | Recommended GPUs | Notes |
+|------------|----------|------------------|-----|------------------|-------|
+| 7B-8B | 16 GB | 6 GB | 8 GB | 1x A100/H100 | ✅ Works in local mode |
+| 13B | 26 GB | 10 GB | 13 GB | 1x A100/H100 | ✅ Works in local mode |
+| 30B-34B | 60 GB | 20 GB | 30 GB | 1x A100 80GB or 2x A100 40GB | ⚠️ Sequential only in local |
+| 70B | 140 GB | 40 GB | 70 GB | 2x A100 80GB or 4x A100 40GB | ⚠️ Sequential only in local |
+| 405B | 810 GB | 220 GB | 405 GB | 8x H100 or 16x A100 | ⚠️ Sequential only in local, Docker needs 16 GPUs for parallel |
+
+**Key Points:**
+- **Local mode**: Always sequential, engines share GPUs
+- **Docker mode**: Can run parallel if you have 2x the GPUs (one set per engine)
+- **Quantization**: Reduces memory by 2-4x, enabling larger models on fewer GPUs
+
+### Example: 70B Model Comparison
+
+**Local Mode (Sequential):**
+```bash
+# Benchmark vLLM first
+benchx run local --config examples/large_model_70b.json
+```
+
+Config with one engine at a time:
+```json
+{
+  "model": "meta-llama/Meta-Llama-3.1-70B-Instruct",
+  "engines": {
+    "vllm": {
+      "tensor_parallel_size": 4,
+      "dtype": "bfloat16",
+      "gpu_memory_utilization": 0.9
+    }
+  },
+  "prompts": ["Explain quantum computing"],
+  "max_tokens": 512
+}
+```
+
+**Docker Mode (Parallel with 8 GPUs):**
+
+Edit `docker/docker-compose.yml`:
+```yaml
+services:
+  vllm:
+    environment:
+      - CUDA_VISIBLE_DEVICES=0,1,2,3  # GPUs 0-3
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 4
+              capabilities: [gpu]
+  
+  sglang:
+    environment:
+      - CUDA_VISIBLE_DEVICES=4,5,6,7  # GPUs 4-7
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 4
+              capabilities: [gpu]
+```
+
+Config with both engines:
+```json
+{
+  "model": "meta-llama/Meta-Llama-3.1-70B-Instruct",
+  "engines": {
+    "vllm": {
+      "tensor_parallel_size": 4,
+      "dtype": "bfloat16",
+      "gpu_memory_utilization": 0.9
+    },
+    "sglang": {
+      "tensor_parallel_size": 4,
+      "dtype": "bfloat16",
+      "gpu_memory_utilization": 0.9
+    }
+  },
+  "prompts": ["Explain quantum computing"],
+  "max_tokens": 512
+}
+```
+
+Run:
+```bash
+benchx run docker --config examples/large_model_70b.json
+```
+
+### Example: 405B Model
+
+**Requires 16 GPUs for parallel Docker benchmarking:**
+
+```bash
+# Use the 405B docker-compose configuration
+cd benchx/docker
+cp docker-compose.405b.yml docker-compose.yml
+
+# Build and run
+cd ..
+benchx build docker
+benchx run docker --config examples/405b_model.json
+```
+
+**Or use local mode (sequential, only 8 GPUs needed):**
+```bash
+benchx run local --config examples/405b_model.json
+```
+
 ## Architecture
 
 ### Docker Mode
@@ -434,6 +690,50 @@ services:
       - CUDA_VISIBLE_DEVICES=2  # GPU 2
 ```
 
+### Multi-GPU for Large Models
+
+For models requiring multiple GPUs (70B, 405B), allocate GPUs to each engine:
+
+```yaml
+services:
+  vllm:
+    environment:
+      - CUDA_VISIBLE_DEVICES=0,1,2,3  # GPUs 0-3 for vLLM
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 4
+              capabilities: [gpu]
+  
+  sglang:
+    environment:
+      - CUDA_VISIBLE_DEVICES=4,5,6,7  # GPUs 4-7 for SGLang
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 4
+              capabilities: [gpu]
+```
+
+Then in your config:
+```json
+{
+  "model": "meta-llama/Meta-Llama-3.1-70B-Instruct",
+  "engines": {
+    "vllm": {
+      "tensor_parallel_size": 4
+    },
+    "sglang": {
+      "tensor_parallel_size": 4
+    }
+  }
+}
+```
+
 ## Troubleshooting
 
 ### Local Mode: Multiple engines running out of memory
@@ -490,6 +790,70 @@ Manual health check:
 curl http://localhost:8000/health
 curl http://localhost:8001/health
 ```
+
+### Large Models: Out of Memory
+
+**Symptoms:**
+- "CUDA out of memory" errors
+- Container/server crashes during initialization
+- Model fails to load
+
+**Solutions:**
+
+1. **Use Quantization:**
+```json
+{
+  "engines": {
+    "vllm": {
+      "model": "hugging-quants/Meta-Llama-3.1-70B-Instruct-AWQ-INT4",
+      "quantization": "awq",
+      "tensor_parallel_size": 2
+    }
+  }
+}
+```
+
+2. **Increase Tensor Parallelism:**
+```json
+{
+  "engines": {
+    "vllm": {
+      "model": "meta-llama/Meta-Llama-3.1-70B-Instruct",
+      "tensor_parallel_size": 8,
+      "gpu_memory_utilization": 0.95
+    }
+  }
+}
+```
+
+3. **Lower Memory Utilization:**
+```json
+{
+  "engines": {
+    "vllm": {
+      "model": "meta-llama/Meta-Llama-3.1-70B-Instruct",
+      "tensor_parallel_size": 4,
+      "gpu_memory_utilization": 0.85
+    }
+  }
+}
+```
+
+4. **Check GPU Memory:**
+```bash
+nvidia-smi
+```
+
+Make sure you have enough total GPU memory for the model size (see Large Model Support section).
+
+### Large Models: Slow Initialization
+
+Large models (70B+) can take 2-5 minutes to initialize. This is normal. The benchmark will wait up to 5 minutes (300 seconds) for initialization.
+
+If initialization times out:
+- Increase timeout in config (not yet supported, coming soon)
+- Check logs for actual errors
+- Verify model is downloading correctly (first run downloads model)
 
 ### Docker not found
 

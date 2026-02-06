@@ -1,0 +1,60 @@
+version: '3.8'
+
+# Configuration for benchmarking 405B models with 16 GPUs
+# GPUs 0-7: vLLM
+# GPUs 8-15: SGLang
+
+services:
+  vllm:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.vllm
+    image: benchx/vllm:latest
+    container_name: benchx-vllm
+    ports:
+      - "8000:8000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 8
+              capabilities: [gpu]
+    environment:
+      - CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 300s  # 5 minutes for large model initialization
+
+  sglang:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.sglang
+    image: benchx/sglang:latest
+    container_name: benchx-sglang
+    ports:
+      - "8001:8001"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 8
+              capabilities: [gpu]
+    environment:
+      - CUDA_VISIBLE_DEVICES=8,9,10,11,12,13,14,15
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import requests; requests.get('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 300s  # 5 minutes for large model initialization
+
+networks:
+  default:
+    name: benchx-network
