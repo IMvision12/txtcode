@@ -21,7 +21,8 @@ class BenchXCLI:
     def __init__(self):
         self.project_root = Path(__file__).parent.parent
         self.docker_dir = self.project_root / "docker"
-        self.envs_dir = self.project_root / "envs"
+        # Use current working directory for envs, not package directory
+        self.envs_dir = Path.cwd() / "envs"
         self.servers_dir = self.project_root / "servers"
         
         self.engines = {
@@ -147,13 +148,14 @@ class BenchXCLI:
             print(f"  Creating virtual environment...")
             try:
                 import venv
-                venv.create(str(venv_path), with_pip=True)
+                # Use copies instead of symlinks for Colab compatibility
+                venv.create(str(venv_path), with_pip=True, symlinks=False)
             except Exception as e:
                 print(f"  ✗ Failed to create venv: {e}")
                 print(f"  Trying alternative method...")
                 try:
                     subprocess.run(
-                        [sys.executable, "-m", "venv", str(venv_path)],
+                        [sys.executable, "-m", "venv", "--copies", str(venv_path)],
                         check=True,
                         capture_output=True,
                         text=True
