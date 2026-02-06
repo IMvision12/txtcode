@@ -146,31 +146,37 @@ class BenchXCLI:
             
             # Create venv
             print(f"  Creating virtual environment...")
-            try:
-                import venv
-                # Use copies instead of symlinks for Colab compatibility
-                venv.create(str(venv_path), with_pip=True, symlinks=False)
-            except Exception as e:
-                print(f"  ✗ Failed to create venv: {e}")
-                print(f"  Trying alternative method...")
-                try:
-                    subprocess.run(
-                        [sys.executable, "-m", "venv", "--copies", str(venv_path)],
-                        check=True,
-                        capture_output=True,
-                        text=True
-                    )
-                except subprocess.CalledProcessError as e:
-                    print(f"  ✗ Failed: {e.stderr}")
-                    continue
             
-            # Get pip path
+            # Get pip/python paths
             if sys.platform == "win32":
                 pip = venv_path / "Scripts" / "pip.exe"
                 python = venv_path / "Scripts" / "python.exe"
             else:
                 pip = venv_path / "bin" / "pip"
                 python = venv_path / "bin" / "python"
+            
+            try:
+                # Try without pip first (for Colab compatibility)
+                import venv
+                venv.create(str(venv_path), with_pip=False, symlinks=False)
+                
+                # Install pip manually using get-pip.py
+                print(f"  Installing pip...")
+                import urllib.request
+                get_pip_url = "https://bootstrap.pypa.io/get-pip.py"
+                get_pip_path = venv_path / "get-pip.py"
+                urllib.request.urlretrieve(get_pip_url, get_pip_path)
+                subprocess.run(
+                    [str(python), str(get_pip_path)],
+                    check=True,
+                    capture_output=True,
+                    text=True
+                )
+                get_pip_path.unlink()  # Clean up
+                
+            except Exception as e:
+                print(f"  ✗ Failed to create venv: {e}")
+                continue
             
             # Upgrade pip
             print(f"  Upgrading pip...")
