@@ -366,12 +366,17 @@ class BenchXCLI:
         
         engines = list(config.get("engines", {}).keys())
         
+        # Get model - can be at top level or per-engine
+        global_model = config.get("model")
+        
         mode = "Local (venv)" if use_local else "Docker"
         
         print("="*80)
         print(f"BenchX - {mode} Benchmark")
         print("="*80)
         print(f"\nEngines: {', '.join(engines)}")
+        if global_model:
+            print(f"Model: {global_model}")
         print(f"Prompts: {len(config.get('prompts', []))}")
         print(f"Max Tokens: {config.get('max_tokens', 256)}")
         print("="*80)
@@ -431,15 +436,25 @@ class BenchXCLI:
         
         results = {}
         
+        # Get global model if specified
+        global_model = config.get("model")
+        
         for engine_name, engine_config in config["engines"].items():
             print(f"\nTesting {engine_name}...")
             port = self.engines[engine_name]["port"]
             base_url = f"http://localhost:{port}"
             
+            # Get model - use engine-specific if provided, otherwise use global
+            model = engine_config.get("model", global_model)
+            if not model:
+                print(f"  ✗ No model specified for {engine_name}")
+                results[engine_name] = {"error": "No model specified"}
+                continue
+            
             # Initialize
             print(f"  Initializing...")
             init_data = {
-                "model": engine_config["model"],
+                "model": model,
                 "tensor_parallel_size": engine_config.get("tensor_parallel_size", 1),
                 "gpu_memory_utilization": engine_config.get("gpu_memory_utilization", 0.9),
                 "dtype": engine_config.get("dtype", "auto"),

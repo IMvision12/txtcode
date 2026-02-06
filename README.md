@@ -93,10 +93,11 @@ benchx build docker --engines vllm sglang
 Create `benchmark.json`:
 ```json
 {
+  "model": "meta-llama/Meta-Llama-3-8B-Instruct",
   "engines": {
-    "vllm": {"model": "meta-llama/Meta-Llama-3-8B-Instruct"},
-    "sglang": {"model": "meta-llama/Meta-Llama-3-8B-Instruct"},
-    "tensorrt": {"model": "meta-llama/Meta-Llama-3-8B-Instruct"}
+    "vllm": {},
+    "sglang": {},
+    "tensorrt": {}
   },
   "prompts": ["What is AI?", "Explain ML"],
   "max_tokens": 256
@@ -149,9 +150,10 @@ benchx run local --config benchmark.json
 
 # Create config
 config = {
+    "model": "meta-llama/Meta-Llama-3-8B-Instruct",
     "engines": {
-        "vllm": {"model": "meta-llama/Meta-Llama-3-8B-Instruct"},
-        "sglang": {"model": "meta-llama/Meta-Llama-3-8B-Instruct"}
+        "vllm": {},
+        "sglang": {}
     },
     "prompts": ["What is AI?"],
     "max_tokens": 256
@@ -235,62 +237,65 @@ benchx run local --config benchmark.json   # Local mode
 
 ```json
 {
+  "model": "meta-llama/Meta-Llama-3-8B-Instruct",
   "engines": {
-    "vllm": {
-      "model": "meta-llama/Meta-Llama-3-8B-Instruct"
-    }
+    "vllm": {},
+    "sglang": {},
+    "tensorrt": {}
   },
   "prompts": ["What is AI?"],
   "max_tokens": 256
 }
 ```
 
-### Advanced Config
+### Advanced Config (Per-Engine Customization)
+
+```json
+{
+  "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "engines": {
+    "vllm": {
+      "quantization": "awq",
+      "tensor_parallel_size": 2,
+      "gpu_memory_utilization": 0.8,
+      "engine_kwargs": {
+        "max_model_len": 4096,
+        "enable_prefix_caching": true
+      }
+    },
+    "sglang": {
+      "quantization": "fp8",
+      "tensor_parallel_size": 2,
+      "engine_kwargs": {
+        "attention_backend": "fa3"
+      }
+    },
+    "tensorrt": {
+      "quantization": "fp8",
+      "tensor_parallel_size": 2
+    }
+  },
+  "prompts": ["Write a story:", "Explain AI:"],
+  "max_tokens": 512,
+  "temperature": 0.8
+}
+```
+
+### Different Models Per Engine
 
 ```json
 {
   "engines": {
     "vllm": {
-      "model": "Qwen/Qwen2.5-32B-Instruct-AWQ",
-      "quantization": "awq",
-      "tensor_parallel_size": 2,
-      "gpu_memory_utilization": 0.8,
-      "dtype": "auto",
-      "trust_remote_code": false,
-      "engine_kwargs": {
-        "max_model_len": 4096,
-        "enable_prefix_caching": true,
-        "kv_cache_dtype": "fp8"
-      }
+      "model": "meta-llama/Meta-Llama-3-8B-Instruct"
     },
     "sglang": {
-      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
-      "quantization": "fp8",
-      "tensor_parallel_size": 2,
-      "gpu_memory_utilization": 0.85,
-      "engine_kwargs": {
-        "attention_backend": "fa3",
-        "max_running_requests": 128
-      }
-    },
-    "tensorrt": {
-      "model": "meta-llama/Meta-Llama-3-8B-Instruct",
-      "quantization": "fp8",
-      "tensor_parallel_size": 2,
-      "engine_kwargs": {
-        "max_batch_size": 128,
-        "max_input_len": 2048
-      }
+      "model": "Qwen/Qwen2.5-32B-Instruct-AWQ",
+      "quantization": "awq"
     }
   },
-  "prompts": [
-    "Write a story about AI:",
-    "Explain neural networks:"
-  ],
-  "max_tokens": 512,
-  "temperature": 0.8,
-  "top_p": 0.95,
-  "output_file": "results.json"
+  "prompts": ["What is AI?"],
+  "max_tokens": 256
 }
 ```
 
