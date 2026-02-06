@@ -46,6 +46,9 @@ Repository = "https://github.com/IMvision12/benchx"
 where = ["."]
 include = ["benchx*"]
 
+[tool.setuptools.package-data]
+benchx = ["servers/*.py", "docker/*"]
+
 [tool.black]
 line-length = 100
 

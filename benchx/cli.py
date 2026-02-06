@@ -19,11 +19,12 @@ class BenchXCLI:
     """CLI for managing Docker-based benchmarks."""
     
     def __init__(self):
-        self.project_root = Path(__file__).parent.parent
-        self.docker_dir = self.project_root / "docker"
-        # Use current working directory for envs, not package directory
+        # All resources are now inside the benchx package
+        self.package_dir = Path(__file__).parent
+        self.docker_dir = self.package_dir / "docker"
+        self.servers_dir = self.package_dir / "servers"
+        # Use current working directory for envs
         self.envs_dir = Path.cwd() / "envs"
-        self.servers_dir = self.project_root / "servers"
         
         self.engines = {
             "vllm": {"port": 8000, "container": "benchx-vllm", "venv": "venv_vllm"},
