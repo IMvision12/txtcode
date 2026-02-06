@@ -40,6 +40,10 @@ results/
 
 # Logs
 *.log
+logs/
+
+# Local environments
+envs/
 
 # Environment
 .env

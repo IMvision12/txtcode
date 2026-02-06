@@ -216,6 +216,10 @@ benchx build local --engines vllm sglang
 benchx server start vllm local
 benchx server start sglang local --foreground
 
+# View server logs (troubleshooting)
+benchx server logs vllm
+benchx server logs sglang --lines 100
+
 # Run benchmark
 benchx run local --config benchmark.json
 ```
@@ -429,6 +433,26 @@ services:
 ```
 
 ## Troubleshooting
+
+### Local Mode: Servers not responding
+
+Check server logs:
+```bash
+benchx server logs vllm
+benchx server logs sglang
+```
+
+Common issues:
+- **Missing dependencies**: Check logs for import errors
+- **CUDA not available**: Ensure GPU drivers are installed
+- **Port conflicts**: Another process using ports 8000-8002
+- **Slow startup**: Servers can take 30-60s to import heavy libraries
+
+Manual health check:
+```bash
+curl http://localhost:8000/health
+curl http://localhost:8001/health
+```
 
 ### Docker not found
 

@@ -247,19 +247,27 @@ class BenchXCLI:
         print(f"Starting {engine} server on port {port}...")
         
         if background:
-            # Start in background
-            if sys.platform == "win32":
-                subprocess.Popen(
-                    [str(python), str(server_script), "--port", str(port)],
-                    creationflags=subprocess.CREATE_NEW_CONSOLE
-                )
-            else:
-                subprocess.Popen(
-                    [str(python), str(server_script), "--port", str(port)],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
-                )
-            print(f"✓ {engine} server started in background")
+            # Create log file for debugging
+            log_dir = Path.cwd() / "logs"
+            log_dir.mkdir(exist_ok=True)
+            log_file = log_dir / f"{engine}_server.log"
+            
+            # Start in background with logging
+            with open(log_file, "w") as f:
+                if sys.platform == "win32":
+                    subprocess.Popen(
+                        [str(python), str(server_script), "--port", str(port)],
+                        stdout=f,
+                        stderr=subprocess.STDOUT,
+                        creationflags=subprocess.CREATE_NEW_CONSOLE
+                    )
+                else:
+                    subprocess.Popen(
+                        [str(python), str(server_script), "--port", str(port)],
+                        stdout=f,
+                        stderr=subprocess.STDOUT
+                    )
+            print(f"✓ {engine} server started in background (logs: {log_file})")
         else:
             # Start in foreground
             subprocess.run([str(python), str(server_script), "--port", str(port)])
@@ -320,7 +328,7 @@ class BenchXCLI:
         print("✓ Containers stopped")
         return True
     
-    def check_containers(self, engines: List[str] = None):
+    def check_containers(self, engines: List[str] = None, timeout: int = 5):
         """Check which servers/containers are running."""
         if engines is None:
             engines = list(self.engines.keys())
@@ -332,7 +340,7 @@ class BenchXCLI:
         for engine in engines:
             port = self.engines[engine]["port"]
             try:
-                response = requests.get(f"http://localhost:{port}/health", timeout=2)
+                response = requests.get(f"http://localhost:{port}/health", timeout=timeout)
                 if response.status_code == 200:
                     data = response.json()
                     status = "✓ Running"
@@ -340,8 +348,12 @@ class BenchXCLI:
                         status += " (initialized)"
                 else:
                     status = "✗ Not responding"
-            except:
+            except requests.exceptions.Timeout:
+                status = "✗ Timeout"
+            except requests.exceptions.ConnectionError:
                 status = "✗ Not running"
+            except Exception as e:
+                status = f"✗ Error: {type(e).__name__}"
             
             statuses[engine] = status
             print(f"  {engine:12} {status}")
@@ -412,15 +424,47 @@ class BenchXCLI:
                         self.start_containers(engines)
                     
                     print(f"\nWaiting for {'servers' if use_local else 'containers'} to be ready...")
-                    time.sleep(15)  # Increased wait time for servers to start
+                    print("(This may take 30-60 seconds for servers to import libraries and start...)")
                     
-                    # Check again
-                    statuses = self.check_containers(engines)
-                    all_running = all("Running" in status for status in statuses.values())
+                    # Wait and check multiple times with longer intervals
+                    max_retries = 12
+                    retry_interval = 5
+                    for retry in range(max_retries):
+                        time.sleep(retry_interval)
+                        print(f"  Checking... ({retry + 1}/{max_retries}) - {(retry + 1) * retry_interval}s elapsed")
+                        statuses = self.check_containers(engines, timeout=10)
+                        all_running = all("Running" in status for status in statuses.values())
+                        if all_running:
+                            print(f"\n✓ All servers ready after {(retry + 1) * retry_interval}s")
+                            break
                     
                     if not all_running:
-                        print(f"\n✗ Failed to start all {'servers' if use_local else 'containers'}. Exiting.")
-                        return
+                        print(f"\n⚠ Some servers still not responding after {max_retries * retry_interval}s")
+                        print("\nTroubleshooting:")
+                        if use_local:
+                            print("1. Check server logs in ./logs/ directory:")
+                            for engine in engines:
+                                if "Running" not in statuses[engine]:
+                                    print(f"   - logs/{engine}_server.log")
+                            print("\n2. Common issues:")
+                            print("   - Missing dependencies (vllm, sglang, tensorrt)")
+                            print("   - CUDA/GPU not available")
+                            print("   - Port already in use")
+                            print("\n3. Test manually:")
+                            print("   - curl http://localhost:8000/health")
+                        else:
+                            print("1. Check container status:")
+                            print("   - Run: docker ps")
+                            print("   - Check logs: docker logs benchx-vllm")
+                            print("\n2. Common issues:")
+                            print("   - Container crashed during startup")
+                            print("   - GPU not accessible in Docker")
+                            print("   - Port conflicts")
+                        
+                        response = input("\nContinue anyway? (y/n): ")
+                        if response.lower() != 'y':
+                            print("\nExiting.")
+                            return
                 except Exception as e:
                     print(f"\n✗ Failed to start {'servers' if use_local else 'containers'}: {e}")
                     return
@@ -608,6 +652,10 @@ def main():
     
     server_subparsers.add_parser("status", help="Check server status")
     
+    logs_parser = server_subparsers.add_parser("logs", help="View server logs (local mode only)")
+    logs_parser.add_argument("engine", choices=["vllm", "sglang", "tensorrt"])
+    logs_parser.add_argument("--lines", type=int, default=50, help="Number of lines to show (default: 50)")
+    
     # Container commands (Docker only)
     container_parser = subparsers.add_parser("container", help="Manage Docker containers")
     container_subparsers = container_parser.add_subparsers(dest="container_command")
@@ -662,6 +710,17 @@ def main():
                 cli.stop_containers([args.engine])
         elif args.server_command == "status":
             cli.check_containers()
+        elif args.server_command == "logs":
+            log_file = Path.cwd() / "logs" / f"{args.engine}_server.log"
+            if log_file.exists():
+                print(f"=== Last {args.lines} lines of {args.engine} server log ===\n")
+                with open(log_file) as f:
+                    lines = f.readlines()
+                    for line in lines[-args.lines:]:
+                        print(line, end="")
+            else:
+                print(f"Log file not found: {log_file}")
+                print("Logs are only available for local mode servers.")
         else:
             server_parser.print_help()
     
