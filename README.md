@@ -82,10 +82,10 @@ pip install benchx
 
 ```bash
 # Build all engine images (takes 10-15 minutes first time)
-benchx build
+benchx build doc
 
 # Or build specific engines
-benchx build --engines vllm sglang
+benchx build doc --engines vllm sglang
 ```
 
 **4. Run Benchmark**
@@ -105,7 +105,7 @@ Create `benchmark.json`:
 
 Run it:
 ```bash
-benchx run --config benchmark.json
+benchx run doc --config benchmark.json
 ```
 
 ---
@@ -124,16 +124,16 @@ pip install benchx
 
 ```bash
 # Setup all engines (creates separate venvs)
-benchx setup
+benchx build env
 
 # Or setup specific engines
-benchx setup --engines vllm sglang
+benchx build env --engines vllm sglang
 ```
 
 **3. Run Benchmark**
 
 ```bash
-benchx run --local --config benchmark.json
+benchx run env --config benchmark.json
 ```
 
 ### Google Colab Usage
@@ -145,7 +145,7 @@ benchx run --local --config benchmark.json
 !pip install benchx
 
 # Setup environments (takes 5-10 minutes)
-!benchx setup
+!benchx build env
 
 # Create config
 config = {
@@ -162,7 +162,7 @@ with open("benchmark.json", "w") as f:
     json.dump(config, f)
 
 # Run benchmark
-!benchx run --local --config benchmark.json
+!benchx run env --config benchmark.json
 ```
 
 ---
@@ -191,8 +191,8 @@ Results saved to: benchmark_results.json
 
 ```bash
 # Build images
-benchx build
-benchx build --engines vllm
+benchx build doc
+benchx build doc --engines vllm
 
 # Manage containers
 benchx container start
@@ -200,22 +200,22 @@ benchx container stop
 benchx container status
 
 # Run benchmark
-benchx run --config benchmark.json
+benchx run doc --config benchmark.json
 ```
 
 ### Local Mode
 
 ```bash
 # Setup environments
-benchx setup
-benchx setup --engines vllm sglang
+benchx build env
+benchx build env --engines vllm sglang
 
 # Start servers
-benchx server start vllm --local
-benchx server start sglang --local --foreground
+benchx server start vllm env
+benchx server start sglang env --foreground
 
 # Run benchmark
-benchx run --local --config benchmark.json
+benchx run env --config benchmark.json
 ```
 
 ### Universal Commands
@@ -225,8 +225,8 @@ benchx run --local --config benchmark.json
 benchx server status
 
 # Run benchmark (specify mode)
-benchx run --config benchmark.json          # Docker mode
-benchx run --local --config benchmark.json  # Local mode
+benchx run doc --config benchmark.json  # Docker mode
+benchx run env --config benchmark.json  # Local mode
 ```
 
 ## Configuration
