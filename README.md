@@ -1,12 +1,12 @@
 # BenchX - LLM Inference Benchmarking
 
-**Compare vLLM, SGLang, and TensorRT-LLM side-by-side using Docker**
+**Compare vLLM and SGLang side-by-side using Docker**
 
 Production-ready, reproducible benchmarking with Docker containers.
 
 ## Why BenchX?
 
-**Problem:** vLLM, SGLang, and TensorRT-LLM have conflicting dependencies and cannot be installed together.
+**Problem:** vLLM and SGLang have conflicting dependencies and cannot be installed together.
 
 **Solution:** BenchX isolates each engine in Docker containers for fair comparisons.
 
@@ -65,7 +65,6 @@ pip install benchx
 # Pull pre-built images from GitHub Container Registry
 docker pull ghcr.io/imvision12/benchx-vllm:latest
 docker pull ghcr.io/imvision12/benchx-sglang:latest
-docker pull ghcr.io/imvision12/benchx-tensorrt:latest
 ```
 
 See [DOCKER_IMAGES.md](DOCKER_IMAGES.md) for details.
@@ -89,7 +88,7 @@ Create `benchmark.json`:
   "engines": {
     "vllm": {},
     "sglang": {},
-    "tensorrt": {}
+    
   },
   "prompts": ["What is AI?", "Explain ML"],
   "max_tokens": 256
@@ -113,7 +112,6 @@ Engine       Throughput      Latency      Memory
 --------------------------------------------------------------------------------
 vllm         4741.23         0.054        12.34     
 sglang       3221.45         0.079        11.82     
-tensorrt     5120.67         0.050        10.91     
 ================================================================================
 
 Results saved to: benchmark_results.json
@@ -145,7 +143,7 @@ benchx run --config benchmark.json
   "engines": {
     "vllm": {},
     "sglang": {},
-    "tensorrt": {}
+    
   },
   "prompts": ["What is AI?"],
   "max_tokens": 256
@@ -173,10 +171,6 @@ benchx run --config benchmark.json
       "engine_kwargs": {
         "attention_backend": "fa3"
       }
-    },
-    "tensorrt": {
-      "quantization": "fp8",
-      "tensor_parallel_size": 2
     }
   },
   "prompts": ["Write a story:", "Explain AI:"],
@@ -229,8 +223,7 @@ benchx run --config benchmark.json
 {
   "engines": {
     "vllm": {"model": "meta-llama/Meta-Llama-3-8B-Instruct"},
-    "sglang": {"model": "meta-llama/Meta-Llama-3-8B-Instruct"},
-    "tensorrt": {"model": "meta-llama/Meta-Llama-3-8B-Instruct"}
+    "sglang": {"model": "meta-llama/Meta-Llama-3-8B-Instruct"}
   },
   "prompts": ["Question: What is AI?"] * 50,
   "max_tokens": 256
@@ -472,8 +465,7 @@ benchx run --config examples/405b_model.json
 BenchX CLI
     ↓ docker-compose
     ├─→ vLLM Container (:8000)
-    ├─→ SGLang Container (:8001)
-    └─→ TensorRT Container (:8002)
+    └─→ SGLang Container (:8001)
 ```
 
 ## Use Different GPUs per Engine
@@ -489,10 +481,6 @@ services:
   sglang:
     environment:
       - CUDA_VISIBLE_DEVICES=1  # GPU 1
-  
-  tensorrt:
-    environment:
-      - CUDA_VISIBLE_DEVICES=2  # GPU 2
 ```
 
 ### Multi-GPU for Large Models
@@ -662,12 +650,6 @@ benchx build --engines vllm
 - ✅ RAG pipelines and agent workflows
 - ✅ RadixAttention for prefix caching
 
-### TensorRT-LLM
-- ✅ Absolute lowest latency
-- ✅ Production deployment on NVIDIA hardware
-- ✅ Most optimized CUDA kernels
-- ✅ Best for real-time applications
-
 ## Metrics Collected
 
 - **Throughput**: Total tokens/second
@@ -717,5 +699,4 @@ Apache 2.0 - see [LICENSE](LICENSE)
 
 - [vLLM](https://github.com/vllm-project/vllm)
 - [SGLang](https://github.com/sgl-project/sglang)
-- [TensorRT-LLM](https://github.com/NVIDIA/TensorRT-LLM)
 - [NVIDIA Container Toolkit](https://github.com/NVIDIA/nvidia-docker)

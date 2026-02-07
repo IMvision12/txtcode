@@ -23,7 +23,6 @@ class BenchXCLI:
         self.engines = {
             "vllm": {"port": 8000, "container": "benchx-vllm"},
             "sglang": {"port": 8001, "container": "benchx-sglang"},
-            "tensorrt": {"port": 8002, "container": "benchx-tensorrt"},
         }
     
     def check_docker(self):

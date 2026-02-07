@@ -51,31 +51,6 @@ services:
       retries: 3
       start_period: 60s
 
-  tensorrt:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.tensorrt
-    image: benchx/tensorrt:latest
-    container_name: benchx-tensorrt
-    ports:
-      - "8002:8002"
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    environment:
-      - CUDA_VISIBLE_DEVICES=0
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "python3", "-c", "import requests; requests.get('http://localhost:8002/health')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
 networks:
   default:
     name: benchx-network

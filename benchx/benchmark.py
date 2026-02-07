@@ -8,7 +8,6 @@ from pathlib import Path
 
 from benchx.engines.vllm_engine import VLLMEngine
 from benchx.engines.sglang_engine import SGLangEngine
-from benchx.engines.tensorrt_engine import TensorRTEngine
 from benchx.engines.base import EngineConfig
 from benchx.results import BenchmarkResults
 
@@ -17,7 +16,6 @@ from benchx.results import BenchmarkResults
 ENGINE_REGISTRY = {
     "vllm": VLLMEngine,
     "sglang": SGLangEngine,
-    "tensorrt": TensorRTEngine,
 }
 
 

@@ -5,14 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "benchx"
 version = "0.1.0"
-description = "Multi-environment CLI for comparing LLM inference engines (vLLM, SGLang, TensorRT-LLM)"
+description = "Docker-based CLI for comparing LLM inference engines (vLLM, SGLang)"
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "Apache-2.0"}
 authors = [
     {name = "BenchX Team"}
 ]
-keywords = ["llm", "inference", "benchmark", "vllm", "sglang", "tensorrt", "cli"]
+keywords = ["llm", "inference", "benchmark", "vllm", "sglang", "cli"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
