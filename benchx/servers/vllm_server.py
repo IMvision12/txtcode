@@ -14,6 +14,7 @@ app = FastAPI(title="vLLM Server")
 # Global engine instance
 llm = None
 config = None
+peak_memory_gb = 0.0
 
 
 class GenerateRequest(BaseModel):
@@ -39,7 +40,7 @@ class InitializeRequest(BaseModel):
 @app.post("/initialize")
 async def initialize(request: InitializeRequest):
     """Initialize vLLM engine."""
-    global llm, config
+    global llm, config, peak_memory_gb
     
     try:
         from vllm import LLM, SamplingParams
@@ -61,7 +62,16 @@ async def initialize(request: InitializeRequest):
         # Add custom engine kwargs
         vllm_kwargs.update(request.engine_kwargs)
         
+        # Clear cache before loading
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            torch.cuda.reset_peak_memory_stats()
+        
         llm = LLM(**vllm_kwargs)
+        
+        # Capture peak memory after loading
+        if torch.cuda.is_available():
+            peak_memory_gb = torch.cuda.max_memory_allocated() / 1024**3
         
         return {"status": "initialized", "model": request.model}
     
@@ -121,20 +131,47 @@ async def generate(request: GenerateRequest):
 @app.get("/memory")
 async def get_memory():
     """Get GPU memory usage."""
-    try:
-        if torch.cuda.is_available():
-            memory_allocated = torch.cuda.memory_allocated() / 1024**3  # GB
-            memory_reserved = torch.cuda.memory_reserved() / 1024**3  # GB
-            
-            return {
-                "total_allocated_gb": memory_allocated,
-                "total_reserved_gb": memory_reserved,
-            }
-        else:
-            return {"error": "CUDA not available"}
+    global peak_memory_gb
     
+    # Try pynvml first (more accurate for vLLM)
+    try:
+        import pynvml
+        pynvml.nvmlInit()
+        handle = pynvml.nvmlDeviceGetHandleByIndex(0)
+        info = pynvml.nvmlDeviceGetMemoryInfo(handle)
+        gpu_memory_gb = info.used / 1024**3
+        pynvml.nvmlShutdown()
+        
+        return {
+            "total_allocated_gb": gpu_memory_gb,
+            "total_reserved_gb": gpu_memory_gb,
+            "current_allocated_gb": gpu_memory_gb,
+            "peak_allocated_gb": gpu_memory_gb,
+            "method": "pynvml"
+        }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Memory query failed: {str(e)}")
+        # Fallback to torch
+        try:
+            if torch.cuda.is_available():
+                memory_allocated = torch.cuda.memory_allocated() / 1024**3  # GB
+                memory_reserved = torch.cuda.memory_reserved() / 1024**3  # GB
+                max_memory = torch.cuda.max_memory_allocated() / 1024**3  # GB
+                
+                # Use peak memory if available, otherwise current
+                total_gb = max(peak_memory_gb, max_memory, memory_allocated)
+                
+                return {
+                    "total_allocated_gb": total_gb,
+                    "total_reserved_gb": memory_reserved,
+                    "current_allocated_gb": memory_allocated,
+                    "peak_allocated_gb": max_memory,
+                    "method": "torch",
+                    "pynvml_error": str(e)
+                }
+            else:
+                return {"error": "CUDA not available"}
+        except Exception as e2:
+            raise HTTPException(status_code=500, detail=f"Memory query failed: {str(e2)}")
 
 
 @app.post("/shutdown")

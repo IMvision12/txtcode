@@ -1,48 +1,27 @@
 # BenchX - LLM Inference Benchmarking
 
-**Compare vLLM, SGLang, and TensorRT-LLM side-by-side**
+**Compare vLLM, SGLang, and TensorRT-LLM side-by-side using Docker**
 
-BenchX supports two modes:
-- **Docker Mode** (Recommended) - Production-ready, reproducible, works everywhere
-- **Local Mode** - For Google Colab, quick testing, or when Docker isn't available
+Production-ready, reproducible benchmarking with Docker containers.
 
 ## Why BenchX?
 
 **Problem:** vLLM, SGLang, and TensorRT-LLM have conflicting dependencies and cannot be installed together.
 
-**Solution:** BenchX isolates each engine (via Docker containers or separate venvs) for fair comparisons.
+**Solution:** BenchX isolates each engine in Docker containers for fair comparisons.
 
 **Result:** Reproducible benchmarks with comprehensive metrics.
 
 ## Features
 
-- 🐳 **Docker Mode** - Production-ready with full isolation
-- 🐍 **Local Mode** - Works on Google Colab and systems without Docker
+- 🐳 **Docker-Based** - Production-ready with full isolation
 - 📊 **Fair Comparisons** - Same prompts, same metrics, same conditions
 - 🔄 **Reproducible** - Consistent results across environments
-- ⚡ **Easy Setup** - One command to get started
+- ⚡ **Easy Setup** - Pull pre-built images or build in minutes
 - 🎯 **Comprehensive Metrics** - Throughput, latency, memory usage
 - 🌍 **Cross-Platform** - Works on Windows, Linux, Mac
 
 ## Quick Start
-
-### Choose Your Mode
-
-**Docker Mode** (Recommended for production/local machines):
-- ✅ Complete isolation
-- ✅ 100% reproducible
-- ✅ Production-ready
-- ❌ Requires Docker + NVIDIA Container Toolkit
-
-**Local Mode** (For Colab/testing):
-- ✅ Works on Google Colab
-- ✅ No Docker required
-- ✅ Faster iteration
-- ❌ Less isolated (but still works!)
-
----
-
-## Docker Mode (Recommended)
 
 ### Prerequisites
 
@@ -78,10 +57,23 @@ sudo systemctl restart docker
 pip install benchx
 ```
 
-**3. Build Docker Images**
+**3. Get Docker Images**
+
+**Option A: Use Pre-built Images (Recommended - 30 seconds)**
 
 ```bash
-# Build all engine images (takes 10-15 minutes first time)
+# Pull pre-built images from GitHub Container Registry
+docker pull ghcr.io/imvision12/benchx-vllm:latest
+docker pull ghcr.io/imvision12/benchx-sglang:latest
+docker pull ghcr.io/imvision12/benchx-tensorrt:latest
+```
+
+See [DOCKER_IMAGES.md](DOCKER_IMAGES.md) for details.
+
+**Option B: Build Yourself (15 minutes)**
+
+```bash
+# Build all engine images
 benchx build docker
 
 # Or build specific engines
@@ -106,71 +98,8 @@ Create `benchmark.json`:
 
 Run it:
 ```bash
-benchx run docker --config benchmark.json
+benchx run --config benchmark.json
 ```
-
----
-
-## Local Mode (For Colab/Testing)
-
-### Setup
-
-**1. Install BenchX**
-
-```bash
-pip install benchx
-```
-
-**2. Setup Environments**
-
-```bash
-# Setup all engines (creates separate venvs)
-benchx build local
-
-# Or setup specific engines
-benchx build local --engines vllm sglang
-```
-
-**3. Run Benchmark**
-
-```bash
-benchx run local --config benchmark.json
-```
-
-### Google Colab Usage
-
-```python
-# In Colab notebook
-
-# Install system dependencies (required for SGLang)
-!apt-get update && apt-get install -y ninja-build
-
-# Install BenchX
-!pip install benchx
-
-# Setup environments (takes 5-10 minutes)
-!benchx build local
-
-# Create config
-config = {
-    "model": "meta-llama/Meta-Llama-3-8B-Instruct",
-    "engines": {
-        "vllm": {},
-        "sglang": {}
-    },
-    "prompts": ["What is AI?"],
-    "max_tokens": 256
-}
-
-import json
-with open("benchmark.json", "w") as f:
-    json.dump(config, f)
-
-# Run benchmark
-!benchx run local --config benchmark.json
-```
-
----
 
 ## Example Output
 
@@ -192,12 +121,10 @@ Results saved to: benchmark_results.json
 
 ## CLI Commands
 
-### Docker Mode
-
 ```bash
 # Build images
-benchx build docker
-benchx build docker --engines vllm
+benchx build
+benchx build --engines vllm
 
 # Manage containers
 benchx container start
@@ -205,37 +132,7 @@ benchx container stop
 benchx container status
 
 # Run benchmark
-benchx run docker --config benchmark.json
-```
-
-### Local Mode
-
-```bash
-# Setup environments
-benchx build local
-benchx build local --engines vllm sglang
-
-# Start servers
-benchx server start vllm local
-benchx server start sglang local --foreground
-
-# View server logs (troubleshooting)
-benchx server logs vllm
-benchx server logs sglang --lines 100
-
-# Run benchmark
-benchx run local --config benchmark.json
-```
-
-### Universal Commands
-
-```bash
-# Check status (works for both modes)
-benchx server status
-
-# Run benchmark (specify mode)
-benchx run docker --config benchmark.json  # Docker mode
-benchx run local --config benchmark.json   # Local mode
+benchx run --config benchmark.json
 ```
 
 ## Configuration
@@ -383,56 +280,6 @@ benchx run local --config benchmark.json   # Local mode
 
 BenchX supports very large models (70B, 405B+) through:
 
-### Important: GPU Memory Sharing Issue
-
-**The Problem:**
-- In **local mode**, all engines share the same GPUs
-- When vLLM loads a 1B model, it uses most GPU memory
-- SGLang then fails with OOM when trying to load
-- For 405B models, this is **much worse** - each engine needs 8+ GPUs
-
-**The Solution:**
-
-#### Local Mode: Sequential Benchmarking (Automatic)
-
-BenchX automatically shuts down each engine after benchmarking to free GPU memory:
-
-```bash
-# This works - engines run one at a time
-benchx run local --config 405b_model.json
-```
-
-**What happens:**
-1. vLLM loads on GPUs 0-7, runs benchmark, shuts down
-2. GPU memory is freed
-3. SGLang loads on GPUs 0-7, runs benchmark, shuts down
-
-**Limitation:** You can't benchmark engines in parallel in local mode.
-
-#### Docker Mode: Parallel with GPU Partitioning
-
-For parallel benchmarking of large models, use Docker with GPU partitioning:
-
-**Step 1:** Use the 405B docker-compose file:
-```bash
-cd benchx/docker
-cp docker-compose.405b.yml docker-compose.yml
-```
-
-**Step 2:** This allocates GPUs:
-- vLLM: GPUs 0-7
-- SGLang: GPUs 8-15
-
-**Step 3:** Run benchmark:
-```bash
-benchx run docker --config examples/405b_model.json
-```
-
-**What happens:**
-- Both engines load simultaneously on different GPU sets
-- No memory conflicts
-- True parallel benchmarking
-
 ### 1. Tensor Parallelism (Multi-GPU)
 
 Split model across multiple GPUs:
@@ -524,44 +371,22 @@ For extremely large models, pipeline parallelism splits layers across GPUs:
 
 Approximate GPU memory needed (FP16/BF16):
 
-| Model Size | No Quant | AWQ/GPTQ (4-bit) | FP8 | Recommended GPUs | Notes |
-|------------|----------|------------------|-----|------------------|-------|
-| 7B-8B | 16 GB | 6 GB | 8 GB | 1x A100/H100 | ✅ Works in local mode |
-| 13B | 26 GB | 10 GB | 13 GB | 1x A100/H100 | ✅ Works in local mode |
-| 30B-34B | 60 GB | 20 GB | 30 GB | 1x A100 80GB or 2x A100 40GB | ⚠️ Sequential only in local |
-| 70B | 140 GB | 40 GB | 70 GB | 2x A100 80GB or 4x A100 40GB | ⚠️ Sequential only in local |
-| 405B | 810 GB | 220 GB | 405 GB | 8x H100 or 16x A100 | ⚠️ Sequential only in local, Docker needs 16 GPUs for parallel |
+| Model Size | No Quant | AWQ/GPTQ (4-bit) | FP8 | Recommended GPUs |
+|------------|----------|------------------|-----|------------------|
+| 7B-8B | 16 GB | 6 GB | 8 GB | 1x A100/H100 |
+| 13B | 26 GB | 10 GB | 13 GB | 1x A100/H100 |
+| 30B-34B | 60 GB | 20 GB | 30 GB | 1x A100 80GB or 2x A100 40GB |
+| 70B | 140 GB | 40 GB | 70 GB | 2x A100 80GB or 4x A100 40GB |
+| 405B | 810 GB | 220 GB | 405 GB | 8x H100 or 16x A100 |
 
 **Key Points:**
-- **Local mode**: Always sequential, engines share GPUs
-- **Docker mode**: Can run parallel if you have 2x the GPUs (one set per engine)
+- **Docker mode**: Each engine in isolated container
+- **Multi-GPU**: Use tensor_parallel_size for large models
 - **Quantization**: Reduces memory by 2-4x, enabling larger models on fewer GPUs
 
-### Example: 70B Model Comparison
+### Example: 70B Model
 
-**Local Mode (Sequential):**
-```bash
-# Benchmark vLLM first
-benchx run local --config examples/large_model_70b.json
-```
-
-Config with one engine at a time:
-```json
-{
-  "model": "meta-llama/Meta-Llama-3.1-70B-Instruct",
-  "engines": {
-    "vllm": {
-      "tensor_parallel_size": 4,
-      "dtype": "bfloat16",
-      "gpu_memory_utilization": 0.9
-    }
-  },
-  "prompts": ["Explain quantum computing"],
-  "max_tokens": 512
-}
-```
-
-**Docker Mode (Parallel with 8 GPUs):**
+**Docker Mode with 4 GPUs:**
 
 Edit `docker/docker-compose.yml`:
 ```yaml
@@ -612,32 +437,37 @@ Config with both engines:
 
 Run:
 ```bash
-benchx run docker --config examples/large_model_70b.json
+benchx run --config examples/large_model_70b.json
 ```
 
 ### Example: 405B Model
 
-**Requires 16 GPUs for parallel Docker benchmarking:**
+**Requires 8+ GPUs:**
 
-```bash
-# Use the 405B docker-compose configuration
-cd benchx/docker
-cp docker-compose.405b.yml docker-compose.yml
+Configure `docker/docker-compose.yml` to allocate 8 GPUs per engine:
 
-# Build and run
-cd ..
-benchx build docker
-benchx run docker --config examples/405b_model.json
+```yaml
+services:
+  vllm:
+    environment:
+      - CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 8
+              capabilities: [gpu]
 ```
 
-**Or use local mode (sequential, only 8 GPUs needed):**
+Then run:
 ```bash
-benchx run local --config examples/405b_model.json
+benchx build
+benchx run --config examples/405b_model.json
 ```
 
 ## Architecture
 
-### Docker Mode
 ```
 BenchX CLI
     ↓ docker-compose
@@ -645,34 +475,6 @@ BenchX CLI
     ├─→ SGLang Container (:8001)
     └─→ TensorRT Container (:8002)
 ```
-
-### Local Mode
-```
-BenchX CLI
-    ↓ subprocess
-    ├─→ vLLM Server (envs/venv_vllm :8000)
-    ├─→ SGLang Server (envs/venv_sglang :8001)
-    └─→ TensorRT Server (envs/venv_tensorrt :8002)
-```
-
-## Mode Comparison
-
-| Feature | Docker Mode | Local Mode |
-|---------|-------------|------------|
-| **Isolation** | Complete (OS-level) | Python venv only |
-| **Reproducibility** | 100% | ~95% |
-| **Setup Time** | 10-15 min (first time) | 5-10 min |
-| **Disk Space** | ~20 GB | ~15 GB |
-| **Google Colab** | ❌ Not supported | ✅ Works |
-| **Production Ready** | ✅ Yes | ⚠️ Testing only |
-| **Cross-Platform** | ✅ Identical everywhere | ⚠️ Platform differences |
-| **Debugging** | `docker logs` | Direct Python logs |
-| **Multi-Engine** | Parallel execution | Sequential (one at a time) |
-| **GPU Memory** | Isolated per container | Shared, may need tuning |
-
-**Recommendation:**
-- **Production/Local Dev:** Use Docker mode
-- **Google Colab/Quick Testing:** Use Local mode
 
 ## Use Different GPUs per Engine
 
@@ -738,103 +540,6 @@ Then in your config:
 ```
 
 ## Troubleshooting
-
-### Local Mode: Multiple engines running out of memory
-
-When benchmarking multiple engines in local mode, they run sequentially but each loads the full model into GPU memory. If you see OOM errors:
-
-**Solution 1: Lower memory usage per engine**
-```json
-{
-  "model": "meta-llama/Llama-3.2-1B",
-  "engines": {
-    "vllm": {
-      "gpu_memory_utilization": 0.4
-    },
-    "sglang": {
-      "gpu_memory_utilization": 0.4
-    }
-  },
-  "prompts": ["Test"],
-  "max_tokens": 256
-}
-```
-
-**Solution 2: Benchmark one engine at a time**
-```json
-{
-  "model": "meta-llama/Llama-3.2-1B",
-  "engines": {
-    "vllm": {}
-  },
-  "prompts": ["Test"],
-  "max_tokens": 256
-}
-```
-
-Note: Docker mode doesn't have this issue as each container has isolated GPU access.
-
-### Local Mode: Servers not responding
-
-Check server logs:
-```bash
-benchx server logs vllm
-benchx server logs sglang
-```
-
-Common issues:
-- **Missing dependencies**: Check logs for import errors
-- **Missing build tools (SGLang)**: SGLang needs `ninja` for FlashInfer compilation
-- **CUDA not available**: Ensure GPU drivers are installed
-- **Port conflicts**: Another process using ports 8000-8002
-- **Slow startup**: Servers can take 30-60s to import heavy libraries
-
-Manual health check:
-```bash
-curl http://localhost:8000/health
-curl http://localhost:8001/health
-```
-
-### SGLang: Missing ninja build tool
-
-**Error:**
-```
-FileNotFoundError: [Errno 2] No such file or directory: 'ninja'
-```
-
-**Solution (Google Colab):**
-```bash
-# Install ninja
-!apt-get update && apt-get install -y ninja-build
-
-# Rebuild SGLang environment
-benchx build local --engines sglang
-```
-
-**Solution (Linux):**
-```bash
-# Ubuntu/Debian
-sudo apt-get install ninja-build
-
-# CentOS/RHEL
-sudo yum install ninja-build
-
-# Arch
-sudo pacman -S ninja
-```
-
-**Solution (macOS):**
-```bash
-brew install ninja
-```
-
-**Solution (Windows):**
-```bash
-# Using chocolatey
-choco install ninja
-
-# Or download from: https://github.com/ninja-build/ninja/releases
-```
 
 ### Large Models: Out of Memory
 
@@ -976,7 +681,7 @@ benchx build --engines vllm
 ### Build from source
 
 ```bash
-git clone https://github.com/yourusername/benchx
+git clone https://github.com/IMvision12/benchx
 cd benchx
 pip install -e .
 benchx build
@@ -1004,7 +709,7 @@ Apache 2.0 - see [LICENSE](LICENSE)
   title = {BenchX: Docker-Based LLM Inference Benchmarking},
   author = {BenchX Team},
   year = {2026},
-  url = {https://github.com/yourusername/benchx}
+  url = {https://github.com/IMvision12/benchx}
 }
 ```
 
