@@ -1,25 +1,10 @@
-FROM nvidia/cuda:12.1.0-devel-ubuntu22.04
+FROM lmsysorg/sglang:latest
 
 # Set environment variables
-ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    python3.10 \
-    python3-pip \
-    python3-dev \
-    git \
-    build-essential \
-    wget \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Upgrade pip and install build tools
-RUN pip3 install --upgrade pip setuptools wheel
-
-# Install SGLang with minimal dependencies (without [all] extras)
-RUN pip3 install sglang fastapi uvicorn psutil requests nvidia-ml-py
+# Install additional dependencies
+RUN pip install fastapi uvicorn psutil requests nvidia-ml-py
 
 # Create app directory
 WORKDIR /app
