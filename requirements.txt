@@ -1,6 +1,0 @@
-# BenchX CLI Dependencies
-psutil>=5.9.0
-requests>=2.28.0
-
-# Docker is required (not a Python package)
-# Install from: https://www.docker.com/products/docker-desktop
