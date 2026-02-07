@@ -16,7 +16,7 @@ jobs:
     
     strategy:
       matrix:
-        engine: [vllm, sglang, tensorrt]
+        engine: [vllm, sglang]
     
     steps:
       - name: Checkout repository
