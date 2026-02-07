@@ -17,6 +17,7 @@ jobs:
     strategy:
       matrix:
         engine: [vllm, sglang]
+      max-parallel: 1  # Build one at a time
     
     steps:
       - name: Free up disk space
