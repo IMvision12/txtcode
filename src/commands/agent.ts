@@ -1,0 +1,46 @@
+import chalk from 'chalk';
+import { WhatsAppBot } from '../platforms/whatsapp';
+import { TelegramBot } from '../platforms/telegram';
+import { AgentCore } from '../core/agent';
+import { loadConfig } from './auth';
+
+export async function agentCommand(options: { daemon?: boolean }) {
+  const config = loadConfig();
+
+  if (!config) {
+    console.log(chalk.yellow('\n⚠️  OpenCode is not configured yet.\n'));
+    console.log(chalk.white('Please run: ' + chalk.bold.cyan('opencode auth') + ' to get started.\n'));
+    process.exit(1);
+  }
+
+  console.log(chalk.blue.bold('\n🤖 Starting OpenCode Agent\n'));
+  console.log(chalk.cyan(`Platform: ${config.platform}`));
+  console.log(chalk.cyan(`IDE: ${config.ideType}\n`));
+
+  // Set environment variables from config
+  process.env.PLATFORM = config.platform;
+  process.env.TELEGRAM_BOT_TOKEN = config.telegramToken;
+  process.env.IDE_TYPE = config.ideType;
+  process.env.IDE_PORT = config.idePort;
+  process.env.ALLOWED_USERS = config.allowedUsers;
+  process.env.AI_API_KEY = config.aiApiKey;
+  process.env.AI_PROVIDER = config.aiProvider;
+
+  const agent = new AgentCore();
+
+  try {
+    if (config.platform === 'whatsapp') {
+      const bot = new WhatsAppBot(agent);
+      await bot.start();
+    } else if (config.platform === 'telegram') {
+      const bot = new TelegramBot(agent);
+      await bot.start();
+    } else {
+      console.error(chalk.red('Invalid platform specified'));
+      process.exit(1);
+    }
+  } catch (error) {
+    console.error(chalk.red('Failed to start agent:'), error);
+    process.exit(1);
+  }
+}
