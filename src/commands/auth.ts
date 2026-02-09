@@ -14,6 +14,24 @@ export async function authCommand() {
   const answers = await inquirer.prompt([
     {
       type: 'list',
+      name: 'aiProvider',
+      message: 'Select AI provider:',
+      choices: [
+        { name: '🧠 Anthropic (Claude)', value: 'anthropic' },
+        { name: '🤖 OpenAI (GPT)', value: 'openai' },
+        { name: '💎 Google (Gemini)', value: 'gemini' }
+      ],
+      default: 'anthropic'
+    },
+    {
+      type: 'password',
+      name: 'aiApiKey',
+      message: 'Enter AI API Key:',
+      mask: '*',
+      validate: (input) => input.length > 0 || 'API key is required'
+    },
+    {
+      type: 'list',
       name: 'platform',
       message: 'Select messaging platform:',
       choices: [
@@ -43,23 +61,6 @@ export async function authCommand() {
       default: 'kiro'
     },
     {
-      type: 'list',
-      name: 'aiProvider',
-      message: 'Select AI provider:',
-      choices: [
-        { name: '🧠 Anthropic (Claude)', value: 'anthropic' },
-        { name: '🤖 OpenAI (GPT)', value: 'openai' }
-      ],
-      default: 'anthropic'
-    },
-    {
-      type: 'password',
-      name: 'aiApiKey',
-      message: 'Enter AI API Key:',
-      mask: '*',
-      validate: (input) => input.length > 0 || 'API key is required'
-    },
-    {
       type: 'input',
       name: 'allowedUsers',
       message: 'Allowed users (comma-separated phone/IDs, leave empty for all):',
@@ -74,13 +75,13 @@ export async function authCommand() {
 
   // Save configuration
   const config = {
+    aiProvider: answers.aiProvider,
+    aiApiKey: answers.aiApiKey,
     platform: answers.platform,
     telegramToken: answers.telegramToken || '',
     ideType: answers.ideType,
     idePort: 3000,
     allowedUsers: answers.allowedUsers,
-    aiApiKey: answers.aiApiKey,
-    aiProvider: answers.aiProvider,
     configuredAt: new Date().toISOString()
   };
 
@@ -89,8 +90,14 @@ export async function authCommand() {
   console.log(chalk.green('\n✅ Authentication successful!'));
   console.log(chalk.gray(`\nConfiguration saved to: ${CONFIG_FILE}`));
   console.log(chalk.cyan('\n📱 Next steps:'));
-  console.log(chalk.white('  1. Run: ' + chalk.bold('opencode')));
-  console.log(chalk.white('  2. Scan QR code (WhatsApp) or message your bot (Telegram)'));
+  console.log(chalk.white('  1. Run: ' + chalk.bold('opencode start')));
+  
+  if (answers.platform === 'whatsapp') {
+    console.log(chalk.white('  2. Scan QR code with WhatsApp'));
+  } else {
+    console.log(chalk.white('  2. Message your Telegram bot'));
+  }
+  
   console.log(chalk.white('  3. Start coding from your phone!\n'));
 }
 
