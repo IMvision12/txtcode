@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .env
+.wacli_auth/
 .wwebjs_auth/
 .wwebjs_cache/
 *.log

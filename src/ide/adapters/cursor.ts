@@ -23,7 +23,7 @@ export class CursorAdapter implements IDEAdapter {
       const response = await this.aiProcessor.process(instruction);
       
       // TODO: Execute via Cursor API
-      return `🤖 Processing: ${instruction}\n\n${response}`;
+      return response;
     } catch (error) {
       throw new Error(`Failed to execute: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }

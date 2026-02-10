@@ -8,23 +8,62 @@ export interface Message {
 
 export class AgentCore {
   private ideBridge: IDEBridge;
-  private allowedUsers: Set<string>;
+  private authorizedUser: string | null;
+  private configPath: string;
 
   constructor() {
     this.ideBridge = new IDEBridge();
-    this.allowedUsers = new Set(
-      (process.env.ALLOWED_USERS || '').split(',').filter(u => u.trim())
-    );
+    this.authorizedUser = null;
+    this.configPath = require('path').join(require('os').homedir(), '.opencode', 'config.json');
+    this.loadAuthorizedUser();
+  }
+
+  private loadAuthorizedUser() {
+    try {
+      const fs = require('fs');
+      if (fs.existsSync(this.configPath)) {
+        const config = JSON.parse(fs.readFileSync(this.configPath, 'utf-8'));
+        this.authorizedUser = config.authorizedUser || null;
+      }
+    } catch (error) {
+      // Config not found or invalid
+    }
+  }
+
+  private saveAuthorizedUser(userId: string) {
+    try {
+      const fs = require('fs');
+      const config = JSON.parse(fs.readFileSync(this.configPath, 'utf-8'));
+      config.authorizedUser = userId;
+      fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2));
+      this.authorizedUser = userId;
+    } catch (error) {
+      console.error('Failed to save authorized user:', error);
+    }
   }
 
   isUserAllowed(userId: string): boolean {
-    if (this.allowedUsers.size === 0) return true; // No restrictions if empty
-    return this.allowedUsers.has(userId);
+    // First message from any user becomes the authorized user
+    if (!this.authorizedUser) {
+      console.log(`✅ Authorizing first user: ${userId}`);
+      this.saveAuthorizedUser(userId);
+      return true;
+    }
+    
+    // Only the authorized user can use the agent
+    if (this.authorizedUser === userId) {
+      return true;
+    }
+    
+    console.log(`⚠️ Rejected unauthorized user: ${userId} (authorized: ${this.authorizedUser})`);
+    return false;
   }
 
   async processMessage(message: Message): Promise<string> {
+    // Check authorization first
     if (!this.isUserAllowed(message.from)) {
-      return '🚫 Unauthorized. Contact the administrator.';
+      // Silently reject - don't send message back
+      return '🚫_UNAUTHORIZED_';
     }
 
     const text = message.text.toLowerCase().trim();

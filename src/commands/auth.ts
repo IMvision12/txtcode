@@ -11,7 +11,8 @@ export async function authCommand() {
   console.log(chalk.blue.bold('\n🔐 OpenCode Authentication\n'));
   console.log(chalk.gray('Configure your OpenCode CLI for remote IDE control\n'));
 
-  const answers = await inquirer.prompt([
+  // Step 1: AI Provider
+  const aiAnswers = await inquirer.prompt([
     {
       type: 'list',
       name: 'aiProvider',
@@ -29,7 +30,13 @@ export async function authCommand() {
       message: 'Enter AI API Key:',
       mask: '*',
       validate: (input) => input.length > 0 || 'API key is required'
-    },
+    }
+  ]);
+
+  console.log(chalk.green('\n✅ AI provider configured\n'));
+
+  // Step 2: Messaging Platform
+  const platformAnswers = await inquirer.prompt([
     {
       type: 'list',
       name: 'platform',
@@ -39,14 +46,38 @@ export async function authCommand() {
         { name: '✈️  Telegram', value: 'telegram' }
       ],
       default: 'whatsapp'
-    },
-    {
-      type: 'input',
-      name: 'telegramToken',
-      message: 'Enter Telegram Bot Token:',
-      when: (answers) => answers.platform === 'telegram',
-      validate: (input) => input.length > 0 || 'Token is required'
-    },
+    }
+  ]);
+
+  let telegramToken = '';
+
+  // Complete messaging platform auth immediately
+  if (platformAnswers.platform === 'telegram') {
+    console.log(chalk.cyan('\n📱 Telegram Bot Setup\n'));
+    console.log(chalk.gray('1. Open Telegram and search for @BotFather'));
+    console.log(chalk.gray('2. Send /newbot and follow the instructions'));
+    console.log(chalk.gray('3. Copy the bot token you receive\n'));
+
+    const telegramAnswers = await inquirer.prompt([
+      {
+        type: 'password',
+        name: 'token',
+        message: 'Enter Telegram Bot Token:',
+        mask: '*',
+        validate: (input) => input.length > 0 || 'Token is required'
+      }
+    ]);
+
+    telegramToken = telegramAnswers.token;
+    console.log(chalk.green('\n✅ Telegram bot configured\n'));
+  } else {
+    console.log(chalk.cyan('\n📱 WhatsApp Setup\n'));
+    console.log(chalk.gray('You will scan a QR code when you start the agent\n'));
+    console.log(chalk.green('✅ WhatsApp selected\n'));
+  }
+
+  // Step 3: IDE Selection
+  const ideAnswers = await inquirer.prompt([
     {
       type: 'list',
       name: 'ideType',
@@ -59,12 +90,6 @@ export async function authCommand() {
         { name: '🤖 Claude Code', value: 'claude-code' }
       ],
       default: 'kiro'
-    },
-    {
-      type: 'input',
-      name: 'allowedUsers',
-      message: 'Allowed users (comma-separated phone/IDs, leave empty for all):',
-      default: ''
     }
   ]);
 
@@ -75,13 +100,13 @@ export async function authCommand() {
 
   // Save configuration
   const config = {
-    aiProvider: answers.aiProvider,
-    aiApiKey: answers.aiApiKey,
-    platform: answers.platform,
-    telegramToken: answers.telegramToken || '',
-    ideType: answers.ideType,
+    aiProvider: aiAnswers.aiProvider,
+    aiApiKey: aiAnswers.aiApiKey,
+    platform: platformAnswers.platform,
+    telegramToken: telegramToken,
+    ideType: ideAnswers.ideType,
     idePort: 3000,
-    allowedUsers: answers.allowedUsers,
+    authorizedUser: '', // Will be set on first message
     configuredAt: new Date().toISOString()
   };
 
@@ -92,7 +117,7 @@ export async function authCommand() {
   console.log(chalk.cyan('\n📱 Next steps:'));
   console.log(chalk.white('  1. Run: ' + chalk.bold('opencode start')));
   
-  if (answers.platform === 'whatsapp') {
+  if (platformAnswers.platform === 'whatsapp') {
     console.log(chalk.white('  2. Scan QR code with WhatsApp'));
   } else {
     console.log(chalk.white('  2. Message your Telegram bot'));

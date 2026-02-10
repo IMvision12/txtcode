@@ -25,7 +25,7 @@ export class KiroAdapter implements IDEAdapter {
       
       // TODO: Execute actual IDE commands via Kiro API
       // For now, return AI response
-      return `🤖 Processing: ${instruction}\n\n${response}`;
+      return response;
     } catch (error) {
       throw new Error(`Failed to execute: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }

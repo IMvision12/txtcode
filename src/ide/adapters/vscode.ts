@@ -23,7 +23,7 @@ export class VSCodeAdapter implements IDEAdapter {
       const response = await this.aiProcessor.process(instruction);
       
       // TODO: Execute via VS Code extension
-      return `🤖 Processing: ${instruction}\n\n${response}`;
+      return response;
     } catch (error) {
       throw new Error(`Failed to execute: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }

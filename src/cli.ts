@@ -46,4 +46,45 @@ program
     // TODO: Implement stop logic
   });
 
+program
+  .command('reset')
+  .description('Reset authorized user')
+  .action(() => {
+    const fs = require('fs');
+    const path = require('path');
+    const os = require('os');
+    const configPath = path.join(os.homedir(), '.opencode', 'config.json');
+    
+    try {
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      config.authorizedUser = '';
+      fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+      console.log(chalk.green('\n✅ Authorized user reset!'));
+      console.log(chalk.cyan('The next person to message will become the authorized user.\n'));
+    } catch (error) {
+      console.log(chalk.red('\n❌ Failed to reset. Config file not found.\n'));
+    }
+  });
+
+program
+  .command('logout')
+  .description('Logout from WhatsApp (delete session)')
+  .action(() => {
+    const fs = require('fs');
+    const path = require('path');
+    
+    try {
+      const authPath = path.join(process.cwd(), '.wacli_auth');
+      if (fs.existsSync(authPath)) {
+        fs.rmSync(authPath, { recursive: true, force: true });
+        console.log(chalk.green('\n✅ WhatsApp session deleted!'));
+        console.log(chalk.cyan('Run "opencode start" to scan QR code again.\n'));
+      } else {
+        console.log(chalk.yellow('\n⚠️ No WhatsApp session found.\n'));
+      }
+    } catch (error) {
+      console.log(chalk.red('\n❌ Failed to delete session.\n'));
+    }
+  });
+
 program.parse();
