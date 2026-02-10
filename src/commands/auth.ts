@@ -43,13 +43,15 @@ export async function authCommand() {
       message: 'Select messaging platform:',
       choices: [
         { name: '📱 WhatsApp', value: 'whatsapp' },
-        { name: '✈️  Telegram', value: 'telegram' }
+        { name: '✈️  Telegram', value: 'telegram' },
+        { name: '💬 Discord', value: 'discord' }
       ],
       default: 'whatsapp'
     }
   ]);
 
   let telegramToken = '';
+  let discordToken = '';
 
   // Complete messaging platform auth immediately
   if (platformAnswers.platform === 'telegram') {
@@ -70,6 +72,26 @@ export async function authCommand() {
 
     telegramToken = telegramAnswers.token;
     console.log(chalk.green('\n✅ Telegram bot configured\n'));
+  } else if (platformAnswers.platform === 'discord') {
+    console.log(chalk.cyan('\n💬 Discord Bot Setup\n'));
+    console.log(chalk.gray('1. Go to https://discord.com/developers/applications'));
+    console.log(chalk.gray('2. Create a New Application'));
+    console.log(chalk.gray('3. Go to Bot → Add Bot'));
+    console.log(chalk.gray('4. Copy the bot token'));
+    console.log(chalk.gray('5. Enable MESSAGE CONTENT INTENT\n'));
+
+    const discordAnswers = await inquirer.prompt([
+      {
+        type: 'password',
+        name: 'token',
+        message: 'Enter Discord Bot Token:',
+        mask: '*',
+        validate: (input) => input.length > 0 || 'Token is required'
+      }
+    ]);
+
+    discordToken = discordAnswers.token;
+    console.log(chalk.green('\n✅ Discord bot configured\n'));
   } else {
     console.log(chalk.cyan('\n📱 WhatsApp Setup\n'));
     console.log(chalk.gray('You will scan a QR code when you start the agent\n'));
@@ -104,6 +126,7 @@ export async function authCommand() {
     aiApiKey: aiAnswers.aiApiKey,
     platform: platformAnswers.platform,
     telegramToken: telegramToken,
+    discordToken: discordToken,
     ideType: ideAnswers.ideType,
     idePort: 3000,
     authorizedUser: '', // Will be set on first message
@@ -119,8 +142,10 @@ export async function authCommand() {
   
   if (platformAnswers.platform === 'whatsapp') {
     console.log(chalk.white('  2. Scan QR code with WhatsApp'));
-  } else {
+  } else if (platformAnswers.platform === 'telegram') {
     console.log(chalk.white('  2. Message your Telegram bot'));
+  } else if (platformAnswers.platform === 'discord') {
+    console.log(chalk.white('  2. Invite bot to your server and mention it'));
   }
   
   console.log(chalk.white('  3. Start coding from your phone!\n'));

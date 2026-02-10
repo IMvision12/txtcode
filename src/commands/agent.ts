@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import { WhatsAppBot } from '../platforms/whatsapp';
 import { TelegramBot } from '../platforms/telegram';
+import { DiscordBot } from '../platforms/discord';
 import { AgentCore } from '../core/agent';
 import { loadConfig } from './auth';
 
@@ -20,9 +21,9 @@ export async function agentCommand(options: { daemon?: boolean }) {
   // Set environment variables from config
   process.env.PLATFORM = config.platform;
   process.env.TELEGRAM_BOT_TOKEN = config.telegramToken;
+  process.env.DISCORD_BOT_TOKEN = config.discordToken;
   process.env.IDE_TYPE = config.ideType;
   process.env.IDE_PORT = config.idePort;
-  process.env.ALLOWED_USERS = config.allowedUsers;
   process.env.AI_API_KEY = config.aiApiKey;
   process.env.AI_PROVIDER = config.aiProvider;
 
@@ -34,6 +35,9 @@ export async function agentCommand(options: { daemon?: boolean }) {
       await bot.start();
     } else if (config.platform === 'telegram') {
       const bot = new TelegramBot(agent);
+      await bot.start();
+    } else if (config.platform === 'discord') {
+      const bot = new DiscordBot(agent);
       await bot.start();
     } else {
       console.error(chalk.red('Invalid platform specified'));
