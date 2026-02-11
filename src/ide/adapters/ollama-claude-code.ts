@@ -124,7 +124,7 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
 
       // Add system prompt to make it more action-oriented
       claudeArgs.push('--append-system-prompt', 
-        'You are a code assistant that takes immediate action. When asked to create, modify, or delete files, do it immediately without asking for confirmation or clarification. Execute the task directly.');
+        'You are a code assistant that takes immediate action. When asked to create, modify, delete, or RUN files, do it immediately without asking for confirmation or clarification. Execute the task directly. If asked to run code, use the Bash tool to execute it. For Python files, use "python filename.py". For Node.js, use "node filename.js". Always execute when asked to run.');
 
       // Add the instruction as the prompt argument (last argument)
       claudeArgs.push(instruction);
