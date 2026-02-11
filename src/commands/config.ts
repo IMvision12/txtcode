@@ -35,7 +35,10 @@ export async function configCommand() {
       type: 'list',
       name: 'ideType',
       message: 'Select your IDE:',
-      choices: ['kiro', 'vscode', 'cursor', 'windsurf', 'claude-code'],
+      choices: [
+        { name: 'Claude Code (Official - Anthropic API)', value: 'claude-code' },
+        { name: 'Claude Code (Ollama - Local & Free)', value: 'ollama-claude-code' }
+      ],
       default: existingConfig.ideType
     },
     {
