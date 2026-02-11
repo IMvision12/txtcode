@@ -32,27 +32,8 @@ export class ClaudeCodeAdapter implements IDEAdapter {
     } catch (error) {
       throw new Error(
         '❌ Claude CLI not installed.\n\n' +
-        'Install with:\n' +
-        'curl -fsSL https://claude.ai/install.sh | bash\n\n' +
-        'Or visit: https://claude.ai'
-      );
-    }
-
-    // Check if authenticated
-    try {
-      const { exec } = require('child_process');
-      await new Promise((resolve, reject) => {
-        exec('claude --help', (error: any) => {
-          if (error) reject(error);
-          else resolve(true);
-        });
-      });
-      console.log(chalk.green('✅ Claude CLI authenticated'));
-    } catch (error) {
-      throw new Error(
-        '❌ Claude CLI not authenticated.\n\n' +
-        'Run: claude setup-token\n' +
-        'Or visit: https://claude.ai to get your API key'
+        'Please install Claude CLI first.\n' +
+        'Visit: https://claude.ai'
       );
     }
 
@@ -171,8 +152,8 @@ export class ClaudeCodeAdapter implements IDEAdapter {
         if (error.message.includes('ENOENT')) {
           reject(new Error(
             '❌ Claude CLI not found in PATH.\n\n' +
-            'Install with:\n' +
-            'curl -fsSL https://claude.ai/install.sh | bash'
+            'Please install Claude CLI first.\n' +
+            'Visit: https://claude.ai'
           ));
         } else {
           reject(error);

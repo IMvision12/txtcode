@@ -32,9 +32,8 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
     } catch (error) {
       throw new Error(
         '❌ Ollama not installed.\n\n' +
-        'Install with:\n' +
-        'curl -fsSL https://ollama.com/install.sh | sh\n\n' +
-        'Or visit: https://ollama.com'
+        'Please install Ollama first.\n' +
+        'Visit: https://ollama.com'
       );
     }
 
@@ -49,7 +48,7 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
       const models = data.models || [];
       
       if (models.length === 0) {
-        throw new Error('No models found. Pull a model with: ollama pull <model-name>');
+        throw new Error('No models found. Please pull a model first.');
       }
       
       // Check if configured model exists
@@ -67,7 +66,7 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
         `❌ Ollama setup failed: ${error instanceof Error ? error.message : 'Unknown error'}\n\n` +
         'Make sure:\n' +
         '1. Ollama is running: ollama serve\n' +
-        '2. Model is pulled: ollama pull ' + this.ollamaModel
+        '2. Model is available: ollama list'
       );
     }
 
@@ -191,8 +190,8 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
         if (error.message.includes('ENOENT')) {
           reject(new Error(
             '❌ Ollama not found in PATH.\n\n' +
-            'Install with:\n' +
-            'curl -fsSL https://ollama.com/install.sh | sh'
+            'Please install Ollama first.\n' +
+            'Visit: https://ollama.com'
           ));
         } else {
           reject(error);
