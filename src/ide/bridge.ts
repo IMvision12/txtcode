@@ -1,11 +1,9 @@
-import { KiroAdapter } from './adapters/kiro';
-import { VSCodeAdapter } from './adapters/vscode';
-import { CursorAdapter } from './adapters/cursor';
+import { ClaudeCodeSpawnAdapter } from './adapters/claude-code-spawn';
 
 export interface IDEAdapter {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
-  executeCommand(instruction: string): Promise<string>;
+  executeCommand(instruction: string, conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>): Promise<string>;
   getStatus(): Promise<string>;
 }
 
@@ -13,27 +11,16 @@ export class IDEBridge {
   private adapter: IDEAdapter;
 
   constructor() {
-    const ideType = process.env.IDE_TYPE || 'kiro';
-    
-    switch (ideType) {
-      case 'kiro':
-        this.adapter = new KiroAdapter();
-        break;
-      case 'vscode':
-      case 'cursor':
-      case 'windsurf':
-        this.adapter = new VSCodeAdapter();
-        break;
-      default:
-        this.adapter = new KiroAdapter();
-    }
+    // Use spawn-based Claude Code adapter with Ollama
+    this.adapter = new ClaudeCodeSpawnAdapter();
   }
 
-  async executeCommand(instruction: string): Promise<string> {
-    return await this.adapter.executeCommand(instruction);
+  async executeCommand(instruction: string, conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>): Promise<string> {
+    return await this.adapter.executeCommand(instruction, conversationHistory);
   }
 
   async getStatus(): Promise<string> {
     return await this.adapter.getStatus();
   }
 }
+
