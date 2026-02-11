@@ -34,7 +34,19 @@ def calculator():
         elif choice == '4':
             print(f"{num1} / {num2} = {divide(num1, num2)}")
     else:
-        print("Invalid input")
+        print("Invalid choice")
 
 if __name__ == "__main__":
-    calculator()
+    # Demo mode - showing all operations
+    print("Simple Calculator Demo")
+    print("-" * 30)
+
+    num1, num2 = 10, 5
+    print(f"\nUsing numbers: {num1} and {num2}")
+    print(f"Addition: {num1} + {num2} = {add(num1, num2)}")
+    print(f"Subtraction: {num1} - {num2} = {subtract(num1, num2)}")
+    print(f"Multiplication: {num1} * {num2} = {multiply(num1, num2)}")
+    print(f"Division: {num1} / {num2} = {divide(num1, num2)}")
+
+    # Uncomment the line below for interactive mode:
+    # calculator()
