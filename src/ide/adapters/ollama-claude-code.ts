@@ -4,7 +4,7 @@ import { randomUUID } from 'crypto';
 import chalk from 'chalk';
 import path from 'path';
 
-export class ClaudeCodeSpawnAdapter implements IDEAdapter {
+export class OllamaClaudeCodeAdapter implements IDEAdapter {
   private connected: boolean = false;
   private projectPath: string;
   private ollamaModel: string;

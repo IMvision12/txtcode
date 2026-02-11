@@ -1,4 +1,4 @@
-import { ClaudeCodeSpawnAdapter } from './adapters/claude-code-spawn';
+import { OllamaClaudeCodeAdapter } from './adapters/ollama-claude-code';
 
 export interface IDEAdapter {
   connect(): Promise<void>;
@@ -11,8 +11,8 @@ export class IDEBridge {
   private adapter: IDEAdapter;
 
   constructor() {
-    // Use spawn-based Claude Code adapter with Ollama
-    this.adapter = new ClaudeCodeSpawnAdapter();
+    // Use Ollama Claude Code adapter
+    this.adapter = new OllamaClaudeCodeAdapter();
   }
 
   async executeCommand(instruction: string, conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>): Promise<string> {
