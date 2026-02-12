@@ -107,39 +107,77 @@ export class AgentCore {
 
   private async classifyIntent(text: string): Promise<'chat' | 'code'> {
     try {
-      // Use Primary LLM to classify the intent
-      const classificationPrompt = `You are a message classifier for a coding assistant. Classify the following message as either "chat" or "code".
+      // Use Primary LLM to classify the intent with comprehensive examples
+      const classificationPrompt = `You are an intent classifier for OpenCode, a messaging-based coding assistant. Classify the user's message as either "chat" or "code".
 
-Rules:
-- "chat": General questions, greetings, explanations, discussions, "what is X", "how does X work", "which model", "who are you"
-- "code": Actual coding tasks that require file operations, code execution, or project modifications
+CLASSIFICATION RULES:
 
-Examples:
-- "hi" → chat
-- "what is Python?" → chat
-- "which model are you?" → chat
-- "explain async/await" → chat
-- "create a file named app.py" → code
-- "fix the bug in main.js" → code
-- "run the script" → code
-- "add a new feature to the project" → code
+"chat" - General conversation, questions, explanations:
+- Greetings: "hi", "hello", "hey there"
+- Questions about concepts: "what is Python?", "explain async/await", "how does X work?"
+- Questions about the assistant: "which model are you?", "who are you?", "what can you do?"
+- Discussions: "tell me about", "I want to learn", "can you explain"
+- Comparisons: "difference between X and Y", "which is better"
+- General programming questions without action: "what are design patterns?", "best practices for X"
+- Acknowledgments: "thanks", "ok", "got it", "yes", "no"
 
-Message: "${text}"
+"code" - Actual coding tasks requiring file operations or code execution:
+- File creation: "create a file", "make app.py", "generate config.json"
+- File modification: "edit main.js", "update the code", "fix the bug in X", "modify function Y"
+- File deletion: "delete file.py", "remove old code"
+- Code execution: "run script.py", "execute the program", "test the code"
+- Project setup: "setup a new project", "initialize app", "install dependencies"
+- Debugging: "debug this error", "fix the issue in X file"
+- Feature addition: "add a function to X", "implement feature Y"
+- Code review: "review my code in X", "check file.py for errors"
+- Any message mentioning specific file names with extensions (.py, .js, .ts, etc.)
 
-Respond with ONLY one word: "chat" or "code"`;
+EDGE CASES:
+- "what is in file.py?" → chat (asking about content, not modifying)
+- "create a file.py" → code (action to create)
+- "how to create a file in Python?" → chat (asking how, not doing it)
+- "create a Python file" → code (action, even without specific name)
+- "explain the code in main.js" → chat (explanation, not modification)
+- "fix the code in main.js" → code (action to fix)
+- "what model are you using?" → chat (question about assistant)
+- "use model X to create Y" → code (action to create)
+
+EXAMPLES:
+User: "hi" → chat
+User: "what is Python?" → chat
+User: "which model are you?" → chat
+User: "explain async/await" → chat
+User: "how do I create a file?" → chat
+User: "what's in config.json?" → chat
+User: "tell me about design patterns" → chat
+User: "create a file named app.py" → code
+User: "fix the bug in main.js" → code
+User: "run the script" → code
+User: "add a new feature to the project" → code
+User: "make a calculator" → code
+User: "delete old files" → code
+User: "setup the project" → code
+
+USER MESSAGE: "${text}"
+
+Respond with ONLY ONE WORD: either "chat" or "code"`;
 
       const result = await this.aiProcessor.process(classificationPrompt);
       const classification = result.toLowerCase().trim();
       
-      // Parse the response
+      // Parse the response - look for the keywords
       if (classification.includes('code')) {
         return 'code';
-      } else {
+      } else if (classification.includes('chat')) {
         return 'chat';
+      } else {
+        // If response is unclear, use fallback
+        console.log('⚠️ Unclear classification response:', classification);
+        return this.isCodingTask(text) ? 'code' : 'chat';
       }
     } catch (error) {
       // Fallback to simple keyword matching if classification fails
-      console.log('⚠️ Classification failed, using fallback logic');
+      console.log('⚠️ Classification failed, using fallback logic:', error);
       return this.isCodingTask(text) ? 'code' : 'chat';
     }
   }
@@ -147,17 +185,24 @@ Respond with ONLY one word: "chat" or "code"`;
   private isCodingTask(text: string): boolean {
     const lowerText = text.toLowerCase();
     
-    // Exclude common non-coding questions
+    // Strong indicators it's NOT a coding task (questions/explanations)
     const nonCodingPatterns = [
-      /^(hi|hello|hey|greetings)/,
-      /what (is|are|does|do|can)/,
-      /how (are|do|does|can)/,
-      /tell me about/,
-      /explain/,
-      /which (model|version|ai)/,
-      /who are you/,
-      /what('s| is) your/,
-      /^(thanks|thank you|ok|okay|yes|no|sure)/
+      /^(hi|hello|hey|greetings|good morning|good evening)/,
+      /^what (is|are|does|do|can|will|would)/,
+      /^how (are|do|does|can|to|will|would)/,
+      /^why (is|are|does|do|can)/,
+      /^when (is|are|does|do|can)/,
+      /^where (is|are|does|do|can)/,
+      /^tell me (about|how|what|why)/,
+      /^explain/,
+      /^which (model|version|ai|one)/,
+      /^who (are|is)/,
+      /^what('s| is) (your|the|a)/,
+      /^(thanks|thank you|ok|okay|yes|no|sure|got it)/,
+      /difference between/,
+      /compare/,
+      /best practices/,
+      /what.*in.*\.(py|js|ts|java)/, // "what is in file.py" - asking about content
     ];
 
     // If it matches non-coding patterns, it's NOT a coding task
@@ -165,42 +210,42 @@ Respond with ONLY one word: "chat" or "code"`;
       return false;
     }
     
-    // Keywords that indicate coding tasks (must be action-oriented)
-    const codingKeywords = [
-      // File operations (action verbs)
-      'create file', 'make file', 'write file', 'generate file',
-      'delete file', 'remove file', 'modify file', 'edit file',
-      'create a', 'make a', 'write a', 'build a',
-      
-      // Code operations (action verbs)
-      'implement', 'refactor', 'optimize', 'debug', 'fix bug',
-      'add function', 'add method', 'add class', 'add feature',
-      'update code', 'change code', 'modify code',
-      
-      // Execution
-      'run ', 'execute ', 'compile ', 'test ',
-      'install ', 'setup ', 'configure ',
-      
-      // File types with actions
-      'create .', 'make .', 'write .',
-      'in .py', 'in .js', 'in .ts', 'in .java',
-      
-      // Project structure
-      'new project', 'new app', 'new script'
+    // Strong action verbs that indicate coding tasks
+    const actionVerbs = [
+      'create', 'make', 'build', 'generate', 'write',
+      'delete', 'remove', 'erase',
+      'modify', 'edit', 'update', 'change', 'alter',
+      'fix', 'debug', 'solve', 'repair',
+      'add', 'insert', 'append',
+      'run', 'execute', 'compile', 'test',
+      'install', 'setup', 'configure', 'initialize',
+      'implement', 'refactor', 'optimize',
+      'deploy', 'publish', 'release'
     ];
 
-    // Check if any coding keyword is present
-    const hasCodingKeyword = codingKeywords.some(keyword => 
-      lowerText.includes(keyword)
-    );
+    // Check for action verbs followed by coding-related terms
+    const hasActionWithTarget = actionVerbs.some(verb => {
+      const verbPattern = new RegExp(`\\b${verb}\\b.*(file|code|function|class|method|script|app|project|program|\\.\\w+)`, 'i');
+      return verbPattern.test(lowerText);
+    });
 
-    // Additional patterns (must be specific)
-    const hasCodePattern = 
-      /create.*\.(py|js|ts|java|cpp|c|html|css|json|xml|yaml|yml|md|txt|sh|bat)/.test(lowerText) || // Create with extension
-      /```/.test(text) || // Code blocks
-      /(^|\s)(import |from |def |function |class |const |let |var )/.test(lowerText); // Code syntax at word boundaries
+    if (hasActionWithTarget) {
+      return true;
+    }
 
-    return hasCodingKeyword || hasCodePattern;
+    // Check for file extensions with action context
+    const fileExtensionPattern = /\b(create|make|edit|fix|update|delete|run|in|to)\b.*\.(py|js|ts|jsx|tsx|java|cpp|c|html|css|json|xml|yaml|yml|md|txt|sh|bat|go|rs|rb|php|swift|kt)/;
+    if (fileExtensionPattern.test(lowerText)) {
+      return true;
+    }
+
+    // Check for code blocks
+    if (/```/.test(text)) {
+      return true;
+    }
+
+    // Default to chat if uncertain
+    return false;
   }
 
   private getHelpMessage(): string {
