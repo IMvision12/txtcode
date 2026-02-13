@@ -1,5 +1,6 @@
 import { OllamaClaudeCodeAdapter } from './adapters/ollama-claude-code';
 import { ClaudeCodeAdapter } from './adapters/claude-code';
+import { GeminiCodeAdapter } from './adapters/gemini-code';
 
 export interface IDEAdapter {
   connect(): Promise<void>;
@@ -18,6 +19,10 @@ export class IDEBridge {
       case 'claude-code':
         // Official Claude Code with Anthropic API
         this.adapter = new ClaudeCodeAdapter();
+        break;
+      case 'gemini-code':
+        // Gemini Code with Google AI API
+        this.adapter = new GeminiCodeAdapter();
         break;
       case 'ollama-claude-code':
       default:

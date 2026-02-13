@@ -118,7 +118,8 @@ async function configureIDE(config: any) {
       message: 'Select IDE type:',
       choices: [
         { name: 'Claude Code (Official - Anthropic API)', value: 'claude-code' },
-        { name: 'Claude Code (Ollama - Local & Free)', value: 'ollama-claude-code' }
+        { name: 'Claude Code (Ollama - Local & Free)', value: 'ollama-claude-code' },
+        { name: 'Gemini Code (Google AI API)', value: 'gemini-code' }
       ],
       default: config.ideType
     }
@@ -147,6 +148,16 @@ async function configureIDE(config: any) {
       }
     ]);
     config.ollamaModel = model;
+  } else if (answers.ideType === 'gemini-code') {
+    const { model } = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'model',
+        message: 'Gemini model:',
+        default: config.geminiModel || 'gemini-2.0-flash-exp'
+      }
+    ]);
+    config.geminiModel = model;
   }
 
   saveConfig(config);
@@ -218,6 +229,10 @@ function viewConfig(config: any) {
   
   if (config.claudeModel) {
     console.log(chalk.white('Claude Model:'), chalk.yellow(config.claudeModel));
+  }
+  
+  if (config.geminiModel) {
+    console.log(chalk.white('Gemini Model:'), chalk.yellow(config.geminiModel));
   }
   
   if (config.authorizedUser) {

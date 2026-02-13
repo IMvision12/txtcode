@@ -85,7 +85,7 @@ export class AIProcessor {
   private async processWithGemini(instruction: string): Promise<string> {
     try {
       const genAI = new GoogleGenerativeAI(this.apiKey);
-      const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
       const result = await model.generateContent(instruction);
       const response = result.response;
