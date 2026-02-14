@@ -36,7 +36,7 @@ export async function authCommand() {
 
   console.log(chalk.green('\nAI provider configured\n'));
 
-  // Load models from catalog (similar to OpenClaw's pi-ai catalog)
+  // Load models from catalog
   const providerModels = modelsCatalog.providers[aiAnswers.aiProvider as keyof typeof modelsCatalog.providers];
   const modelChoices = providerModels.models.map((model: any) => ({
     name: model.recommended 
