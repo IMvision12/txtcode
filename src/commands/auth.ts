@@ -3,12 +3,13 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import chalk from 'chalk';
+import modelsCatalog from '../data/models-catalog.json';
 
 const CONFIG_DIR = path.join(os.homedir(), '.agentcode');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 
 export async function authCommand() {
-  console.log(chalk.blue.bold('\n🔐 AgentCode Authentication\n'));
+  console.log(chalk.blue.bold('\nAgentCode Authentication\n'));
   console.log(chalk.gray('Configure your AgentCode CLI for remote IDE control\n'));
 
   // Step 1: AI Provider
@@ -18,9 +19,9 @@ export async function authCommand() {
       name: 'aiProvider',
       message: 'Select AI provider:',
       choices: [
-        { name: '🧠 Anthropic (Claude)', value: 'anthropic' },
-        { name: '🤖 OpenAI (GPT)', value: 'openai' },
-        { name: '💎 Google (Gemini)', value: 'gemini' }
+        { name: 'Anthropic (Claude)', value: 'anthropic' },
+        { name: 'OpenAI (GPT)', value: 'openai' },
+        { name: 'Google (Gemini)', value: 'gemini' }
       ],
       default: 'anthropic'
     },
@@ -33,7 +34,28 @@ export async function authCommand() {
     }
   ]);
 
-  console.log(chalk.green('\n✅ AI provider configured\n'));
+  console.log(chalk.green('\nAI provider configured\n'));
+
+  // Load models from catalog (similar to OpenClaw's pi-ai catalog)
+  const providerModels = modelsCatalog.providers[aiAnswers.aiProvider as keyof typeof modelsCatalog.providers];
+  const modelChoices = providerModels.models.map((model: any) => ({
+    name: model.recommended 
+      ? `${model.name} (${model.description}) - Recommended`
+      : `${model.name} (${model.description})`,
+    value: model.id
+  }));
+
+  const modelAnswer = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'model',
+      message: 'Select model:',
+      choices: modelChoices,
+      default: modelChoices[0]?.value
+    }
+  ]);
+
+  console.log(chalk.green(`\nModel selected: ${modelAnswer.model}\n`));
 
   // Step 2: Messaging Platform
   const platformAnswers = await inquirer.prompt([
@@ -42,9 +64,9 @@ export async function authCommand() {
       name: 'platform',
       message: 'Select messaging platform:',
       choices: [
-        { name: '📱 WhatsApp', value: 'whatsapp' },
-        { name: '✈️  Telegram', value: 'telegram' },
-        { name: '💬 Discord', value: 'discord' }
+        { name: 'WhatsApp', value: 'whatsapp' },
+        { name: 'Telegram', value: 'telegram' },
+        { name: 'Discord', value: 'discord' }
       ],
       default: 'whatsapp'
     }
@@ -55,7 +77,7 @@ export async function authCommand() {
 
   // Complete messaging platform auth immediately
   if (platformAnswers.platform === 'telegram') {
-    console.log(chalk.cyan('\n📱 Telegram Bot Setup\n'));
+    console.log(chalk.cyan('\nTelegram Bot Setup\n'));
     console.log(chalk.gray('1. Open Telegram and search for @BotFather'));
     console.log(chalk.gray('2. Send /newbot and follow the instructions'));
     console.log(chalk.gray('3. Copy the bot token you receive\n'));
@@ -71,9 +93,9 @@ export async function authCommand() {
     ]);
 
     telegramToken = telegramAnswers.token;
-    console.log(chalk.green('\n✅ Telegram bot configured\n'));
+    console.log(chalk.green('\nTelegram bot configured\n'));
   } else if (platformAnswers.platform === 'discord') {
-    console.log(chalk.cyan('\n💬 Discord Bot Setup\n'));
+    console.log(chalk.cyan('\nDiscord Bot Setup\n'));
     console.log(chalk.gray('1. Go to https://discord.com/developers/applications'));
     console.log(chalk.gray('2. Create a New Application'));
     console.log(chalk.gray('3. Go to Bot → Add Bot'));
@@ -91,11 +113,11 @@ export async function authCommand() {
     ]);
 
     discordToken = discordAnswers.token;
-    console.log(chalk.green('\n✅ Discord bot configured\n'));
+    console.log(chalk.green('\nDiscord bot configured\n'));
   } else {
-    console.log(chalk.cyan('\n📱 WhatsApp Setup\n'));
+    console.log(chalk.cyan('\nWhatsApp Setup\n'));
     console.log(chalk.gray('You will scan a QR code when you start the agent\n'));
-    console.log(chalk.green('✅ WhatsApp selected\n'));
+    console.log(chalk.green('\nWhatsApp selected\n'));
   }
 
   // Step 3: IDE Selection
@@ -105,11 +127,11 @@ export async function authCommand() {
       name: 'ideType',
       message: 'Select your IDE:',
       choices: [
-        { name: '🚀 Kiro', value: 'kiro' },
-        { name: '📝 VS Code', value: 'vscode' },
-        { name: '⚡ Cursor', value: 'cursor' },
-        { name: '🌊 Windsurf', value: 'windsurf' },
-        { name: '🤖 Claude Code', value: 'claude-code' }
+        { name: 'Kiro', value: 'kiro' },
+        { name: 'VS Code', value: 'vscode' },
+        { name: 'Cursor', value: 'cursor' },
+        { name: 'Windsurf', value: 'windsurf' },
+        { name: 'Claude Code', value: 'claude-code' }
       ],
       default: 'kiro'
     }
@@ -124,6 +146,7 @@ export async function authCommand() {
   const config = {
     aiProvider: aiAnswers.aiProvider,
     aiApiKey: aiAnswers.aiApiKey,
+    aiModel: modelAnswer.model,
     platform: platformAnswers.platform,
     telegramToken: telegramToken,
     discordToken: discordToken,
@@ -135,9 +158,9 @@ export async function authCommand() {
 
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
 
-  console.log(chalk.green('\n✅ Authentication successful!'));
+  console.log(chalk.green('\nAuthentication successful!'));
   console.log(chalk.gray(`\nConfiguration saved to: ${CONFIG_FILE}`));
-  console.log(chalk.cyan('\n📱 Next steps:'));
+  console.log(chalk.cyan('\nNext steps:'));
   console.log(chalk.white('  1. Run: ' + chalk.bold('agentcode start')));
   
   if (platformAnswers.platform === 'whatsapp') {

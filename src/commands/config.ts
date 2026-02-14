@@ -173,9 +173,9 @@ async function configureAI(config: any) {
       name: 'aiProvider',
       message: 'Select AI provider for general chat:',
       choices: [
-        { name: '🧠 Anthropic (Claude)', value: 'anthropic' },
-        { name: '🤖 OpenAI (GPT)', value: 'openai' },
-        { name: '💎 Google (Gemini)', value: 'gemini' }
+        { name: 'Anthropic (Claude)', value: 'anthropic' },
+        { name: 'OpenAI (GPT)', value: 'openai' },
+        { name: 'Google (Gemini)', value: 'gemini' }
       ],
       default: config.aiProvider
     },
