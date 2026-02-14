@@ -32,6 +32,7 @@
     "commander": "^11.1.0",
     "discord.js": "^14.25.1",
     "dotenv": "^16.3.1",
+    "gradient-string": "^3.0.0",
     "inquirer": "^8.2.5",
     "openai": "^6.19.0",
     "qrcode-terminal": "^0.12.0",
