@@ -1,13 +1,13 @@
 import chalk from 'chalk';
 
 export function showBanner() {
-  // Gradient effect: green -> yellow -> orange
-  const line1 = chalk.green(' █████╗  ██████╗ ███████╗███╗   ██╗████████╗ ██████╗ ██████╗ ██████╗ ███████╗');
-  const line2 = chalk.greenBright('██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝██╔════╝██╔═══██╗██╔══██╗██╔════╝');
-  const line3 = chalk.yellow('███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║   ██║     ██║   ██║██║  ██║█████╗  ');
-  const line4 = chalk.yellow('██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║   ██║     ██║   ██║██║  ██║██╔══╝  ');
-  const line5 = chalk.rgb(255, 165, 0)('██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║   ╚██████╗╚██████╔╝██████╔╝███████╗');
-  const line6 = chalk.rgb(255, 140, 0)('╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝');
+  // Rainbow gradient effect: cyan -> blue -> green -> yellow -> orange -> red
+  const line1 = chalk.cyan(' █████╗ ') + chalk.blue(' ██████╗ ') + chalk.green('███████╗') + chalk.yellow('███╗   ██╗') + chalk.rgb(255, 165, 0)('████████╗') + chalk.rgb(255, 69, 0)(' ██████╗ ') + chalk.red('██████╗ ') + chalk.red('██████╗ ') + chalk.red('███████╗');
+  const line2 = chalk.cyan('██╔══██╗') + chalk.blue('██╔════╝ ') + chalk.green('██╔════╝') + chalk.yellow('████╗  ██║') + chalk.rgb(255, 165, 0)('╚══██╔══╝') + chalk.rgb(255, 69, 0)('██╔════╝') + chalk.red('██╔═══██╗') + chalk.red('██╔══██╗') + chalk.red('██╔════╝');
+  const line3 = chalk.cyan('███████║') + chalk.blue('██║  ███╗') + chalk.green('█████╗  ') + chalk.yellow('██╔██╗ ██║') + chalk.rgb(255, 165, 0)('   ██║   ') + chalk.rgb(255, 69, 0)('██║     ') + chalk.red('██║   ██║') + chalk.red('██║  ██║') + chalk.red('█████╗  ');
+  const line4 = chalk.cyan('██╔══██║') + chalk.blue('██║   ██║') + chalk.green('██╔══╝  ') + chalk.yellow('██║╚██╗██║') + chalk.rgb(255, 165, 0)('   ██║   ') + chalk.rgb(255, 69, 0)('██║     ') + chalk.red('██║   ██║') + chalk.red('██║  ██║') + chalk.red('██╔══╝  ');
+  const line5 = chalk.cyan('██║  ██║') + chalk.blue('╚██████╔╝') + chalk.green('███████╗') + chalk.yellow('██║ ╚████║') + chalk.rgb(255, 165, 0)('   ██║   ') + chalk.rgb(255, 69, 0)('╚██████╗') + chalk.red('╚██████╔╝') + chalk.red('██████╔╝') + chalk.red('███████╗');
+  const line6 = chalk.cyan('╚═╝  ╚═╝') + chalk.blue(' ╚═════╝ ') + chalk.green('╚══════╝') + chalk.yellow('╚═╝  ╚═══╝') + chalk.rgb(255, 165, 0)('   ╚═╝   ') + chalk.rgb(255, 69, 0)(' ╚═════╝') + chalk.red(' ╚═════╝ ') + chalk.red('╚═════╝ ') + chalk.red('╚══════╝');
 
   console.log('');
   console.log(line1);
