@@ -13,7 +13,7 @@ export class AIProcessor {
 
   async process(instruction: string): Promise<string> {
     if (!this.apiKey) {
-      return '⚠️ AI API key not configured. Run: opencode config';
+      return '⚠️ AI API key not configured. Run: agentcode config';
     }
 
     try {

@@ -1,10 +1,10 @@
 {
-  "name": "@opencode/cli",
+  "name": "@agentcode/cli",
   "version": "0.1.0",
   "description": "Remote IDE control via WhatsApp/Telegram",
   "main": "dist/index.js",
   "bin": {
-    "opencode": "./dist/cli.js"
+    "agentcode": "./dist/cli.js"
   },
   "scripts": {
     "build": "tsc",

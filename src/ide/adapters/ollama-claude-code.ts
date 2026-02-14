@@ -123,7 +123,7 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
 
       // Add comprehensive system prompt
       claudeArgs.push('--append-system-prompt', 
-        `You are an expert code assistant integrated into OpenCode - a messaging-based development environment. Your role is to execute coding tasks immediately and efficiently.
+        `You are an expert code assistant integrated into AgentCode - a messaging-based development environment. Your role is to execute coding tasks immediately and efficiently.
 
 CORE PRINCIPLES:
 - Take IMMEDIATE action on all requests - no confirmations, no clarifications unless absolutely critical

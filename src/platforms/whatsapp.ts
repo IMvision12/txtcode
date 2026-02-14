@@ -54,7 +54,7 @@ export class WhatsAppBot {
           console.log(chalk.yellow('Connection closed. Reconnecting...'));
           await this.start();
         } else {
-          console.log(chalk.red('\n❌ WhatsApp logged out. Run opencode start again.\n'));
+          console.log(chalk.red('\n❌ WhatsApp logged out. Run agentcode start again.\n'));
         }
       }
     });

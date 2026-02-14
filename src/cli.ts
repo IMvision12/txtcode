@@ -13,24 +13,24 @@ showBanner();
 const program = new Command();
 
 program
-  .name('opencode')
+  .name('agentcode')
   .description('Remote IDE control via WhatsApp/Telegram')
   .version('0.1.0');
 
 program
   .command('auth')
-  .description('Authenticate and configure OpenCode')
+  .description('Authenticate and configure AgentCode')
   .action(authCommand);
 
 program
   .command('start')
-  .description('Start the OpenCode agent')
+  .description('Start the AgentCode agent')
   .option('-d, --daemon', 'Run as daemon')
   .action(agentCommand);
 
 program
   .command('config')
-  .description('Configure OpenCode settings')
+  .description('Configure AgentCode settings')
   .action(configCommand);
 
 program
@@ -53,7 +53,7 @@ program
     const fs = require('fs');
     const path = require('path');
     const os = require('os');
-    const configPath = path.join(os.homedir(), '.opencode', 'config.json');
+    const configPath = path.join(os.homedir(), '.agentcode', 'config.json');
     
     try {
       const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
@@ -78,7 +78,7 @@ program
       if (fs.existsSync(authPath)) {
         fs.rmSync(authPath, { recursive: true, force: true });
         console.log(chalk.green('\n✅ WhatsApp session deleted!'));
-        console.log(chalk.cyan('Run "opencode start" to scan QR code again.\n'));
+        console.log(chalk.cyan('Run "agentcode start" to scan QR code again.\n'));
       } else {
         console.log(chalk.yellow('\n⚠️ No WhatsApp session found.\n'));
       }

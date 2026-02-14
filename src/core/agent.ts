@@ -17,7 +17,7 @@ export class AgentCore {
     this.ideBridge = new IDEBridge();
     this.aiProcessor = new AIProcessor();
     this.authorizedUser = null;
-    this.configPath = require('path').join(require('os').homedir(), '.opencode', 'config.json');
+    this.configPath = require('path').join(require('os').homedir(), '.agentcode', 'config.json');
     this.loadAuthorizedUser();
   }
 
@@ -108,7 +108,7 @@ export class AgentCore {
   private async classifyIntent(text: string): Promise<'chat' | 'code'> {
     try {
       // Use Primary LLM to classify the intent with comprehensive examples
-      const classificationPrompt = `You are an intent classifier for OpenCode, a messaging-based coding assistant. Classify the user's message as either "chat" or "code".
+      const classificationPrompt = `You are an intent classifier for AgentCode, a messaging-based coding assistant. Classify the user's message as either "chat" or "code".
 
 CLASSIFICATION RULES:
 
@@ -249,7 +249,7 @@ Respond with ONLY ONE WORD: either "chat" or "code"`;
   }
 
   private getHelpMessage(): string {
-    return `🤖 OpenCode Agent
+    return `🤖 AgentCode Agent
 
 Available commands:
 • help - Show this message

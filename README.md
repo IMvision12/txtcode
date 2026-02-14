@@ -1,15 +1,15 @@
-# OpenCode
+# AgentCode
 
 ```
- ██████╗ ██████╗ ███████╗███╗   ██╗ ██████╗ ██████╗ ██████╗ ███████╗
-██╔═══██╗██╔══██╗██╔════╝████╗  ██║██╔════╝██╔═══██╗██╔══██╗██╔════╝
-██║   ██║██████╔╝█████╗  ██╔██╗ ██║██║     ██║   ██║██║  ██║█████╗  
-██║   ██║██╔═══╝ ██╔══╝  ██║╚██╗██║██║     ██║   ██║██║  ██║██╔══╝  
-╚██████╔╝██║     ███████╗██║ ╚████║╚██████╗╚██████╔╝██████╔╝███████╗
- ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═══╝ ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝
+ █████╗  ██████╗ ███████╗███╗   ██╗████████╗ ██████╗ ██████╗ ██████╗ ███████╗
+██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
+███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║   ██║     ██║   ██║██║  ██║█████╗  
+██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║   ██║     ██║   ██║██║  ██║██╔══╝  
+██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║   ╚██████╗╚██████╔╝██████╔╝███████╗
+╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝
 ```
 
-Control your local IDE remotely via WhatsApp or Telegram using AI.
+Control your local IDE remotely via WhatsApp, Telegram, or Discord using AI agents.
 
 ## Features
 
@@ -22,30 +22,30 @@ Control your local IDE remotely via WhatsApp or Telegram using AI.
 ## Installation
 
 ```bash
-npm install -g @opencode/cli
+npm install -g @agentcode/cli
 ```
 
 Or use npx without installing:
 
 ```bash
-npx @opencode/cli auth
+npx @agentcode/cli auth
 ```
 
 ## Quick Start
 
 ### 1. Authenticate
 ```bash
-opencode auth
+agentcode auth
 ```
 
 This will guide you through:
-- Choosing your messaging platform (WhatsApp/Telegram)
+- Choosing your messaging platform (WhatsApp/Telegram/Discord)
 - Selecting your IDE
-- Configuring AI provider (Anthropic/OpenAI)
+- Configuring AI provider (Anthropic/OpenAI/Gemini)
 
 ### 2. Start Agent
 ```bash
-opencode start
+agentcode start
 ```
 
 ### 3. Connect from Phone
@@ -61,31 +61,29 @@ Send natural language instructions:
 ## Commands
 
 ```bash
-opencode auth         # Authenticate and configure
-opencode start        # Start the agent
-opencode config       # Update configuration
-opencode status       # Check agent status
-opencode stop         # Stop the agent
-opencode --help       # Show help
-opencode --version    # Show version
+agentcode auth         # Authenticate and configure
+agentcode start        # Start the agent
+agentcode config       # Update configuration
+agentcode status       # Check agent status
+agentcode stop         # Stop the agent
+agentcode --help       # Show help
+agentcode --version    # Show version
 ```
 
 ## Configuration
 
-Configuration is stored in `~/.opencode/config.json`
+Configuration is stored in `~/.agentcode/config.json`
 
 You can update settings anytime with:
 ```bash
-opencode config
+agentcode config
 ```
 
 ## Supported IDEs
 
-- Kiro
-- VS Code
-- Cursor
-- Windsurf
-- Claude Code
+- Claude Code (Official - Anthropic API)
+- Claude Code via Ollama (Local & Free)
+- Gemini Code (Google AI API)
 
 ## Requirements
 
@@ -118,7 +116,7 @@ Refactor the database queries in models/user.js to use async/await
 
 ## Troubleshooting
 
-### "Command not found: opencode"
+### "Command not found: agentcode"
 - Restart your terminal
 - Check if npm global bin is in PATH: `npm config get prefix`
 
@@ -133,21 +131,21 @@ Refactor the database queries in models/user.js to use async/await
 ### AI not responding
 - Verify your API key is correct
 - Check your API provider account has credits
-- Run `opencode config` to update settings
+- Run `agentcode config` to update settings
 
 ## Uninstall
 
 ```bash
-npm uninstall -g @opencode/cli
+npm uninstall -g @agentcode/cli
 ```
 
-Configuration will remain at `~/.opencode/` - delete manually if needed.
+Configuration will remain at `~/.agentcode/` - delete manually if needed.
 
 ## Development
 
 ```bash
-git clone https://github.com/yourusername/opencode.git
-cd opencode
+git clone https://github.com/IMvision12/agentcode.git
+cd agentcode
 npm install
 npm run build
 npm link

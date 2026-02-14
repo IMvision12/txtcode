@@ -4,12 +4,12 @@ import path from 'path';
 import os from 'os';
 import chalk from 'chalk';
 
-const CONFIG_DIR = path.join(os.homedir(), '.opencode');
+const CONFIG_DIR = path.join(os.homedir(), '.agentcode');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 
 export async function authCommand() {
-  console.log(chalk.blue.bold('\n🔐 OpenCode Authentication\n'));
-  console.log(chalk.gray('Configure your OpenCode CLI for remote IDE control\n'));
+  console.log(chalk.blue.bold('\n🔐 AgentCode Authentication\n'));
+  console.log(chalk.gray('Configure your AgentCode CLI for remote IDE control\n'));
 
   // Step 1: AI Provider
   const aiAnswers = await inquirer.prompt([
@@ -138,7 +138,7 @@ export async function authCommand() {
   console.log(chalk.green('\n✅ Authentication successful!'));
   console.log(chalk.gray(`\nConfiguration saved to: ${CONFIG_FILE}`));
   console.log(chalk.cyan('\n📱 Next steps:'));
-  console.log(chalk.white('  1. Run: ' + chalk.bold('opencode start')));
+  console.log(chalk.white('  1. Run: ' + chalk.bold('agentcode start')));
   
   if (platformAnswers.platform === 'whatsapp') {
     console.log(chalk.white('  2. Scan QR code with WhatsApp'));
