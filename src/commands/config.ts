@@ -153,8 +153,8 @@ async function configureIDE(config: any) {
       {
         type: 'input',
         name: 'model',
-        message: 'Gemini model:',
-        default: config.geminiModel || 'gemini-2.0-flash-exp'
+        message: 'Gemini model (leave empty for default):',
+        default: config.geminiModel || ''
       }
     ]);
     config.geminiModel = model;

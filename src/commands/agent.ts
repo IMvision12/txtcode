@@ -29,7 +29,7 @@ export async function agentCommand(options: { daemon?: boolean }) {
   process.env.PROJECT_PATH = config.projectPath || process.cwd();
   process.env.OLLAMA_MODEL = config.ollamaModel || 'gpt-oss:20b';
   process.env.CLAUDE_MODEL = config.claudeModel || 'sonnet';
-  process.env.GEMINI_MODEL = config.geminiModel || 'gemini-2.0-flash-exp';
+  process.env.GEMINI_MODEL = config.geminiModel || '';
 
   const agent = new AgentCore();
 
