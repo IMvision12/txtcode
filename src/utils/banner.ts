@@ -15,5 +15,5 @@ export function showBanner() {
 
   console.log('');
   console.log(sunsetGradient.multiline(banner));
-  console.log(chalk.cyan('  Remote IDE control via WhatsApp, Telegram & Discord\n'));
+  console.log(chalk.cyan('  Remote coding via WhatsApp, Telegram & Discord\n'));
 }
