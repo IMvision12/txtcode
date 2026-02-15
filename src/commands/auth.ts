@@ -120,20 +120,18 @@ export async function authCommand() {
     console.log(chalk.green('\nWhatsApp selected\n'));
   }
 
-  // Step 3: IDE Selection
+  // Step 3: Coding Adapter Selection
   const ideAnswers = await inquirer.prompt([
     {
       type: 'list',
       name: 'ideType',
-      message: 'Select your IDE:',
+      message: 'Select coding adapter:',
       choices: [
-        { name: 'Kiro', value: 'kiro' },
-        { name: 'VS Code', value: 'vscode' },
-        { name: 'Cursor', value: 'cursor' },
-        { name: 'Windsurf', value: 'windsurf' },
-        { name: 'Claude Code', value: 'claude-code' }
+        { name: 'Claude Code (Anthropic API)', value: 'claude-code' },
+        { name: 'Gemini Code (Google AI API)', value: 'gemini-code' },
+        { name: 'Ollama Claude Code (Local, Free)', value: 'ollama-claude-code' }
       ],
-      default: 'kiro'
+      default: 'ollama-claude-code'
     }
   ]);
 

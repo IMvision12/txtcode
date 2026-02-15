@@ -12,6 +12,7 @@ import { Boom } from '@hapi/boom';
 export class WhatsAppBot {
   private agent: AgentCore;
   private sock: any;
+  private lastProcessedTimestamp: number = 0;
 
   constructor(agent: AgentCore) {
     this.agent = agent;
@@ -26,27 +27,23 @@ export class WhatsAppBot {
     // Create socket connection
     this.sock = makeWASocket({
       auth: state,
-      printQRInTerminal: false, // We'll handle QR display ourselves
+      printQRInTerminal: false,
     });
 
-    // Handle connection updates
     this.sock.ev.on('connection.update', async (update: any) => {
       const { connection, lastDisconnect, qr } = update;
 
-      // Display QR code
       if (qr) {
         console.log(chalk.yellow('\n📱 Scan this QR code with WhatsApp:\n'));
         qrcode.generate(qr, { small: true });
         console.log(chalk.gray('\nOpen WhatsApp → Settings → Linked Devices → Link a Device\n'));
       }
 
-      // Connection established
       if (connection === 'open') {
         console.log(chalk.green('\n✅ WhatsApp connected!\n'));
         console.log(chalk.cyan('Waiting for messages...\n'));
       }
 
-      // Handle disconnection
       if (connection === 'close') {
         const shouldReconnect = (lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
         
@@ -59,40 +56,49 @@ export class WhatsAppBot {
       }
     });
 
-    // Save credentials whenever they update
     this.sock.ev.on('creds.update', saveCreds);
 
-    // Handle incoming messages
-    this.sock.ev.on('messages.upsert', async ({ messages }: { messages: WAMessage[] }) => {
+    this.sock.ev.on('messages.upsert', async ({ messages, type }: { messages: WAMessage[], type: string }) => {
       for (const msg of messages) {
-        // Ignore if not a text message or from status
-        if (!msg.message || msg.key.remoteJid === 'status@broadcast') continue;
+        try {
+          if (type !== 'notify') continue;
 
-        const from = msg.key.remoteJid || '';
-        const text = msg.message.conversation || 
-                     msg.message.extendedTextMessage?.text || '';
+          if (!msg.message || msg.key.remoteJid === 'status@broadcast') continue;
 
-        if (!text) continue;
+          const from = msg.key.remoteJid || '';
+          const isFromMe = msg.key.fromMe || false;
+          const messageTimestamp = (msg.messageTimestamp as number) || 0;
+          
+          const text = msg.message.conversation || 
+                       msg.message.extendedTextMessage?.text || '';
 
-        // Ignore bot's own responses (messages starting with [Gemini], [OpenAI], [Anthropic])
-        if (text.startsWith('[Gemini]') || text.startsWith('[OpenAI]') || text.startsWith('[Anthropic]')) {
-          continue;
-        }
+          if (!text) continue;
 
-        console.log(chalk.blue(`📨 Message from ${from}: ${text}`));
+          if (!isFromMe) {
+            console.log(chalk.gray(`⏭️ Ignoring message from: ${from}`));
+            continue;
+          }
 
-        const response = await this.agent.processMessage({
-          from,
-          text,
-          timestamp: new Date()
-        });
+          if (messageTimestamp <= this.lastProcessedTimestamp) {
+            continue;
+          }
 
-        // Only send reply if user is authorized (response won't start with 🚫)
-        if (!response.startsWith('🚫')) {
-          await this.sock.sendMessage(from, { text: response });
-          console.log(chalk.green(`✅ Replied: ${response.substring(0, 50)}...`));
-        } else {
-          console.log(chalk.yellow(`⚠️ Ignored unauthorized user: ${from}`));
+          this.lastProcessedTimestamp = messageTimestamp;
+
+          console.log(chalk.blue(`📨 Your message: ${text.substring(0, 100)}...`));
+
+          const response = await this.agent.processMessage({
+            from,
+            text,
+            timestamp: new Date(messageTimestamp * 1000)
+          });
+
+          if (!response.startsWith('🚫')) {
+            await this.sock.sendMessage(from, { text: response });
+            console.log(chalk.green(`✅ Replied: ${response.substring(0, 50)}...`));
+          }
+        } catch (error) {
+          console.error(chalk.red('Error processing message:'), error);
         }
       }
     });
