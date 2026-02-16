@@ -20,14 +20,14 @@ export class TelegramBot {
 
   private setupHandlers() {
     this.bot.start((ctx) => {
-      ctx.reply('🤖 Welcome to AgentCode! Send me coding instructions.');
+      ctx.reply('Welcome to AgentCode! Send me coding instructions.');
     });
 
     this.bot.on('text', async (ctx) => {
       const from = ctx.from.id.toString();
       const text = ctx.message.text;
 
-      console.log(chalk.blue(`📨 Message from ${from}: ${text}`));
+      console.log(chalk.blue(`[MSG] Message from ${from}: ${text}`));
 
       const response = await this.agent.processMessage({
         from,
@@ -36,14 +36,14 @@ export class TelegramBot {
       });
 
       await ctx.reply(response);
-      console.log(chalk.green(`✅ Replied`));
+      console.log(chalk.green(`[OK] Replied`));
     });
   }
 
   async start() {
     console.log(chalk.cyan('Starting Telegram bot...\n'));
     await this.bot.launch();
-    console.log(chalk.green('✅ Telegram bot is running!\n'));
+    console.log(chalk.green('[OK] Telegram bot is running!\n'));
 
     process.once('SIGINT', () => this.bot.stop('SIGINT'));
     process.once('SIGTERM', () => this.bot.stop('SIGTERM'));

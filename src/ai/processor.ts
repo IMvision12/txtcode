@@ -13,7 +13,7 @@ export class AIProcessor {
 
   async process(instruction: string): Promise<string> {
     if (!this.apiKey) {
-      return '⚠️ AI API key not configured. Run: agentcode config';
+      return '[WARN] AI API key not configured. Run: agentcode config';
     }
 
     try {
@@ -25,7 +25,7 @@ export class AIProcessor {
         return await this.processWithGemini(instruction);
       }
       
-      return `❌ Unsupported AI provider: ${this.provider}`;
+      return `[ERROR] Unsupported AI provider: ${this.provider}`;
     } catch (error) {
       throw new Error(`AI processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }

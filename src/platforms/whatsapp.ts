@@ -34,13 +34,13 @@ export class WhatsAppBot {
       const { connection, lastDisconnect, qr } = update;
 
       if (qr) {
-        console.log(chalk.yellow('\n📱 Scan this QR code with WhatsApp:\n'));
+        console.log(chalk.yellow('\n[QR] Scan this QR code with WhatsApp:\n'));
         qrcode.generate(qr, { small: true });
         console.log(chalk.gray('\nOpen WhatsApp → Settings → Linked Devices → Link a Device\n'));
       }
 
       if (connection === 'open') {
-        console.log(chalk.green('\n✅ WhatsApp connected!\n'));
+        console.log(chalk.green('\n[OK] WhatsApp connected!\n'));
         console.log(chalk.cyan('Waiting for messages...\n'));
       }
 
@@ -51,7 +51,7 @@ export class WhatsAppBot {
           console.log(chalk.yellow('Connection closed. Reconnecting...'));
           await this.start();
         } else {
-          console.log(chalk.red('\n❌ WhatsApp logged out. Run agentcode start again.\n'));
+          console.log(chalk.red('\n[ERROR] WhatsApp logged out. Run agentcode start again.\n'));
         }
       }
     });
@@ -75,7 +75,7 @@ export class WhatsAppBot {
           if (!text) continue;
 
           if (!isFromMe) {
-            console.log(chalk.gray(`⏭️ Ignoring message from: ${from}`));
+            console.log(chalk.gray(`[SKIP] Ignoring message from: ${from}`));
             continue;
           }
 
@@ -85,7 +85,7 @@ export class WhatsAppBot {
 
           this.lastProcessedTimestamp = messageTimestamp;
 
-          console.log(chalk.blue(`📨 Your message: ${text.substring(0, 100)}...`));
+          console.log(chalk.blue(`[MSG] Your message: ${text.substring(0, 100)}...`));
 
           const response = await this.agent.processMessage({
             from,
@@ -93,9 +93,9 @@ export class WhatsAppBot {
             timestamp: new Date(messageTimestamp * 1000)
           });
 
-          if (!response.startsWith('🚫')) {
+          if (!response.startsWith('[UNAUTHORIZED]')) {
             await this.sock.sendMessage(from, { text: response });
-            console.log(chalk.green(`✅ Replied: ${response.substring(0, 50)}...`));
+            console.log(chalk.green(`[OK] Replied: ${response.substring(0, 50)}...`));
           }
         } catch (error) {
           console.error(chalk.red('Error processing message:'), error);

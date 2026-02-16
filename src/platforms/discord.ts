@@ -27,7 +27,7 @@ export class DiscordBot {
 
   private setupHandlers() {
     this.client.once('ready', () => {
-      console.log(chalk.green(`\n✅ Discord bot logged in as ${this.client.user?.tag}!\n`));
+      console.log(chalk.green(`\n[OK] Discord bot logged in as ${this.client.user?.tag}!\n`));
       console.log(chalk.cyan('Waiting for messages...\n'));
     });
 
@@ -46,7 +46,7 @@ export class DiscordBot {
 
       if (!text) return;
 
-      console.log(chalk.blue(`📨 Message from ${message.author.tag}: ${text}`));
+      console.log(chalk.blue(`[MSG] Message from ${message.author.tag}: ${text}`));
 
       // Show typing indicator
       if ('sendTyping' in message.channel) {
@@ -60,7 +60,7 @@ export class DiscordBot {
       });
 
       // Only send reply if user is authorized
-      if (!response.startsWith('🚫')) {
+      if (!response.startsWith('[UNAUTHORIZED]')) {
         try {
           // Discord has a 2000 character limit, truncate if needed
           const maxLength = 1900;
@@ -69,18 +69,18 @@ export class DiscordBot {
             : response;
           
           await message.reply(truncatedResponse);
-          console.log(chalk.green(`✅ Replied: ${truncatedResponse.substring(0, 50)}...`));
+          console.log(chalk.green(`[OK] Replied: ${truncatedResponse.substring(0, 50)}...`));
         } catch (error: any) {
           // If still fails, send error message
           console.error(chalk.red('Failed to send Discord message:'), error);
           try {
-            await message.reply('✅ Task completed, but output was too long to display.');
+            await message.reply('[OK] Task completed, but output was too long to display.');
           } catch (fallbackError) {
             console.error(chalk.red('Failed to send fallback message:'), fallbackError);
           }
         }
       } else {
-        console.log(chalk.yellow(`⚠️ Ignored unauthorized user: ${from}`));
+        console.log(chalk.yellow(`[WARN] Ignored unauthorized user: ${from}`));
       }
     });
 
