@@ -106,7 +106,9 @@ export class GeminiCodeAdapter implements IDEAdapter {
       const child = spawn(command, spawnArgs, {
         cwd: this.projectPath,
         env: process.env,
-        stdio: ['inherit', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'], // Changed from 'inherit' to 'pipe' for stdin
+        shell: false,
+        windowsHide: true // Hide console window on Windows
       });
 
       this.currentProcess = child;
