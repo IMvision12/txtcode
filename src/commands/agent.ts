@@ -22,6 +22,7 @@ export async function agentCommand(options: { daemon?: boolean }) {
   process.env.PLATFORM = config.platform;
   process.env.TELEGRAM_BOT_TOKEN = config.telegramToken;
   process.env.DISCORD_BOT_TOKEN = config.discordToken;
+  process.env.AUTHORIZED_USER_ID = config.authorizedUserId;
   process.env.IDE_TYPE = config.ideType;
   process.env.IDE_PORT = config.idePort;
   process.env.AI_API_KEY = config.aiApiKey;

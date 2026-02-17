@@ -59,28 +59,23 @@ export class DiscordBot {
         timestamp: new Date(),
       });
 
-      // Only send reply if user is authorized
-      if (!response.startsWith('[UNAUTHORIZED]')) {
+      try {
+        // Discord has a 2000 character limit, truncate if needed
+        const maxLength = 1900;
+        const truncatedResponse = response.length > maxLength 
+          ? response.substring(0, maxLength) + '\n\n... (output truncated)'
+          : response;
+        
+        await message.reply(truncatedResponse);
+        console.log(chalk.green(`[OK] Replied: ${truncatedResponse.substring(0, 50)}...`));
+      } catch (error: any) {
+        // If still fails, send error message
+        console.error(chalk.red('Failed to send Discord message:'), error);
         try {
-          // Discord has a 2000 character limit, truncate if needed
-          const maxLength = 1900;
-          const truncatedResponse = response.length > maxLength 
-            ? response.substring(0, maxLength) + '\n\n... (output truncated)'
-            : response;
-          
-          await message.reply(truncatedResponse);
-          console.log(chalk.green(`[OK] Replied: ${truncatedResponse.substring(0, 50)}...`));
-        } catch (error: any) {
-          // If still fails, send error message
-          console.error(chalk.red('Failed to send Discord message:'), error);
-          try {
-            await message.reply('[OK] Task completed, but output was too long to display.');
-          } catch (fallbackError) {
-            console.error(chalk.red('Failed to send fallback message:'), fallbackError);
-          }
+          await message.reply('[OK] Task completed, but output was too long to display.');
+        } catch (fallbackError) {
+          console.error(chalk.red('Failed to send fallback message:'), fallbackError);
         }
-      } else {
-        console.log(chalk.yellow(`[WARN] Ignored unauthorized user: ${from}`));
       }
     });
 

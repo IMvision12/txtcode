@@ -4,9 +4,172 @@ import path from 'path';
 import os from 'os';
 import chalk from 'chalk';
 import modelsCatalog from '../data/models-catalog.json';
+import makeWASocket, { useMultiFileAuthState } from '@whiskeysockets/baileys';
+import qrcode from 'qrcode-terminal';
 
 const CONFIG_DIR = path.join(os.homedir(), '.agentcode');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
+
+async function authenticateWhatsApp(): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    let sock: any = null;
+    let pairingComplete = false;
+    
+    try {
+      const { state, saveCreds } = await useMultiFileAuthState('.wacli_auth');
+      
+      sock = makeWASocket({
+        auth: state,
+        printQRInTerminal: false,
+        logger: {
+          level: 'silent',
+          fatal: () => {},
+          error: () => {},
+          warn: () => {},
+          info: () => {},
+          debug: () => {},
+          trace: () => {},
+          child: () => ({
+            level: 'silent',
+            fatal: () => {},
+            error: () => {},
+            warn: () => {},
+            info: () => {},
+            debug: () => {},
+            trace: () => {},
+          }),
+        } as any,
+      });
+
+      let hasShownQR = false;
+
+      sock.ev.on('creds.update', saveCreds);
+
+      sock.ev.on('connection.update', async (update: any) => {
+        const { connection, qr, lastDisconnect } = update;
+
+        if (qr && !hasShownQR) {
+          hasShownQR = true;
+          console.log(chalk.yellow('\n[QR] Scan this QR code with WhatsApp:\n'));
+          qrcode.generate(qr, { small: true });
+          console.log(chalk.gray('\nOpen WhatsApp → Settings → Linked Devices → Link a Device\n'));
+        }
+
+        if (connection === 'open' && !pairingComplete) {
+          pairingComplete = true;
+          console.log(chalk.green('\n[OK] WhatsApp authenticated successfully!'));
+          
+          // Close socket and resolve
+          setTimeout(() => {
+            try {
+              sock.ws?.close();
+            } catch (e) {
+              // Ignore
+            }
+            resolve();
+          }, 500);
+        }
+
+        if (connection === 'close' && !pairingComplete) {
+          const statusCode = lastDisconnect?.error?.output?.statusCode;
+          
+          // 515 means pairing successful but needs restart - OpenClaw pattern
+          if (statusCode === 515 && hasShownQR) {
+            console.log(chalk.cyan('\n[INFO] WhatsApp pairing complete, restarting connection...\n'));
+            
+            try {
+              sock.ws?.close();
+            } catch (e) {
+              // Ignore
+            }
+            
+            // Restart connection without QR
+            const { state: newState, saveCreds: newSaveCreds } = await useMultiFileAuthState('.wacli_auth');
+            const retrySock = makeWASocket({
+              auth: newState,
+              printQRInTerminal: false,
+              logger: {
+                level: 'silent',
+                fatal: () => {},
+                error: () => {},
+                warn: () => {},
+                info: () => {},
+                debug: () => {},
+                trace: () => {},
+                child: () => ({
+                  level: 'silent',
+                  fatal: () => {},
+                  error: () => {},
+                  warn: () => {},
+                  info: () => {},
+                  debug: () => {},
+                  trace: () => {},
+                }),
+              } as any,
+            });
+            
+            retrySock.ev.on('creds.update', newSaveCreds);
+            
+            retrySock.ev.on('connection.update', async (retryUpdate: any) => {
+              if (retryUpdate.connection === 'open') {
+                pairingComplete = true;
+                console.log(chalk.green('[OK] WhatsApp linked successfully!\n'));
+                
+                // Close and resolve
+                setTimeout(() => {
+                  try {
+                    retrySock.ws?.close();
+                  } catch (e) {
+                    // Ignore
+                  }
+                  resolve();
+                }, 500);
+              }
+              
+              if (retryUpdate.connection === 'close') {
+                try {
+                  retrySock.ws?.close();
+                } catch (e) {
+                  // Ignore
+                }
+                reject(new Error('WhatsApp authentication failed after restart'));
+              }
+            });
+          } else if (hasShownQR && statusCode !== 515) {
+            // Other errors after showing QR
+            try {
+              sock.ws?.close();
+            } catch (e) {
+              // Ignore
+            }
+            reject(new Error(`WhatsApp authentication failed (code: ${statusCode})`));
+          }
+        }
+      });
+
+      // Timeout after 2 minutes
+      setTimeout(() => {
+        if (!pairingComplete) {
+          try {
+            sock.ws?.close();
+          } catch (e) {
+            // Ignore
+          }
+          reject(new Error('WhatsApp authentication timeout'));
+        }
+      }, 120000);
+    } catch (error) {
+      if (sock) {
+        try {
+          sock.ws?.close();
+        } catch (e) {
+          // Ignore
+        }
+      }
+      reject(error);
+    }
+  });
+}
 
 export async function authCommand() {
   console.log(chalk.blue.bold('\nAgentCode Authentication\n'));
@@ -74,6 +237,7 @@ export async function authCommand() {
 
   let telegramToken = '';
   let discordToken = '';
+  let authorizedUserId = '';
 
   // Complete messaging platform auth immediately
   if (platformAnswers.platform === 'telegram') {
@@ -116,8 +280,28 @@ export async function authCommand() {
     console.log(chalk.green('\nDiscord bot configured\n'));
   } else {
     console.log(chalk.cyan('\nWhatsApp Setup\n'));
-    console.log(chalk.gray('You will scan a QR code when you start the agent\n'));
-    console.log(chalk.green('\nWhatsApp selected\n'));
+    console.log(chalk.yellow('For security, only messages from your authorized number will be processed\n'));
+    
+    const whatsappAnswers = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'authorizedNumber',
+        message: 'Enter your WhatsApp number (with country code, e.g., 1234567890):',
+        validate: (input) => {
+          const cleaned = input.replace(/[^\d]/g, '');
+          return cleaned.length >= 10 || 'Please enter a valid phone number with country code';
+        },
+        filter: (input) => input.replace(/[^\d]/g, '')
+      }
+    ]);
+    
+    authorizedUserId = whatsappAnswers.authorizedNumber;
+    console.log(chalk.green(`\nAuthorized number: ${whatsappAnswers.authorizedNumber}\n`));
+    
+    // Authenticate WhatsApp immediately
+    console.log(chalk.cyan('Authenticating WhatsApp...\n'));
+    await authenticateWhatsApp();
+    console.log(chalk.green('\nWhatsApp authenticated successfully!\n'));
   }
 
   // Step 3: Coding Adapter Selection
@@ -148,6 +332,7 @@ export async function authCommand() {
     platform: platformAnswers.platform,
     telegramToken: telegramToken,
     discordToken: discordToken,
+    authorizedUserId: authorizedUserId,
     ideType: ideAnswers.ideType,
     idePort: 3000,
     authorizedUser: '', // Will be set on first message
@@ -161,15 +346,20 @@ export async function authCommand() {
   console.log(chalk.cyan('\nNext steps:'));
   console.log(chalk.white('  1. Run: ' + chalk.bold('agentcode start')));
   
-  if (platformAnswers.platform === 'whatsapp') {
-    console.log(chalk.white('  2. Scan QR code with WhatsApp'));
-  } else if (platformAnswers.platform === 'telegram') {
+  if (platformAnswers.platform === 'telegram') {
     console.log(chalk.white('  2. Message your Telegram bot'));
   } else if (platformAnswers.platform === 'discord') {
     console.log(chalk.white('  2. Invite bot to your server and mention it'));
+  } else if (platformAnswers.platform === 'whatsapp') {
+    console.log(chalk.white('  2. Send a message from your authorized number'));
   }
   
   console.log(chalk.white('  3. Start coding from your phone!\n'));
+  
+  // Force exit to ensure terminal closes (WhatsApp socket may have lingering listeners)
+  setTimeout(() => {
+    process.exit(0);
+  }, 100);
 }
 
 export function loadConfig(): any {
