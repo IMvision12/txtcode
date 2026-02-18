@@ -87,4 +87,65 @@ program
     }
   });
 
+program
+  .command('hard-reset')
+  .description('Delete all configuration and authentication data')
+  .action(() => {
+    const fs = require('fs');
+    const path = require('path');
+    const os = require('os');
+    
+    console.log(chalk.yellow('\n⚠️  HARD RESET - This will delete ALL AgentCode data:\n'));
+    console.log(chalk.gray('  • Configuration file (~/.agentcode/config.json)'));
+    console.log(chalk.gray('  • WhatsApp authentication (.wacli_auth)'));
+    console.log(chalk.gray('  • All settings and authorized users\n'));
+    
+    const readline = require('readline');
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+    
+    rl.question(chalk.red('Are you sure? Type "yes" to confirm: '), (answer: string) => {
+      rl.close();
+      
+      if (answer.toLowerCase() === 'yes') {
+        let deletedItems = 0;
+        
+        // Delete config directory
+        try {
+          const configDir = path.join(os.homedir(), '.agentcode');
+          if (fs.existsSync(configDir)) {
+            fs.rmSync(configDir, { recursive: true, force: true });
+            console.log(chalk.green('✓ Deleted configuration directory'));
+            deletedItems++;
+          }
+        } catch (error) {
+          console.log(chalk.red('✗ Failed to delete configuration directory'));
+        }
+        
+        // Delete WhatsApp auth
+        try {
+          const authPath = path.join(process.cwd(), '.wacli_auth');
+          if (fs.existsSync(authPath)) {
+            fs.rmSync(authPath, { recursive: true, force: true });
+            console.log(chalk.green('✓ Deleted WhatsApp authentication'));
+            deletedItems++;
+          }
+        } catch (error) {
+          console.log(chalk.red('✗ Failed to delete WhatsApp authentication'));
+        }
+        
+        if (deletedItems > 0) {
+          console.log(chalk.green(`\n✅ Hard reset complete! Deleted ${deletedItems} item(s).`));
+          console.log(chalk.cyan('\nRun "agentcode auth" to set up again.\n'));
+        } else {
+          console.log(chalk.yellow('\n⚠️ No data found to delete.\n'));
+        }
+      } else {
+        console.log(chalk.yellow('\n❌ Hard reset cancelled.\n'));
+      }
+    });
+  });
+
 program.parse();
