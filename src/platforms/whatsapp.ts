@@ -33,10 +33,28 @@ export class WhatsAppBot {
     // Use existing multi-file auth state
     const { state, saveCreds } = await useMultiFileAuthState('.wacli_auth');
 
-    // Create socket connection
+    // Create socket connection with silent logger
     this.sock = makeWASocket({
       auth: state,
       printQRInTerminal: false,
+      logger: {
+        level: 'silent',
+        fatal: () => {},
+        error: () => {},
+        warn: () => {},
+        info: () => {},
+        debug: () => {},
+        trace: () => {},
+        child: () => ({
+          level: 'silent',
+          fatal: () => {},
+          error: () => {},
+          warn: () => {},
+          info: () => {},
+          debug: () => {},
+          trace: () => {},
+        }),
+      } as any,
     });
 
     this.sock.ev.on('connection.update', async (update: any) => {
