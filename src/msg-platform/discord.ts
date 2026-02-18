@@ -1,6 +1,6 @@
 import { Client, GatewayIntentBits, Message, Partials } from 'discord.js';
 import chalk from 'chalk';
-import { AgentCore } from '../../lib/agent';
+import { AgentCore } from '../lib/agent';
 
 export class DiscordBot {
   private client: Client;

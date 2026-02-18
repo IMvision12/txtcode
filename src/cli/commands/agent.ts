@@ -1,7 +1,7 @@
 import chalk from 'chalk';
-import { WhatsAppBot } from '../../integrations/whatsapp';
-import { TelegramBot } from '../../integrations/telegram';
-import { DiscordBot } from '../../integrations/discord';
+import { WhatsAppBot } from '../../msg-platform/whatsapp';
+import { TelegramBot } from '../../msg-platform/telegram';
+import { DiscordBot } from '../../msg-platform/discord';
 import { AgentCore } from '../../lib/agent';
 import { loadConfig } from './auth';
 
