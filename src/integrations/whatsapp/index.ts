@@ -5,7 +5,7 @@ import makeWASocket, {
   proto
 } from '@whiskeysockets/baileys';
 import chalk from 'chalk';
-import { AgentCore } from '../core/agent';
+import { AgentCore } from '../../lib/agent';
 import { Boom } from '@hapi/boom';
 import fs from 'fs';
 

@@ -4,7 +4,7 @@ import { configCommand } from './commands/config';
 import { agentCommand } from './commands/agent';
 import { statusCommand } from './commands/status';
 import { authCommand } from './commands/auth';
-import { showBanner } from './utils/banner';
+import { showBanner } from '../utils/banner';
 import chalk from 'chalk';
 
 // Show banner

@@ -4,7 +4,7 @@
   "description": "Remote IDE control via WhatsApp/Telegram",
   "main": "dist/index.js",
   "bin": {
-    "agentcode": "./dist/cli.js"
+    "agentcode": "./dist/cli/index.js"
   },
   "scripts": {
     "build": "tsc",

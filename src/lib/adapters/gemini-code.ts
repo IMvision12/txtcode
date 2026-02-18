@@ -1,4 +1,4 @@
-import { IDEAdapter } from '../bridge';
+import { IDEAdapter } from '../ide-bridge';
 import { spawn, ChildProcess } from 'child_process';
 import chalk from 'chalk';
 import path from 'path';

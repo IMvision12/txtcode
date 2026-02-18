@@ -1,8 +1,8 @@
 import chalk from 'chalk';
-import { WhatsAppBot } from '../platforms/whatsapp';
-import { TelegramBot } from '../platforms/telegram';
-import { DiscordBot } from '../platforms/discord';
-import { AgentCore } from '../core/agent';
+import { WhatsAppBot } from '../../integrations/whatsapp';
+import { TelegramBot } from '../../integrations/telegram';
+import { DiscordBot } from '../../integrations/discord';
+import { AgentCore } from '../../lib/agent';
 import { loadConfig } from './auth';
 
 export async function agentCommand(options: { daemon?: boolean }) {
