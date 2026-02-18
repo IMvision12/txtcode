@@ -214,7 +214,8 @@ export async function authCommand() {
       name: 'model',
       message: 'Select model:',
       choices: modelChoices,
-      default: modelChoices[0]?.value
+      default: modelChoices[0]?.value,
+      pageSize: 10
     }
   ]);
 
