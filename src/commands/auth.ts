@@ -281,23 +281,6 @@ export async function authCommand() {
     console.log(chalk.green('\nDiscord bot configured\n'));
   } else {
     console.log(chalk.cyan('\nWhatsApp Setup\n'));
-    console.log(chalk.yellow('For security, only messages from your authorized number will be processed\n'));
-    
-    const whatsappAnswers = await inquirer.prompt([
-      {
-        type: 'input',
-        name: 'authorizedNumber',
-        message: 'Enter your WhatsApp number (with country code, e.g., 1234567890):',
-        validate: (input) => {
-          const cleaned = input.replace(/[^\d]/g, '');
-          return cleaned.length >= 10 || 'Please enter a valid phone number with country code';
-        },
-        filter: (input) => input.replace(/[^\d]/g, '')
-      }
-    ]);
-    
-    authorizedUserId = whatsappAnswers.authorizedNumber;
-    console.log(chalk.green(`\nAuthorized number: ${whatsappAnswers.authorizedNumber}\n`));
     
     // Authenticate WhatsApp immediately
     console.log(chalk.cyan('Authenticating WhatsApp...\n'));
