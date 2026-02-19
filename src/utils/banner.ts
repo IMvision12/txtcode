@@ -2,8 +2,8 @@ import chalk from 'chalk';
 import gradient from 'gradient-string';
 
 export function showBanner() {
-  // Create a cyan to blue gradient (Sunset Tech style)
-  const sunsetGradient = gradient(['#00D9FF', '#0099FF', '#0066FF', '#0033FF']);
+  // Create a yellow to orange gradient (TXTCODE style)
+  const sunsetGradient = gradient(['#FFFF00', '#FFD700', '#FFA500', '#FF6347']);
   
   const banner = `
 ████████╗██╗  ██╗████████╗ ██████╗ ██████╗ ██████╗ ███████╗
