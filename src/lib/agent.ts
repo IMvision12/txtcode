@@ -19,7 +19,7 @@ export class AgentCore {
     this.apiKey = process.env.AI_API_KEY || '';
     this.model = process.env.AI_MODEL || '';
     this.authorizedUser = null;
-    this.configPath = require('path').join(require('os').homedir(), '.agentcode', 'config.json');
+    this.configPath = require('path').join(require('os').homedir(), '.txtcode', 'config.json');
     this.loadAuthorizedUser();
   }
 
@@ -129,11 +129,11 @@ To switch to code mode, use: /code`;
 
   private async processWithAI(instruction: string): Promise<string> {
     if (!this.apiKey) {
-      return '[WARN] AI API key not configured. Run: agentcode config';
+      return '[WARN] AI API key not configured. Run: txtcode config';
     }
 
     if (!this.model) {
-      return '[WARN] AI model not configured. Run: agentcode config';
+      return '[WARN] AI model not configured. Run: txtcode config';
     }
 
     try {
@@ -152,7 +152,7 @@ To switch to code mode, use: /code`;
   }
 
   private getHelpMessage(): string {
-    return `AgentCode Agent
+    return `TxtCode Agent
 
 Available commands:
 • help - Show this message

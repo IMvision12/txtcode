@@ -7,7 +7,7 @@ import modelsCatalog from '../../config/models-catalog.json';
 import makeWASocket, { useMultiFileAuthState } from '@whiskeysockets/baileys';
 import qrcode from 'qrcode-terminal';
 
-const CONFIG_DIR = path.join(os.homedir(), '.agentcode');
+const CONFIG_DIR = path.join(os.homedir(), '.txtcode');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 
 async function authenticateWhatsApp(): Promise<void> {
@@ -172,8 +172,8 @@ async function authenticateWhatsApp(): Promise<void> {
 }
 
 export async function authCommand() {
-  console.log(chalk.blue.bold('\nAgentCode Authentication\n'));
-  console.log(chalk.gray('Configure your AgentCode CLI for remote IDE control\n'));
+  console.log(chalk.blue.bold('\nTxtCode Authentication\n'));
+  console.log(chalk.gray('Configure your TxtCode CLI for remote IDE control\n'));
 
   // Step 1: AI Provider
   const aiAnswers = await inquirer.prompt([
@@ -328,7 +328,7 @@ export async function authCommand() {
   console.log(chalk.green('\nAuthentication successful!'));
   console.log(chalk.gray(`\nConfiguration saved to: ${CONFIG_FILE}`));
   console.log(chalk.cyan('\nNext steps:'));
-  console.log(chalk.white('  1. Run: ' + chalk.bold('agentcode start')));
+  console.log(chalk.white('  1. Run: ' + chalk.bold('txtcode start')));
   
   if (platformAnswers.platform === 'telegram') {
     console.log(chalk.white('  2. Message your Telegram bot'));

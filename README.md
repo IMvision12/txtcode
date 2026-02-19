@@ -1,21 +1,21 @@
-# AgentCode
+# TxtCode
 
 ```
- █████╗  ██████╗ ███████╗███╗   ██╗████████╗ ██████╗ ██████╗ ██████╗ ███████╗
-██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
-███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║   ██║     ██║   ██║██║  ██║█████╗  
-██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║   ██║     ██║   ██║██║  ██║██╔══╝  
-██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║   ╚██████╗╚██████╔╝██████╔╝███████╗
-╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝
+████████╗██╗  ██╗████████╗ ██████╗ ██████╗ ██████╗ ███████╗
+╚══██╔══╝╚██╗██╔╝╚══██╔══╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
+   ██║    ╚███╔╝    ██║   ██║     ██║   ██║██║  ██║█████╗  
+   ██║    ██╔██╗    ██║   ██║     ██║   ██║██║  ██║██╔══╝  
+   ██║   ██╔╝ ██╗   ██║   ╚██████╗╚██████╔╝██████╔╝███████╗
+   ╚═╝   ╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝
 ```
 
-A messaging-based agentic AI development environment with cyan-blue gradient CLI.
+A messaging-based AI development environment with cyan-blue gradient CLI.
 
 Control your local IDE remotely via WhatsApp, Telegram, or Discord using AI agents.
 
 ## Features
 
-- � Beautiful cyan-blue gradient CLI interface (Sunset Tech style)
+- 🎨 Beautiful cyan-blue gradient CLI interface (Sunset Tech style)
 - 🤖 AI-powered code assistance via messaging apps
 - 📱 Remote IDE control from your phone
 - 🔧 Support for multiple AI agents (Claude Code, Ollama, Gemini CLI)
@@ -25,20 +25,20 @@ Control your local IDE remotely via WhatsApp, Telegram, or Discord using AI agen
 ## Installation
 
 ```bash
-npm install -g @agentcode/cli
+npm install -g txtcode
 ```
 
 Or use npx without installing:
 
 ```bash
-npx @agentcode/cli auth
+npx txtcode auth
 ```
 
 ## Quick Start
 
 ### 1. Authenticate
 ```bash
-agentcode auth
+txtcode auth
 ```
 
 This will guide you through:
@@ -48,7 +48,7 @@ This will guide you through:
 
 ### 2. Start Agent
 ```bash
-agentcode start
+txtcode start
 ```
 
 ### 3. Connect from Phone
@@ -64,22 +64,22 @@ Send natural language instructions:
 ## Commands
 
 ```bash
-agentcode auth         # Authenticate and configure
-agentcode start        # Start the agent
-agentcode config       # Update configuration
-agentcode status       # Check agent status
-agentcode stop         # Stop the agent
-agentcode --help       # Show help
-agentcode --version    # Show version
+txtcode auth         # Authenticate and configure
+txtcode start        # Start the agent
+txtcode config       # Update configuration
+txtcode status       # Check agent status
+txtcode stop         # Stop the agent
+txtcode --help       # Show help
+txtcode --version    # Show version
 ```
 
 ## Configuration
 
-Configuration is stored in `~/.agentcode/config.json`
+Configuration is stored in `~/.txtcode/config.json`
 
 You can update settings anytime with:
 ```bash
-agentcode config
+txtcode config
 ```
 
 ## Supported IDEs
@@ -119,7 +119,7 @@ Refactor the database queries in models/user.js to use async/await
 
 ## Troubleshooting
 
-### "Command not found: agentcode"
+### "Command not found: txtcode"
 - Restart your terminal
 - Check if npm global bin is in PATH: `npm config get prefix`
 
@@ -134,21 +134,21 @@ Refactor the database queries in models/user.js to use async/await
 ### AI not responding
 - Verify your API key is correct
 - Check your API provider account has credits
-- Run `agentcode config` to update settings
+- Run `txtcode config` to update settings
 
 ## Uninstall
 
 ```bash
-npm uninstall -g @agentcode/cli
+npm uninstall -g txtcode
 ```
 
-Configuration will remain at `~/.agentcode/` - delete manually if needed.
+Configuration will remain at `~/.txtcode/` - delete manually if needed.
 
 ## Development
 
 ```bash
-git clone https://github.com/IMvision12/agentcode.git
-cd agentcode
+git clone https://github.com/yourusername/txtcode.git
+cd txtcode
 npm install
 npm run build
 npm link

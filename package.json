@@ -1,10 +1,10 @@
 {
-  "name": "@agentcode/cli",
+  "name": "txtcode",
   "version": "0.1.0",
-  "description": "Remote IDE control via WhatsApp/Telegram",
+  "description": "Remote IDE control via WhatsApp/Telegram/Discord - Code from anywhere using AI-powered messaging",
   "main": "dist/index.js",
   "bin": {
-    "agentcode": "./dist/cli/index.js"
+    "txtcode": "dist/cli/index.js"
   },
   "scripts": {
     "build": "tsc",
@@ -18,8 +18,16 @@
     "ide",
     "whatsapp",
     "telegram",
+    "discord",
     "ai",
-    "code-assistant"
+    "code-assistant",
+    "mobile-coding",
+    "remote-development",
+    "claude",
+    "openai",
+    "gemini",
+    "text-based-coding",
+    "messaging-ide"
   ],
   "author": "",
   "license": "MIT",

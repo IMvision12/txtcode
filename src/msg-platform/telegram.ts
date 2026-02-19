@@ -20,7 +20,7 @@ export class TelegramBot {
 
   private setupHandlers() {
     this.bot.start((ctx) => {
-      ctx.reply('Welcome to AgentCode! Send me coding instructions.');
+      ctx.reply('Welcome to TxtCode! Send me coding instructions.');
     });
 
     this.bot.on('text', async (ctx) => {

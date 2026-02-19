@@ -26,7 +26,7 @@ export class WhatsAppBot {
     // Check if authentication exists
     if (!fs.existsSync('.wacli_auth')) {
       console.log(chalk.red('\n[ERROR] WhatsApp not authenticated!'));
-      console.log(chalk.yellow('Please run: ' + chalk.bold('agentcode auth') + ' first\n'));
+      console.log(chalk.yellow('Please run: ' + chalk.bold('txtcode auth') + ' first\n'));
       process.exit(1);
     }
 
@@ -73,7 +73,7 @@ export class WhatsAppBot {
           console.log(chalk.yellow('Connection closed. Reconnecting...'));
           await this.start();
         } else {
-          console.log(chalk.red('\n[ERROR] WhatsApp logged out. Run ' + chalk.bold('agentcode auth') + ' again.\n'));
+          console.log(chalk.red('\n[ERROR] WhatsApp logged out. Run ' + chalk.bold('txtcode auth') + ' again.\n'));
           process.exit(1);
         }
       }

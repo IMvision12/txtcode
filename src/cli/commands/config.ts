@@ -5,7 +5,7 @@ import os from 'os';
 import chalk from 'chalk';
 import { loadConfig } from './auth';
 
-const CONFIG_DIR = path.join(os.homedir(), '.agentcode');
+const CONFIG_DIR = path.join(os.homedir(), '.txtcode');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 
 export async function configCommand() {
@@ -13,11 +13,11 @@ export async function configCommand() {
   
   if (!existingConfig) {
     console.log(chalk.yellow('\n⚠️  No configuration found.\n'));
-    console.log(chalk.white('Please run: ' + chalk.bold.cyan('agentcode auth') + ' first.\n'));
+    console.log(chalk.white('Please run: ' + chalk.bold.cyan('txtcode auth') + ' first.\n'));
     return;
   }
 
-  console.log(chalk.blue.bold('\n🔧 AgentCode Configuration\n'));
+  console.log(chalk.blue.bold('\n🔧 TxtCode Configuration\n'));
   console.log(chalk.gray('What would you like to change?\n'));
 
   const { configType } = await inquirer.prompt([

@@ -9,12 +9,12 @@ export async function agentCommand(options: { daemon?: boolean }) {
   const config = loadConfig();
 
   if (!config) {
-    console.log(chalk.yellow('\n⚠️  AgentCode is not configured yet.\n'));
-    console.log(chalk.white('Please run: ' + chalk.bold.cyan('agentcode auth') + ' to get started.\n'));
+    console.log(chalk.yellow('\n⚠️  TxtCode is not configured yet.\n'));
+    console.log(chalk.white('Please run: ' + chalk.bold.cyan('txtcode auth') + ' to get started.\n'));
     process.exit(1);
   }
 
-  console.log(chalk.blue.bold('\n🤖 Starting AgentCode Agent\n'));
+  console.log(chalk.blue.bold('\n🤖 Starting TxtCode Agent\n'));
   console.log(chalk.cyan(`Platform: ${config.platform}`));
   console.log(chalk.cyan(`IDE: ${config.ideType}\n`));
 

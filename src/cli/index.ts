@@ -13,24 +13,24 @@ showBanner();
 const program = new Command();
 
 program
-  .name('agentcode')
+  .name('txtcode')
   .description('Remote IDE control via WhatsApp/Telegram')
   .version('0.1.0');
 
 program
   .command('auth')
-  .description('Authenticate and configure AgentCode')
+  .description('Authenticate and configure TxtCode')
   .action(authCommand);
 
 program
   .command('start')
-  .description('Start the AgentCode agent')
+  .description('Start the TxtCode agent')
   .option('-d, --daemon', 'Run as daemon')
   .action(agentCommand);
 
 program
   .command('config')
-  .description('Configure AgentCode settings')
+  .description('Configure TxtCode settings')
   .action(configCommand);
 
 program
@@ -53,7 +53,7 @@ program
     const fs = require('fs');
     const path = require('path');
     const os = require('os');
-    const configPath = path.join(os.homedir(), '.agentcode', 'config.json');
+    const configPath = path.join(os.homedir(), '.txtcode', 'config.json');
     
     try {
       const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
@@ -78,7 +78,7 @@ program
       if (fs.existsSync(authPath)) {
         fs.rmSync(authPath, { recursive: true, force: true });
         console.log(chalk.green('\n✅ WhatsApp session deleted!'));
-        console.log(chalk.cyan('Run "agentcode start" to scan QR code again.\n'));
+        console.log(chalk.cyan('Run "txtcode start" to scan QR code again.\n'));
       } else {
         console.log(chalk.yellow('\n⚠️ No WhatsApp session found.\n'));
       }
@@ -95,8 +95,8 @@ program
     const path = require('path');
     const os = require('os');
     
-    console.log(chalk.yellow('\n⚠️  HARD RESET - This will delete ALL AgentCode data:\n'));
-    console.log(chalk.gray('  • Configuration file (~/.agentcode/config.json)'));
+    console.log(chalk.yellow('\n⚠️  HARD RESET - This will delete ALL TxtCode data:\n'));
+    console.log(chalk.gray('  • Configuration file (~/.txtcode/config.json)'));
     console.log(chalk.gray('  • WhatsApp authentication (.wacli_auth)'));
     console.log(chalk.gray('  • All settings and authorized users\n'));
     
@@ -114,7 +114,7 @@ program
         
         // Delete config directory
         try {
-          const configDir = path.join(os.homedir(), '.agentcode');
+          const configDir = path.join(os.homedir(), '.txtcode');
           if (fs.existsSync(configDir)) {
             fs.rmSync(configDir, { recursive: true, force: true });
             console.log(chalk.green('✓ Deleted configuration directory'));
@@ -138,7 +138,7 @@ program
         
         if (deletedItems > 0) {
           console.log(chalk.green(`\n✅ Hard reset complete! Deleted ${deletedItems} item(s).`));
-          console.log(chalk.cyan('\nRun "agentcode auth" to set up again.\n'));
+          console.log(chalk.cyan('\nRun "txtcode auth" to set up again.\n'));
         } else {
           console.log(chalk.yellow('\n⚠️ No data found to delete.\n'));
         }
