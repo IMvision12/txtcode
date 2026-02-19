@@ -1,11 +1,11 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-export async function processWithGemini(instruction: string, apiKey: string): Promise<string> {
+export async function processWithGemini(instruction: string, apiKey: string, model: string): Promise<string> {
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+    const genModel = genAI.getGenerativeModel({ model });
 
-    const result = await model.generateContent(instruction);
+    const result = await genModel.generateContent(instruction);
     const response = result.response;
     return response.text();
   } catch (error) {

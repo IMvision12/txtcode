@@ -1,13 +1,13 @@
 import OpenAI from 'openai';
 
-export async function processWithOpenAI(instruction: string, apiKey: string): Promise<string> {
+export async function processWithOpenAI(instruction: string, apiKey: string, model: string): Promise<string> {
   try {
     const openai = new OpenAI({
       apiKey,
     });
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model,
       messages: [
         {
           role: 'user',

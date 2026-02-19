@@ -8,6 +8,7 @@ export class AgentCore {
   private ideBridge: IDEBridge;
   private provider: string;
   private apiKey: string;
+  private model: string;
   private authorizedUser: string | null;
   private configPath: string;
   private userModes: Map<string, 'chat' | 'code'> = new Map(); // Track mode per user
@@ -16,6 +17,7 @@ export class AgentCore {
     this.ideBridge = new IDEBridge();
     this.provider = process.env.AI_PROVIDER || 'anthropic';
     this.apiKey = process.env.AI_API_KEY || '';
+    this.model = process.env.AI_MODEL || '';
     this.authorizedUser = null;
     this.configPath = require('path').join(require('os').homedir(), '.agentcode', 'config.json');
     this.loadAuthorizedUser();
@@ -130,13 +132,17 @@ To switch to code mode, use: /code`;
       return '[WARN] AI API key not configured. Run: agentcode config';
     }
 
+    if (!this.model) {
+      return '[WARN] AI model not configured. Run: agentcode config';
+    }
+
     try {
       if (this.provider === 'anthropic') {
-        return await processWithAnthropic(instruction, this.apiKey);
+        return await processWithAnthropic(instruction, this.apiKey, this.model);
       } else if (this.provider === 'openai') {
-        return await processWithOpenAI(instruction, this.apiKey);
+        return await processWithOpenAI(instruction, this.apiKey, this.model);
       } else if (this.provider === 'gemini') {
-        return await processWithGemini(instruction, this.apiKey);
+        return await processWithGemini(instruction, this.apiKey, this.model);
       }
       
       return `[ERROR] Unsupported AI provider: ${this.provider}`;

@@ -27,6 +27,7 @@ export async function agentCommand(options: { daemon?: boolean }) {
   process.env.IDE_PORT = config.idePort;
   process.env.AI_API_KEY = config.aiApiKey;
   process.env.AI_PROVIDER = config.aiProvider;
+  process.env.AI_MODEL = config.aiModel;
   process.env.PROJECT_PATH = config.projectPath || process.cwd();
   process.env.OLLAMA_MODEL = config.ollamaModel || 'gpt-oss:20b';
   process.env.CLAUDE_MODEL = config.claudeModel || 'sonnet';
