@@ -9,140 +9,223 @@
    ╚═╝   ╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝
 ```
 
-A messaging-based AI development environment with cyan-blue gradient CLI.
+**Control your IDE from your phone.** Use WhatsApp, Telegram, or Discord to send natural-language instructions to AI coding assistants and run commands on your machine.
 
-Control your local IDE remotely via WhatsApp, Telegram, or Discord using AI agents.
+---
+
+## Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Commands](#commands)
+- [Configuration](#configuration)
+- [Supported platforms & IDEs](#supported-platforms--ides)
+- [Environment variables](#environment-variables)
+- [Usage examples](#usage-examples)
+- [Logs](#logs)
+- [Troubleshooting](#troubleshooting)
+- [Development](#development)
+
+---
 
 ## Features
 
-- 🎨 Beautiful cyan-blue gradient CLI interface (Sunset Tech style)
-- 🤖 AI-powered code assistance via messaging apps
-- 📱 Remote IDE control from your phone
-- 🔧 Support for multiple AI agents (Claude Code, Ollama, Gemini CLI)
-- 🔐 Secure authentication and user whitelisting
-- ⚡ Simple installation via npm
+- **Messaging-first** — Use WhatsApp, Telegram, or Discord as your remote control
+- **Multiple AI backends** — Anthropic (Claude), OpenAI (GPT), Google (Gemini), OpenRouter
+- **Multiple coding adapters** — Claude Code, OpenAI Codex, Gemini CLI, Kiro CLI, Ollama (local)
+- **Chat vs Code modes** — `/chat` for general LLM + tools, `/code` for full IDE adapter
+- **Session logs** — Per-session log files with `txtcode logs`
+- **Single-user auth** — First user to connect is authorized; reset with `txtcode reset`
+
+---
 
 ## Installation
+
+**Requires Node.js 18+.**
 
 ```bash
 npm install -g txtcode
 ```
 
-Or use npx without installing:
+Or run without installing:
 
 ```bash
 npx txtcode auth
+npx txtcode start
 ```
 
-## Quick Start
+---
 
-### 1. Authenticate
-```bash
-txtcode auth
-```
+## Quick start
 
-This will guide you through:
-- Choosing your messaging platform (WhatsApp/Telegram/Discord)
-- Selecting your IDE
-- Configuring AI provider (Anthropic/OpenAI/Gemini)
+| Step | Command / action |
+|------|------------------|
+| 1. Configure | `txtcode auth` — pick platform, AI provider, and coding adapter |
+| 2. Start agent | `txtcode start` |
+| 3. Connect | **WhatsApp:** scan QR in terminal. **Telegram/Discord:** use bot token from config |
+| 4. Use | Send messages. Use `/code` for IDE adapter, `/chat` for primary LLM (default). |
 
-### 2. Start Agent
-```bash
-txtcode start
-```
+<details>
+<summary><strong>First-time auth flow (expand)</strong></summary>
 
-### 3. Connect from Phone
-- **WhatsApp**: Scan the QR code displayed in terminal
-- **Telegram**: Message your bot
+- Choose **messaging platform**: WhatsApp, Telegram, or Discord  
+- Choose **AI provider** for chat mode: Anthropic, OpenAI, Google, or OpenRouter  
+- Choose **coding adapter** for code mode: Claude Code, OpenAI Codex, Gemini CLI, Kiro CLI, or Ollama Claude Code  
+- Set API keys and project path when prompted  
+- Config is saved to `~/.txtcode/config.json`
 
-### 4. Start Coding!
-Send natural language instructions:
-- "Create a new React component for user profile"
-- "Fix the bug in auth.ts where login fails"
-- "Add error handling to the API routes"
+</details>
+
+---
 
 ## Commands
 
-```bash
-txtcode auth         # Authenticate and configure
-txtcode start        # Start the agent
-txtcode config       # Update configuration
-txtcode status       # Check agent status
-txtcode stop         # Stop the agent
-txtcode --help       # Show help
-txtcode --version    # Show version
-```
+| Command | Description |
+|--------|-------------|
+| `txtcode auth` | First-time setup: platform, AI provider, coding adapter, API keys |
+| `txtcode start` | Start the agent (option: `--daemon`) |
+| `txtcode config` | Change settings without full auth |
+| `txtcode status` | Show connection and adapter status |
+| `txtcode logs [session]` | List or view session logs (see [Logs](#logs)) |
+| `txtcode reset` | Clear authorized user so the next user can claim access |
+| `txtcode logout` | WhatsApp: delete session (re-auth with new QR) |
+| `txtcode hard-reset` | Remove all config and auth data in `~/.txtcode` |
+| `txtcode stop` | Stop the agent |
+| `txtcode --help` | Show help |
+| `txtcode --version` | Show version |
+
+<details>
+<summary><strong>Logs command options (expand)</strong></summary>
+
+- `txtcode logs` — List session log files (newest first)  
+- `txtcode logs 1` — View session by index (e.g. latest = 1)  
+- `txtcode logs -f` — Follow latest session log (like `tail -f`)  
+- `txtcode logs -n 100` — Show last 100 lines (default 50)  
+- `txtcode logs --clear` — Delete all session log files  
+
+Logs live in `~/.txtcode/logs/`. Old sessions are pruned after 7 days.
+
+</details>
+
+---
 
 ## Configuration
 
-Configuration is stored in `~/.txtcode/config.json`
+Stored in **`~/.txtcode/config.json`**. Edit manually or run:
 
-You can update settings anytime with:
 ```bash
 txtcode config
 ```
 
-## Supported IDEs
+Use **Code mode** (`/code`) to send messages to your coding adapter (e.g. Claude Code, Codex). Use **Chat mode** (`/chat`, default) to talk to the primary LLM with tool support (e.g. terminal, process management).
 
-- Claude Code (Official - Anthropic API)
-- Claude Code via Ollama (Local & Free)
-- Gemini Code (Google AI API)
+---
 
-## Requirements
+## Supported platforms & IDEs
 
-- Node.js 18 or higher
-- npm or yarn
+**Messaging:** WhatsApp · Telegram · Discord  
 
-## Usage Examples
+**Coding adapters (code mode):**
 
-Once connected, send messages to control your IDE:
+| Adapter | Backend | Notes |
+|---------|---------|--------|
+| Claude Code | Anthropic API | Official Claude CLI |
+| OpenAI Codex | OpenAI API | Model in `~/.codex/config.toml` |
+| Gemini CLI | Google AI API | `gemini` CLI, optional `GEMINI_MODEL` |
+| Kiro CLI | AWS | Kiro subscription |
+| Ollama Claude Code | Local (Ollama) | Free, no API key |
 
-### Create Files
-```
-Create a new React component called UserProfile with props for name and email
-```
+**Chat mode providers:** Anthropic, OpenAI, Google (Gemini), OpenRouter
 
-### Fix Bugs
-```
-Fix the authentication bug in src/auth.ts where users can't login
-```
+---
 
-### Add Features
-```
-Add error handling to all API routes in the backend
-```
+## Environment variables
 
-### Refactor Code
-```
-Refactor the database queries in models/user.js to use async/await
-```
+Optional overrides (also set via `txtcode config`):
+
+| Variable | Purpose |
+|----------|---------|
+| `AI_PROVIDER` | `anthropic` \| `openai` \| `gemini` \| `openrouter` |
+| `AI_API_KEY` | API key for the chosen provider |
+| `AI_MODEL` | Model id (e.g. `claude-sonnet-4`, `gpt-4o`) |
+| `IDE_TYPE` | `claude-code` \| `codex` \| `gemini-code` \| `kiro` \| `ollama-claude-code` |
+| `PROJECT_PATH` | Working directory for the coding adapter (default: current dir) |
+| `CLAUDE_MODEL` | Claude model for Claude Code adapter |
+| `GEMINI_MODEL` | Model for Gemini CLI |
+| `OLLAMA_MODEL` | Model for Ollama adapter (e.g. `gpt-oss:20b`) |
+| `OPENROUTER_API_KEY` | Required when `AI_PROVIDER=openrouter` |
+
+---
+
+## Usage examples
+
+Once connected, send plain text or use commands:
+
+**Switch modes**
+
+- ` /code` — All messages go to coding adapter  
+- ` /chat` — All messages go to primary LLM (default)  
+- `status` or `/status` — Adapter/connection status  
+- `help` or `/help` — In-chat help  
+
+**Natural language (code or chat)**
+
+- *"Create a React component UserProfile with name and email props"*  
+- *"Fix the auth bug in src/auth.ts where login fails"*  
+- *"Add error handling to all API routes"*  
+- *"Run the tests and paste the output"*  
+
+---
+
+## Logs
+
+- **Location:** `~/.txtcode/logs/`  
+- **Naming:** `session-YYYY-MM-DD-HHmmss.log` (one file per `txtcode start`)  
+- **Cleanup:** Files older than 7 days are removed automatically.  
+- **View:** `txtcode logs` to list, `txtcode logs 1` to open latest, `txtcode logs -f` to follow.
+
+Verbose and debug output goes to the log file; the terminal shows only key status lines.
+
+---
 
 ## Troubleshooting
 
-### "Command not found: txtcode"
-- Restart your terminal
-- Check if npm global bin is in PATH: `npm config get prefix`
+<details>
+<summary><strong>Command not found: txtcode</strong></summary>
 
-### WhatsApp QR code not working
-- Make sure you have a stable internet connection
-- Try restarting the agent
+- Restart the terminal after `npm install -g txtcode`  
+- Ensure global bin is in PATH: `npm config get prefix`  
 
-### Telegram bot not responding
-- Verify your bot token in config
-- Make sure the bot is not blocked
+</details>
 
-### AI not responding
-- Verify your API key is correct
-- Check your API provider account has credits
-- Run `txtcode config` to update settings
+<details>
+<summary><strong>WhatsApp QR / connection</strong></summary>
 
-## Uninstall
+- Use a stable connection; try `txtcode logout` then `txtcode start` to get a new QR  
+- Session is stored under `~/.txtcode`; don’t delete it if you want to keep the same number  
 
-```bash
-npm uninstall -g txtcode
-```
+</details>
 
-Configuration will remain at `~/.txtcode/` - delete manually if needed.
+<details>
+<summary><strong>Telegram / Discord not responding</strong></summary>
+
+- Confirm bot token in `~/.txtcode/config.json` or `txtcode config`  
+- For Telegram: ensure the bot is not blocked and you’ve started a chat with it  
+
+</details>
+
+<details>
+<summary><strong>AI or adapter errors</strong></summary>
+
+- Check API keys and credits for the chosen provider  
+- Code mode: ensure the CLI for your adapter is installed and in PATH (e.g. `claude`, `codex`, `gemini`, `kiro-cli`, `ollama`)  
+- Run `txtcode status` to see current adapter and connection  
+- Check `txtcode logs` or `~/.txtcode/logs/` for detailed errors  
+
+</details>
+
+---
 
 ## Development
 
@@ -153,6 +236,10 @@ npm install
 npm run build
 npm link
 ```
+
+Then run `txtcode` from anywhere (or `node dist/cli/index.js` from the repo).
+
+---
 
 ## License
 
