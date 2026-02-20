@@ -125,10 +125,24 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
       logger.debug(`   Command: ollama ${args.join(' ')}`);
       logger.debug(`   Working directory: ${this.projectPath}`);
 
-      const child = spawn('ollama', args, {
+      const isWindows = process.platform === 'win32';
+      let command: string;
+      let spawnArgs: string[];
+
+      if (isWindows) {
+        command = 'cmd.exe';
+        spawnArgs = ['/c', 'ollama', ...args];
+      } else {
+        command = 'ollama';
+        spawnArgs = args;
+      }
+
+      const child = spawn(command, spawnArgs, {
         cwd: this.projectPath,
         env: process.env,
-        stdio: ['inherit', 'pipe', 'pipe']
+        stdio: ['inherit', 'pipe', 'pipe'],
+        shell: false,
+        windowsHide: true
       });
 
       this.currentProcess = child;

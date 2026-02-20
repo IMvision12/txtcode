@@ -90,10 +90,24 @@ export class ClaudeCodeAdapter implements IDEAdapter {
       logger.debug(`   Command: claude ${args.join(' ')}`);
       logger.debug(`   Working directory: ${this.projectPath}`);
 
-      const child = spawn('claude', args, {
+      const isWindows = process.platform === 'win32';
+      let command: string;
+      let spawnArgs: string[];
+
+      if (isWindows) {
+        command = 'cmd.exe';
+        spawnArgs = ['/c', 'claude', ...args];
+      } else {
+        command = 'claude';
+        spawnArgs = args;
+      }
+
+      const child = spawn(command, spawnArgs, {
         cwd: this.projectPath,
         env: process.env,
-        stdio: ['inherit', 'pipe', 'pipe']
+        stdio: ['inherit', 'pipe', 'pipe'],
+        shell: false,
+        windowsHide: true
       });
 
       this.currentProcess = child;
