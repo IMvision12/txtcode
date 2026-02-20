@@ -2,7 +2,6 @@
 import { Command } from 'commander';
 import { configCommand } from './commands/config';
 import { startCommand } from './commands/start';
-import { statusCommand } from './commands/status';
 import { authCommand } from './commands/auth';
 import { resetCommand, logoutCommand, hardResetCommand } from './commands/reset';
 import { logsCommand } from './commands/logs';
@@ -33,11 +32,6 @@ program
   .command('config')
   .description('Configure TxtCode settings')
   .action(configCommand);
-
-program
-  .command('status')
-  .description('Check agent status')
-  .action(statusCommand);
 
 program
   .command('stop')
