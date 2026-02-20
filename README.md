@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="img/logo.jpg" alt="TxtCode" width="450" />
+  <img src="assets/logo.jpg" alt="txtcode" width="450" />
 </div>
 
 <br>
