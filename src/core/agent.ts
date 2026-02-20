@@ -1,23 +1,14 @@
-import { IDEBridge } from './ide-bridge';
-import { processWithAnthropic } from '../services/primary-llm/anthropic';
-import { processWithOpenAI } from '../services/primary-llm/openai';
-import { processWithGemini } from '../services/primary-llm/gemini';
-import { Message } from '../types';
+import { Router } from './router';
+import { Message } from '../shared/types';
 
 export class AgentCore {
-  private ideBridge: IDEBridge;
-  private provider: string;
-  private apiKey: string;
-  private model: string;
+  private router: Router;
   private authorizedUser: string | null;
   private configPath: string;
-  private userModes: Map<string, 'chat' | 'code'> = new Map(); // Track mode per user
+  private userModes: Map<string, 'chat' | 'code'> = new Map();
 
   constructor() {
-    this.ideBridge = new IDEBridge();
-    this.provider = process.env.AI_PROVIDER || 'anthropic';
-    this.apiKey = process.env.AI_API_KEY || '';
-    this.model = process.env.AI_MODEL || '';
+    this.router = new Router();
     this.authorizedUser = null;
     this.configPath = require('path').join(require('os').homedir(), '.txtcode', 'config.json');
     this.loadAuthorizedUser();
@@ -48,14 +39,12 @@ export class AgentCore {
   }
 
   isUserAllowed(userId: string): boolean {
-    // First message from any user becomes the authorized user
     if (!this.authorizedUser) {
       console.log(`[AUTH] Authorizing first user: ${userId}`);
       this.saveAuthorizedUser(userId);
       return true;
     }
     
-    // Only the authorized user can use the agent
     if (this.authorizedUser === userId) {
       return true;
     }
@@ -76,7 +65,7 @@ export class AgentCore {
       this.userModes.set(message.from, 'code');
       return `[CODE MODE] Switched to CODE mode
 
-All your messages will now be sent to the coding adapter (${process.env.IDE_TYPE || 'ollama-claude-code'}).
+All your messages will now be sent to the coding adapter (${this.router.getAdapterName()}).
 
 To switch back to chat mode, use: /chat`;
     }
@@ -85,7 +74,7 @@ To switch back to chat mode, use: /chat`;
       this.userModes.set(message.from, 'chat');
       return `[CHAT MODE] Switched to CHAT mode
 
-All your messages will now be sent to the primary LLM (${this.provider}).
+All your messages will now be sent to the primary LLM (${this.router.getProviderName()}).
 
 To switch to code mode, use: /code`;
     }
@@ -95,7 +84,7 @@ To switch to code mode, use: /code`;
     }
 
     if (lowerText === 'status' || lowerText === '/status') {
-      return await this.ideBridge.getStatus();
+      return await this.router.getAdapterStatus();
     }
 
     const userMode = this.userModes.get(message.from);
@@ -103,51 +92,18 @@ To switch to code mode, use: /code`;
     if (userMode === 'code') {
       console.log('[CODE] User in CODE mode - routing to coding adapter...');
       try {
-        const result = await this.ideBridge.executeCommand(text);
-        return result;
-      } catch (error) {
-        return `[ERROR] ${error instanceof Error ? error.message : 'Unknown error'}`;
-      }
-    } else if (userMode === 'chat') {
-      console.log('[CHAT] User in CHAT mode - routing to primary LLM...');
-      try {
-        const result = await this.processWithAI(text);
-        return result;
+        return await this.router.routeToCode(text);
       } catch (error) {
         return `[ERROR] ${error instanceof Error ? error.message : 'Unknown error'}`;
       }
     } else {
-      console.log('[CHAT] No mode set - defaulting to primary LLM...');
+      const modeLabel = userMode === 'chat' ? 'CHAT' : 'CHAT';
+      console.log(`[${modeLabel}] Routing to primary LLM...`);
       try {
-        const result = await this.processWithAI(text);
-        return result;
+        return await this.router.routeToChat(text);
       } catch (error) {
         return `[ERROR] ${error instanceof Error ? error.message : 'Unknown error'}`;
       }
-    }
-  }
-
-  private async processWithAI(instruction: string): Promise<string> {
-    if (!this.apiKey) {
-      return '[WARN] AI API key not configured. Run: txtcode config';
-    }
-
-    if (!this.model) {
-      return '[WARN] AI model not configured. Run: txtcode config';
-    }
-
-    try {
-      if (this.provider === 'anthropic') {
-        return await processWithAnthropic(instruction, this.apiKey, this.model);
-      } else if (this.provider === 'openai') {
-        return await processWithOpenAI(instruction, this.apiKey, this.model);
-      } else if (this.provider === 'gemini') {
-        return await processWithGemini(instruction, this.apiKey, this.model);
-      }
-      
-      return `[ERROR] Unsupported AI provider: ${this.provider}`;
-    } catch (error) {
-      throw new Error(`AI processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -161,10 +117,10 @@ Available commands:
 • /chat - Switch to CHAT mode (all messages go to primary LLM)
 
 Chat Mode (default):
-Messages go to the primary LLM (${this.provider})
+Messages go to the primary LLM (${this.router.getProviderName()}) with terminal tool support.
 
 Code Mode:
-Messages go to the coding adapter (${process.env.IDE_TYPE || 'ollama-claude-code'})
+Messages go to the coding adapter (${this.router.getAdapterName()})
 
 Use /code or /chat to switch modes!`;
   }

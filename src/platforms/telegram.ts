@@ -1,6 +1,6 @@
 import { Telegraf } from 'telegraf';
 import chalk from 'chalk';
-import { AgentCore } from '../lib/agent';
+import { AgentCore } from '../core/agent';
 
 export class TelegramBot {
   private bot: Telegraf;

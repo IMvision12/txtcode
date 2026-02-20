@@ -1,11 +1,11 @@
 import chalk from 'chalk';
-import { WhatsAppBot } from '../../msg-platform/whatsapp';
-import { TelegramBot } from '../../msg-platform/telegram';
-import { DiscordBot } from '../../msg-platform/discord';
-import { AgentCore } from '../../lib/agent';
+import { WhatsAppBot } from '../../platforms/whatsapp';
+import { TelegramBot } from '../../platforms/telegram';
+import { DiscordBot } from '../../platforms/discord';
+import { AgentCore } from '../../core/agent';
 import { loadConfig } from './auth';
 
-export async function agentCommand(options: { daemon?: boolean }) {
+export async function startCommand(options: { daemon?: boolean }) {
   const config = loadConfig();
 
   if (!config) {
@@ -18,7 +18,6 @@ export async function agentCommand(options: { daemon?: boolean }) {
   console.log(chalk.cyan(`Platform: ${config.platform}`));
   console.log(chalk.cyan(`IDE: ${config.ideType}\n`));
 
-  // Set environment variables from config
   process.env.PLATFORM = config.platform;
   process.env.TELEGRAM_BOT_TOKEN = config.telegramToken;
   process.env.DISCORD_BOT_TOKEN = config.discordToken;

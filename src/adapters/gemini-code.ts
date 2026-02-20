@@ -1,4 +1,4 @@
-import { IDEAdapter } from '../ide-bridge';
+import { IDEAdapter } from '../shared/types';
 import { spawn, ChildProcess } from 'child_process';
 import chalk from 'chalk';
 import path from 'path';
@@ -12,15 +12,12 @@ export class GeminiCodeAdapter implements IDEAdapter {
 
   constructor() {
     this.projectPath = process.env.PROJECT_PATH || process.cwd();
-    // Don't set a default model - let Gemini CLI use its default
-    // Users can set GEMINI_MODEL env var if they want a specific model
     this.geminiModel = process.env.GEMINI_MODEL || '';
   }
 
   async connect(): Promise<void> {
     console.log(chalk.cyan('\n🔍 Checking prerequisites...\n'));
 
-    // Check if Gemini CLI is installed
     try {
       const { exec } = require('child_process');
       await new Promise((resolve, reject) => {
@@ -72,25 +69,19 @@ export class GeminiCodeAdapter implements IDEAdapter {
       let output = '';
       let errorOutput = '';
 
-      // Gemini CLI uses different syntax than Claude Code
       const args: string[] = [];
-
-      // Auto-approve mode (yolo in Gemini CLI)
       args.push('--approval-mode', 'yolo');
 
-      // Set model only if explicitly specified
       if (this.geminiModel) {
         args.push('--model', this.geminiModel);
       }
 
-      // Use -p flag for prompt (short form)
       args.push('-p', instruction);
 
       console.log(chalk.cyan(`📡 Spawning Gemini CLI...`));
       console.log(chalk.gray(`   Command: gemini ${args.join(' ')}`));
       console.log(chalk.gray(`   Working directory: ${this.projectPath}\n`));
 
-      // On Windows, use cmd.exe to execute .cmd files properly
       const isWindows = process.platform === 'win32';
       let command: string;
       let spawnArgs: string[];
@@ -106,36 +97,31 @@ export class GeminiCodeAdapter implements IDEAdapter {
       const child = spawn(command, spawnArgs, {
         cwd: this.projectPath,
         env: process.env,
-        stdio: ['pipe', 'pipe', 'pipe'], // Changed from 'inherit' to 'pipe' for stdin
+        stdio: ['pipe', 'pipe', 'pipe'],
         shell: false,
-        windowsHide: true // Hide console window on Windows
+        windowsHide: true
       });
 
       this.currentProcess = child;
 
-      // Mark session as started after first command
       if (!this.sessionStarted) {
         this.sessionStarted = true;
       }
 
-      // Capture stdout
       child.stdout.on('data', (data) => {
         const text = data.toString();
         output += text;
         process.stdout.write(chalk.gray(text));
       });
 
-      // Capture stderr
       child.stderr.on('data', (data) => {
         const text = data.toString();
         errorOutput += text;
         process.stderr.write(chalk.red(text));
       });
 
-      // Handle process exit
       child.on('exit', (code, signal) => {
         this.currentProcess = null;
-
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
 
         if (signal === 'SIGTERM') {
@@ -153,7 +139,6 @@ export class GeminiCodeAdapter implements IDEAdapter {
         }
       });
 
-      // Handle errors
       child.on('error', (error) => {
         this.currentProcess = null;
         console.error(chalk.red(`\n❌ Failed to spawn Gemini CLI\n`));
@@ -189,19 +174,13 @@ export class GeminiCodeAdapter implements IDEAdapter {
   }
 
   private formatResponse(output: string): string {
-    // Clean up the output
     let formatted = output.trim();
-
-    // Remove ANSI color codes if present
     formatted = formatted.replace(/\x1b\[[0-9;]*m/g, '');
-
-    // Remove verbose Gemini CLI messages
     formatted = formatted.replace(/YOLO mode is enabled.*?\n/g, '');
     formatted = formatted.replace(/Hook registry initialized.*?\n/g, '');
     formatted = formatted.replace(/Loaded cached credentials.*?\n/g, '');
 
-    // Truncate if too long (for messaging apps)
-    const maxLength = 1800; // Leave room for error prefix
+    const maxLength = 1800;
     if (formatted.length > maxLength) {
       formatted = formatted.substring(0, maxLength) + '\n\n... (output truncated)';
     }

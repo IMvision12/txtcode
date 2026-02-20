@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import chalk from 'chalk';
-import modelsCatalog from '../../config/models-catalog.json';
+import modelsCatalog from '../../data/models-catalog.json';
 import makeWASocket, { useMultiFileAuthState } from '@whiskeysockets/baileys';
 import qrcode from 'qrcode-terminal';
 

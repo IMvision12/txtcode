@@ -1,6 +1,6 @@
 import { Client, GatewayIntentBits, Message, Partials } from 'discord.js';
 import chalk from 'chalk';
-import { AgentCore } from '../lib/agent';
+import { AgentCore } from '../core/agent';
 
 export class DiscordBot {
   private client: Client;
@@ -17,7 +17,7 @@ export class DiscordBot {
         GatewayIntentBits.DirectMessageTyping,
       ],
       partials: [
-        Partials.Channel, // Required for DMs
+        Partials.Channel,
         Partials.Message,
       ],
     });
@@ -32,23 +32,19 @@ export class DiscordBot {
     });
 
     this.client.on('messageCreate', async (message: Message) => {
-      // Ignore bot's own messages
       if (message.author.bot) return;
 
-      // Ignore messages that don't mention the bot (in servers)
-      // In DMs, respond to all messages
       if (message.guild && !message.mentions.has(this.client.user!)) return;
 
       const from = message.author.id;
       const text = message.content
-        .replace(`<@${this.client.user?.id}>`, '') // Remove bot mention
+        .replace(`<@${this.client.user?.id}>`, '')
         .trim();
 
       if (!text) return;
 
       console.log(chalk.blue(`[MSG] Message from ${message.author.tag}: ${text}`));
 
-      // Show typing indicator
       if ('sendTyping' in message.channel) {
         await message.channel.sendTyping();
       }
@@ -60,7 +56,6 @@ export class DiscordBot {
       });
 
       try {
-        // Discord has a 2000 character limit, truncate if needed
         const maxLength = 1900;
         const truncatedResponse = response.length > maxLength 
           ? response.substring(0, maxLength) + '\n\n... (output truncated)'
@@ -69,7 +64,6 @@ export class DiscordBot {
         await message.reply(truncatedResponse);
         console.log(chalk.green(`[OK] Replied: ${truncatedResponse.substring(0, 50)}...`));
       } catch (error: any) {
-        // If still fails, send error message
         console.error(chalk.red('Failed to send Discord message:'), error);
         try {
           await message.reply('[OK] Task completed, but output was too long to display.');
