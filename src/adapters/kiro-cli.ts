@@ -158,6 +158,22 @@ Privacy: Cloud-based
 Session: Stateless (per-invocation)`;
   }
 
+  async isHealthy(): Promise<boolean> {
+    try {
+      const { exec } = require('child_process');
+      await new Promise((resolve, reject) => {
+        exec('kiro-cli --version', { timeout: 5000 }, (error: any, stdout: string) => {
+          if (error) reject(error);
+          else resolve(stdout);
+        });
+      });
+      return true;
+    } catch (error) {
+      logger.debug(`Kiro CLI health check failed: ${error}`);
+      return false;
+    }
+  }
+
   private formatResponse(output: string): string {
     let formatted = output.trim();
     formatted = formatted.replace(/\x1b\[[0-9;]*m/g, '');

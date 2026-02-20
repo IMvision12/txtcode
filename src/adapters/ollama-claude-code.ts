@@ -218,6 +218,37 @@ Available models: ${models.length}`;
     }
   }
 
+  async isHealthy(): Promise<boolean> {
+    try {
+      // Check if Ollama CLI is installed
+      const { exec } = require('child_process');
+      await new Promise((resolve, reject) => {
+        exec('ollama --version', { timeout: 5000 }, (error: any, stdout: string) => {
+          if (error) reject(error);
+          else resolve(stdout);
+        });
+      });
+
+      // Check if Ollama service is running
+      const response = await fetch('http://localhost:11434/api/tags', {
+        signal: AbortSignal.timeout(5000)
+      });
+      if (!response.ok) {
+        return false;
+      }
+
+      // Check if the configured model is available
+      const data: any = await response.json();
+      const models = data.models || [];
+      const modelExists = models.some((m: any) => m.name === this.ollamaModel);
+      
+      return modelExists;
+    } catch (error) {
+      logger.debug(`Ollama health check failed: ${error}`);
+      return false;
+    }
+  }
+
   private loadSystemPrompt(): string {
     const promptPath = path.join(__dirname, '..', 'data', 'system-prompt.txt');
     try {

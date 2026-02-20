@@ -174,6 +174,22 @@ Privacy: Cloud-based
 Session: ${this.currentSessionId || 'None'}`;
   }
 
+  async isHealthy(): Promise<boolean> {
+    try {
+      const { exec } = require('child_process');
+      await new Promise((resolve, reject) => {
+        exec('claude --version', { timeout: 5000 }, (error: any, stdout: string) => {
+          if (error) reject(error);
+          else resolve(stdout);
+        });
+      });
+      return true;
+    } catch (error) {
+      logger.debug(`Claude CLI health check failed: ${error}`);
+      return false;
+    }
+  }
+
   private loadSystemPrompt(): string {
     const promptPath = path.join(__dirname, '..', 'data', 'system-prompt.txt');
     try {

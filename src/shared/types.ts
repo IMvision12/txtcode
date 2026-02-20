@@ -28,4 +28,5 @@ export interface IDEAdapter {
   disconnect(): Promise<void>;
   executeCommand(instruction: string, conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>): Promise<string>;
   getStatus(): Promise<string>;
+  isHealthy(): Promise<boolean>;
 }
