@@ -196,24 +196,6 @@
         }
       ]
     },
-    "deepseek": {
-      "name": "DeepSeek",
-      "apiKeyEnv": "DEEPSEEK_API_KEY",
-      "models": [
-        {
-          "id": "deepseek-chat",
-          "name": "DeepSeek V3",
-          "description": "Latest general-purpose model, strong at coding",
-          "recommended": true
-        },
-        {
-          "id": "deepseek-reasoner",
-          "name": "DeepSeek R1",
-          "description": "Reasoning model with chain-of-thought",
-          "recommended": true
-        }
-      ]
-    },
     "openrouter": {
       "name": "OpenRouter",
       "apiKeyEnv": "OPENROUTER_API_KEY",

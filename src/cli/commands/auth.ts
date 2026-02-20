@@ -185,7 +185,6 @@ export async function authCommand() {
         { name: 'Anthropic (Claude)', value: 'anthropic' },
         { name: 'OpenAI (GPT)', value: 'openai' },
         { name: 'Google (Gemini)', value: 'gemini' },
-        { name: 'DeepSeek', value: 'deepseek' },
         { name: 'OpenRouter (any model)', value: 'openrouter' }
       ]
     },

@@ -5,7 +5,6 @@ import { CodexAdapter } from '../adapters/openai-codex';
 import { processWithAnthropic } from '../providers/anthropic';
 import { processWithOpenAI } from '../providers/openai';
 import { processWithGemini } from '../providers/gemini';
-import { processWithDeepSeek } from '../providers/deepseek';
 import { processWithOpenRouter } from '../providers/openrouter';
 import { ToolRegistry } from '../tools/registry';
 import { TerminalTool } from '../tools/terminal';
@@ -65,8 +64,6 @@ export class Router {
         return await processWithOpenAI(instruction, this.apiKey, this.model, this.toolRegistry);
       case 'gemini':
         return await processWithGemini(instruction, this.apiKey, this.model, this.toolRegistry);
-      case 'deepseek':
-        return await processWithDeepSeek(instruction, this.apiKey, this.model, this.toolRegistry);
       case 'openrouter':
         return await processWithOpenRouter(instruction, this.apiKey, this.model, this.toolRegistry);
       default:
