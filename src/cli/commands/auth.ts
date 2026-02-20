@@ -239,7 +239,6 @@ export async function authCommand() {
 
   let telegramToken = '';
   let discordToken = '';
-  let authorizedUserId = '';
 
   // Complete messaging platform auth immediately
   if (platformAnswers.platform === 'telegram') {
@@ -318,7 +317,6 @@ export async function authCommand() {
     platform: platformAnswers.platform,
     telegramToken: telegramToken,
     discordToken: discordToken,
-    authorizedUserId: authorizedUserId,
     ideType: ideAnswers.ideType,
     idePort: 3000,
     authorizedUser: '', // Will be set on first message

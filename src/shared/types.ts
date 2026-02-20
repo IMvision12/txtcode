@@ -11,7 +11,6 @@ export interface Config {
   platform: string;
   telegramToken?: string;
   discordToken?: string;
-  authorizedUserId?: string;
   ideType: string;
   idePort: number;
   authorizedUser: string;
