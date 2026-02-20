@@ -6,6 +6,7 @@ import { processWithOpenAI } from '../providers/openai';
 import { processWithGemini } from '../providers/gemini';
 import { ToolRegistry } from '../tools/registry';
 import { TerminalTool } from '../tools/terminal';
+import { ProcessTool } from '../tools/process';
 import { IDEAdapter } from '../shared/types';
 
 export class Router {
@@ -22,6 +23,7 @@ export class Router {
 
     this.toolRegistry = new ToolRegistry();
     this.toolRegistry.register(new TerminalTool());
+    this.toolRegistry.register(new ProcessTool());
 
     const ideType = process.env.IDE_TYPE || 'ollama-claude-code';
     switch (ideType) {

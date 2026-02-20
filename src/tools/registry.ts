@@ -1,4 +1,4 @@
-import { Tool, ToolCall, ToolDefinition, ToolResult } from './types';
+import { Tool, ToolCall, ToolDefinition, ToolResult, ParameterProperty } from './types';
 
 export class ToolRegistry {
   private tools: Map<string, Tool> = new Map();
@@ -19,7 +19,7 @@ export class ToolRegistry {
         return defs.map((d) => ({
           name: d.name,
           description: d.description,
-          input_schema: d.parameters,
+          input_schema: toJsonSchema(d.parameters),
         }));
 
       case 'openai':
@@ -28,27 +28,20 @@ export class ToolRegistry {
           function: {
             name: d.name,
             description: d.description,
-            parameters: d.parameters,
+            parameters: toJsonSchema(d.parameters),
           },
         }));
 
       case 'gemini':
-        return [{
-          functionDeclarations: defs.map((d) => ({
-            name: d.name,
-            description: d.description,
-            parameters: {
-              type: 'OBJECT',
-              properties: Object.fromEntries(
-                Object.entries(d.parameters.properties).map(([key, val]) => [
-                  key,
-                  { type: val.type.toUpperCase(), description: val.description },
-                ])
-              ),
-              required: d.parameters.required,
-            },
-          })),
-        }];
+        return [
+          {
+            functionDeclarations: defs.map((d) => ({
+              name: d.name,
+              description: d.description,
+              parameters: toGeminiSchema(d.parameters),
+            })),
+          },
+        ];
 
       default:
         return defs;
@@ -72,4 +65,74 @@ export class ToolRegistry {
     }
     return results;
   }
+}
+
+function toJsonSchema(params: ToolDefinition['parameters']): Record<string, unknown> {
+  return {
+    type: 'object',
+    properties: Object.fromEntries(
+      Object.entries(params.properties).map(([key, prop]) => [key, propertyToJsonSchema(prop)]),
+    ),
+    required: params.required,
+  };
+}
+
+function propertyToJsonSchema(prop: ParameterProperty): Record<string, unknown> {
+  const schema: Record<string, unknown> = {
+    type: prop.type,
+    description: prop.description,
+  };
+  if (prop.enum) {
+    schema.enum = prop.enum;
+  }
+  if (prop.items) {
+    schema.items = { type: prop.items.type };
+  }
+  if (prop.properties) {
+    schema.properties = Object.fromEntries(
+      Object.entries(prop.properties).map(([k, v]) => [k, propertyToJsonSchema(v)]),
+    );
+    if (prop.required) {
+      schema.required = prop.required;
+    }
+  }
+  if (prop.default !== undefined) {
+    schema.default = prop.default;
+  }
+  return schema;
+}
+
+function toGeminiSchema(params: ToolDefinition['parameters']): Record<string, unknown> {
+  return {
+    type: 'OBJECT',
+    properties: Object.fromEntries(
+      Object.entries(params.properties).map(([key, prop]) => [
+        key,
+        propertyToGeminiSchema(prop),
+      ]),
+    ),
+    required: params.required,
+  };
+}
+
+function propertyToGeminiSchema(prop: ParameterProperty): Record<string, unknown> {
+  const schema: Record<string, unknown> = {
+    type: prop.type.toUpperCase(),
+    description: prop.description,
+  };
+  if (prop.enum) {
+    schema.enum = prop.enum;
+  }
+  if (prop.items) {
+    schema.items = { type: prop.items.type.toUpperCase() };
+  }
+  if (prop.properties) {
+    schema.properties = Object.fromEntries(
+      Object.entries(prop.properties).map(([k, v]) => [k, propertyToGeminiSchema(v)]),
+    );
+    if (prop.required) {
+      schema.required = prop.required;
+    }
+  }
+  return schema;
 }
