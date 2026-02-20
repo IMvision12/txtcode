@@ -108,7 +108,7 @@ export class WhatsAppBot {
             timestamp: new Date(messageTimestamp * 1000)
           });
 
-          await this.sock.sendMessage(from, { text: response });
+          await this.sock.sendMessage(from, { text: response }, { quoted: msg });
           logger.debug(`Replied: ${response}`);
         } catch (error) {
           logger.error('Error processing message', error);
