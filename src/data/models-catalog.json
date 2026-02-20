@@ -195,6 +195,93 @@
           "description": "Compact 2.0 model"
         }
       ]
+    },
+    "deepseek": {
+      "name": "DeepSeek",
+      "apiKeyEnv": "DEEPSEEK_API_KEY",
+      "models": [
+        {
+          "id": "deepseek-chat",
+          "name": "DeepSeek V3",
+          "description": "Latest general-purpose model, strong at coding",
+          "recommended": true
+        },
+        {
+          "id": "deepseek-reasoner",
+          "name": "DeepSeek R1",
+          "description": "Reasoning model with chain-of-thought",
+          "recommended": true
+        }
+      ]
+    },
+    "openrouter": {
+      "name": "OpenRouter",
+      "apiKeyEnv": "OPENROUTER_API_KEY",
+      "models": [
+        {
+          "id": "anthropic/claude-sonnet-4",
+          "name": "Claude Sonnet 4",
+          "description": "Anthropic's balanced model via OpenRouter",
+          "recommended": true
+        },
+        {
+          "id": "anthropic/claude-opus-4",
+          "name": "Claude Opus 4",
+          "description": "Anthropic's most capable model via OpenRouter",
+          "recommended": true
+        },
+        {
+          "id": "openai/gpt-4o",
+          "name": "GPT-4o",
+          "description": "OpenAI's multimodal flagship via OpenRouter",
+          "recommended": true
+        },
+        {
+          "id": "openai/o3",
+          "name": "o3",
+          "description": "OpenAI's reasoning model via OpenRouter"
+        },
+        {
+          "id": "openai/o4-mini",
+          "name": "o4-mini",
+          "description": "OpenAI's compact reasoning model via OpenRouter"
+        },
+        {
+          "id": "google/gemini-2.5-pro",
+          "name": "Gemini 2.5 Pro",
+          "description": "Google's most capable model via OpenRouter"
+        },
+        {
+          "id": "google/gemini-2.5-flash",
+          "name": "Gemini 2.5 Flash",
+          "description": "Google's fast model via OpenRouter"
+        },
+        {
+          "id": "deepseek/deepseek-chat",
+          "name": "DeepSeek V3",
+          "description": "DeepSeek's latest model via OpenRouter"
+        },
+        {
+          "id": "deepseek/deepseek-r1",
+          "name": "DeepSeek R1",
+          "description": "DeepSeek's reasoning model via OpenRouter"
+        },
+        {
+          "id": "meta-llama/llama-4-maverick",
+          "name": "Llama 4 Maverick",
+          "description": "Meta's latest open model via OpenRouter"
+        },
+        {
+          "id": "qwen/qwen3-235b-a22b",
+          "name": "Qwen3 235B",
+          "description": "Alibaba's large model via OpenRouter"
+        },
+        {
+          "id": "mistralai/mistral-large",
+          "name": "Mistral Large",
+          "description": "Mistral's flagship model via OpenRouter"
+        }
+      ]
     }
   }
 }

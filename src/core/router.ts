@@ -5,6 +5,8 @@ import { CodexAdapter } from '../adapters/openai-codex';
 import { processWithAnthropic } from '../providers/anthropic';
 import { processWithOpenAI } from '../providers/openai';
 import { processWithGemini } from '../providers/gemini';
+import { processWithDeepSeek } from '../providers/deepseek';
+import { processWithOpenRouter } from '../providers/openrouter';
 import { ToolRegistry } from '../tools/registry';
 import { TerminalTool } from '../tools/terminal';
 import { ProcessTool } from '../tools/process';
@@ -56,15 +58,20 @@ export class Router {
       return '[WARN] AI model not configured. Run: txtcode config';
     }
 
-    if (this.provider === 'anthropic') {
-      return await processWithAnthropic(instruction, this.apiKey, this.model, this.toolRegistry);
-    } else if (this.provider === 'openai') {
-      return await processWithOpenAI(instruction, this.apiKey, this.model, this.toolRegistry);
-    } else if (this.provider === 'gemini') {
-      return await processWithGemini(instruction, this.apiKey, this.model, this.toolRegistry);
+    switch (this.provider) {
+      case 'anthropic':
+        return await processWithAnthropic(instruction, this.apiKey, this.model, this.toolRegistry);
+      case 'openai':
+        return await processWithOpenAI(instruction, this.apiKey, this.model, this.toolRegistry);
+      case 'gemini':
+        return await processWithGemini(instruction, this.apiKey, this.model, this.toolRegistry);
+      case 'deepseek':
+        return await processWithDeepSeek(instruction, this.apiKey, this.model, this.toolRegistry);
+      case 'openrouter':
+        return await processWithOpenRouter(instruction, this.apiKey, this.model, this.toolRegistry);
+      default:
+        return `[ERROR] Unsupported AI provider: ${this.provider}. Run: txtcode config`;
     }
-
-    return `[ERROR] Unsupported AI provider: ${this.provider}`;
   }
 
   async routeToCode(instruction: string): Promise<string> {
