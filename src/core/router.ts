@@ -1,6 +1,7 @@
 import { OllamaClaudeCodeAdapter } from '../adapters/ollama-claude-code';
 import { ClaudeCodeAdapter } from '../adapters/claude-code';
 import { GeminiCodeAdapter } from '../adapters/gemini-code';
+import { CodexAdapter } from '../adapters/codex';
 import { processWithAnthropic } from '../providers/anthropic';
 import { processWithOpenAI } from '../providers/openai';
 import { processWithGemini } from '../providers/gemini';
@@ -32,6 +33,9 @@ export class Router {
         break;
       case 'gemini-code':
         this.adapter = new GeminiCodeAdapter();
+        break;
+      case 'codex':
+        this.adapter = new CodexAdapter();
         break;
       case 'ollama-claude-code':
       default:

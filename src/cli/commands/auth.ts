@@ -296,7 +296,8 @@ export async function authCommand() {
       message: 'Select coding adapter:',
       choices: [
         { name: 'Claude Code (Anthropic API)', value: 'claude-code' },
-        { name: 'Gemini Code (Google AI API)', value: 'gemini-code' },
+        { name: 'OpenAI Codex (OpenAI API)', value: 'codex' },
+        { name: 'Gemini Code (Google AI API)', value: 'gemini-cli' },
         { name: 'Ollama Claude Code (Local, Free)', value: 'ollama-claude-code' }
       ],
       default: 'ollama-claude-code'
