@@ -1,13 +1,7 @@
-# TxtCode
+<div align="center">
+  <img src="img/logo.jpg" alt="TxtCode logo" />
+</div>
 
-```
-████████╗██╗  ██╗████████╗ ██████╗ ██████╗ ██████╗ ███████╗
-╚══██╔══╝╚██╗██╔╝╚══██╔══╝██╔════╝██╔═══██╗██╔══██╗██╔════╝
-   ██║    ╚███╔╝    ██║   ██║     ██║   ██║██║  ██║█████╗  
-   ██║    ██╔██╗    ██║   ██║     ██║   ██║██║  ██║██╔══╝  
-   ██║   ██╔╝ ██╗   ██║   ╚██████╗╚██████╔╝██████╔╝███████╗
-   ╚═╝   ╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝
-```
 
 **Control your IDE from your phone.** Use WhatsApp, Telegram, or Discord to send natural-language instructions to AI coding assistants and run commands on your machine.
 
