@@ -297,10 +297,9 @@ export async function authCommand() {
       choices: [
         { name: 'Claude Code (Anthropic API)', value: 'claude-code' },
         { name: 'OpenAI Codex (OpenAI API)', value: 'codex' },
-        { name: 'Gemini Code (Google AI API)', value: 'gemini-cli' },
+        { name: 'Gemini Code (Google AI API)', value: 'gemini-code' },
         { name: 'Ollama Claude Code (Local, Free)', value: 'ollama-claude-code' }
-      ],
-      default: 'ollama-claude-code'
+      ]
     }
   ]);
 

@@ -26,7 +26,7 @@ export class Router {
     this.toolRegistry.register(new TerminalTool());
     this.toolRegistry.register(new ProcessTool());
 
-    const ideType = process.env.IDE_TYPE || 'ollama-claude-code';
+    const ideType = process.env.IDE_TYPE || '';
     switch (ideType) {
       case 'claude-code':
         this.adapter = new ClaudeCodeAdapter();
@@ -38,9 +38,12 @@ export class Router {
         this.adapter = new CodexAdapter();
         break;
       case 'ollama-claude-code':
-      default:
         this.adapter = new OllamaClaudeCodeAdapter();
         break;
+      default:
+        throw new Error(
+          `No coding adapter configured (IDE_TYPE="${ideType}"). Run: txtcode config`
+        );
     }
   }
 
