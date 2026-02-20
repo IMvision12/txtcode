@@ -1,7 +1,8 @@
 <div align="center">
-  <img src="img/logo.jpg" alt="TxtCode logo" />
+  <img src="img/logo.jpg" alt="TxtCode" width="130" />
 </div>
 
+<br />
 
 **Control your IDE from your phone.** Use WhatsApp, Telegram, or Discord to send natural-language instructions to AI coding assistants and run commands on your machine.
 
