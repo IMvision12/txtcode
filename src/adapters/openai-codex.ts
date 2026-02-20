@@ -2,17 +2,14 @@ import { IDEAdapter } from '../shared/types';
 import { spawn, ChildProcess } from 'child_process';
 import chalk from 'chalk';
 import path from 'path';
-import fs from 'fs';
 
 export class CodexAdapter implements IDEAdapter {
   private connected: boolean = false;
   private projectPath: string;
-  private codexModel: string;
   private currentProcess: ChildProcess | null = null;
 
   constructor() {
     this.projectPath = process.env.PROJECT_PATH || process.cwd();
-    this.codexModel = process.env.CODEX_MODEL || 'o4-mini';
   }
 
   async connect(): Promise<void> {
@@ -38,7 +35,7 @@ export class CodexAdapter implements IDEAdapter {
 
     console.log(chalk.green(`\n✅ Connected to OpenAI Codex`));
     console.log(chalk.gray(`   Project: ${this.projectPath}`));
-    console.log(chalk.gray(`   Model: ${this.codexModel}`));
+    console.log(chalk.gray(`   Model: configured in ~/.codex/config.toml`));
     console.log(chalk.gray(`   Mode: OpenAI API\n`));
 
     this.connected = true;
@@ -61,7 +58,6 @@ export class CodexAdapter implements IDEAdapter {
     }
 
     console.log(chalk.blue(`\n🤖 Processing with OpenAI Codex...`));
-    console.log(chalk.gray(`   Model: ${this.codexModel}`));
     console.log(chalk.gray(`   Instruction: ${instruction.substring(0, 60)}${instruction.length > 60 ? '...' : ''}\n`));
 
     return new Promise((resolve, reject) => {
@@ -70,15 +66,10 @@ export class CodexAdapter implements IDEAdapter {
       let errorOutput = '';
 
       const args: string[] = [
-        '--approval-mode', 'full-auto',
-        '--quiet',
-        '--model', this.codexModel,
+        'exec',
+        '--full-auto',
+        '-C', this.projectPath,
       ];
-
-      const systemPrompt = this.loadSystemPrompt();
-      if (systemPrompt) {
-        args.push('--instructions', systemPrompt);
-      }
 
       args.push(instruction);
 
@@ -165,21 +156,11 @@ export class CodexAdapter implements IDEAdapter {
     return `✅ OpenAI Codex
 
 📁 Project: ${path.basename(this.projectPath)}
-🤖 Model: ${this.codexModel}
+🤖 Model: configured in ~/.codex/config.toml
 🏠 Backend: OpenAI API
 💰 Cost: Paid (API usage)
 🔒 Privacy: Cloud-based (sandboxed execution)
 🔧 Session: Stateless (per-invocation)`;
-  }
-
-  private loadSystemPrompt(): string {
-    const promptPath = path.join(__dirname, '..', 'data', 'system-prompt.txt');
-    try {
-      const base = fs.readFileSync(promptPath, 'utf-8');
-      return base + `\n- You're working in: ${this.projectPath}`;
-    } catch {
-      return `You are an expert code assistant. You're working in: ${this.projectPath}`;
-    }
   }
 
   private formatResponse(output: string): string {
