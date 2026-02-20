@@ -295,9 +295,10 @@ export async function authCommand() {
       name: 'ideType',
       message: 'Select coding adapter:',
       choices: [
-        { name: 'Claude Code (Anthropic API)', value: 'claude-code' },
-        { name: 'OpenAI Codex (OpenAI API)', value: 'codex' },
-        { name: 'Gemini Code (Google AI API)', value: 'gemini-code' },
+        { name: 'Claude Code (Anthropic)', value: 'claude-code' },
+        { name: 'OpenAI Codex (OpenAI)', value: 'codex' },
+        { name: 'Gemini CLI (Google)', value: 'gemini-code' },
+        { name: 'Kiro CLI (AWS)', value: 'kiro' },
         { name: 'Ollama Claude Code (Local, Free)', value: 'ollama-claude-code' }
       ]
     }

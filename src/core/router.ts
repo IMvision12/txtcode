@@ -1,7 +1,8 @@
 import { OllamaClaudeCodeAdapter } from '../adapters/ollama-claude-code';
 import { ClaudeCodeAdapter } from '../adapters/claude-code';
-import { GeminiCodeAdapter } from '../adapters/gemini-code';
+import { GeminiCodeAdapter } from '../adapters/gemini-cli';
 import { CodexAdapter } from '../adapters/openai-codex';
+import { KiroAdapter } from '../adapters/kiro-cli';
 import { processWithAnthropic } from '../providers/anthropic';
 import { processWithOpenAI } from '../providers/openai';
 import { processWithGemini } from '../providers/gemini';
@@ -40,6 +41,9 @@ export class Router {
         break;
       case 'ollama-claude-code':
         this.adapter = new OllamaClaudeCodeAdapter();
+        break;
+      case 'kiro':
+        this.adapter = new KiroAdapter();
         break;
       default:
         throw new Error(
