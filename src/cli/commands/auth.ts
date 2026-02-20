@@ -9,6 +9,7 @@ import qrcode from 'qrcode-terminal';
 
 const CONFIG_DIR = path.join(os.homedir(), '.txtcode');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
+const WA_AUTH_DIR = path.join(CONFIG_DIR, '.wacli_auth');
 
 async function authenticateWhatsApp(): Promise<void> {
   return new Promise(async (resolve, reject) => {
@@ -16,7 +17,7 @@ async function authenticateWhatsApp(): Promise<void> {
     let pairingComplete = false;
     
     try {
-      const { state, saveCreds } = await useMultiFileAuthState('.wacli_auth');
+      const { state, saveCreds } = await useMultiFileAuthState(WA_AUTH_DIR);
       
       sock = makeWASocket({
         auth: state,
@@ -84,7 +85,7 @@ async function authenticateWhatsApp(): Promise<void> {
             }
             
             // Restart connection without QR
-            const { state: newState, saveCreds: newSaveCreds } = await useMultiFileAuthState('.wacli_auth');
+            const { state: newState, saveCreds: newSaveCreds } = await useMultiFileAuthState(WA_AUTH_DIR);
             const retrySock = makeWASocket({
               auth: newState,
               printQRInTerminal: false,

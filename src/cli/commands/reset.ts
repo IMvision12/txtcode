@@ -6,6 +6,7 @@ import readline from 'readline';
 
 const CONFIG_DIR = path.join(os.homedir(), '.txtcode');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
+const WA_AUTH_DIR = path.join(CONFIG_DIR, '.wacli_auth');
 
 export function resetCommand() {
   try {
@@ -21,9 +22,8 @@ export function resetCommand() {
 
 export function logoutCommand() {
   try {
-    const authPath = path.join(process.cwd(), '.wacli_auth');
-    if (fs.existsSync(authPath)) {
-      fs.rmSync(authPath, { recursive: true, force: true });
+    if (fs.existsSync(WA_AUTH_DIR)) {
+      fs.rmSync(WA_AUTH_DIR, { recursive: true, force: true });
       console.log(chalk.green('\n✅ WhatsApp session deleted!'));
       console.log(chalk.cyan('Run "txtcode start" to scan QR code again.\n'));
     } else {
@@ -37,7 +37,7 @@ export function logoutCommand() {
 export function hardResetCommand() {
   console.log(chalk.yellow('\n⚠️  HARD RESET - This will delete ALL TxtCode data:\n'));
   console.log(chalk.gray('  • Configuration file (~/.txtcode/config.json)'));
-  console.log(chalk.gray('  • WhatsApp authentication (.wacli_auth)'));
+  console.log(chalk.gray('  • WhatsApp authentication (~/.txtcode/.wacli_auth)'));
   console.log(chalk.gray('  • All settings and authorized users\n'));
 
   const rl = readline.createInterface({
@@ -59,17 +59,6 @@ export function hardResetCommand() {
         }
       } catch (error) {
         console.log(chalk.red('✗ Failed to delete configuration directory'));
-      }
-
-      try {
-        const authPath = path.join(process.cwd(), '.wacli_auth');
-        if (fs.existsSync(authPath)) {
-          fs.rmSync(authPath, { recursive: true, force: true });
-          console.log(chalk.green('✓ Deleted WhatsApp authentication'));
-          deletedItems++;
-        }
-      } catch (error) {
-        console.log(chalk.red('✗ Failed to delete WhatsApp authentication'));
       }
 
       if (deletedItems > 0) {

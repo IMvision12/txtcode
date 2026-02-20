@@ -8,6 +8,10 @@ import { AgentCore } from '../core/agent';
 import { Boom } from '@hapi/boom';
 import { logger } from '../shared/logger';
 import fs from 'fs';
+import path from 'path';
+import os from 'os';
+
+const WA_AUTH_DIR = path.join(os.homedir(), '.txtcode', '.wacli_auth');
 
 export class WhatsAppBot {
   private agent: AgentCore;
@@ -21,12 +25,12 @@ export class WhatsAppBot {
   async start() {
     logger.info('Starting WhatsApp bot...');
 
-    if (!fs.existsSync('.wacli_auth')) {
+    if (!fs.existsSync(WA_AUTH_DIR)) {
       logger.error('WhatsApp not authenticated! Run: txtcode auth');
       process.exit(1);
     }
 
-    const { state, saveCreds } = await useMultiFileAuthState('.wacli_auth');
+    const { state, saveCreds } = await useMultiFileAuthState(WA_AUTH_DIR);
 
     this.sock = makeWASocket({
       auth: state,
