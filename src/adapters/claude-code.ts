@@ -1,7 +1,7 @@
 import { IDEAdapter } from '../shared/types';
 import { spawn, ChildProcess } from 'child_process';
 import { randomUUID } from 'crypto';
-import chalk from 'chalk';
+import { logger } from '../shared/logger';
 import path from 'path';
 import fs from 'fs';
 
@@ -18,7 +18,7 @@ export class ClaudeCodeAdapter implements IDEAdapter {
   }
 
   async connect(): Promise<void> {
-    console.log(chalk.cyan('\n🔍 Checking prerequisites...\n'));
+    logger.debug('Checking prerequisites...');
 
     try {
       const { exec } = require('child_process');
@@ -28,19 +28,19 @@ export class ClaudeCodeAdapter implements IDEAdapter {
           else resolve(stdout);
         });
       });
-      console.log(chalk.green('✅ Claude CLI installed'));
+      logger.debug('Claude CLI installed');
     } catch (error) {
       throw new Error(
-        '❌ Claude CLI not installed.\n\n' +
+        'Claude CLI not installed.\n\n' +
         'Please install Claude CLI first.\n' +
         'Visit: https://claude.ai'
       );
     }
 
-    console.log(chalk.green(`\n✅ Connected to Claude Code (Official)`));
-    console.log(chalk.gray(`   Project: ${this.projectPath}`));
-    console.log(chalk.gray(`   Model: ${this.claudeModel}`));
-    console.log(chalk.gray(`   Mode: Anthropic API\n`));
+    logger.debug(`Connected to Claude Code (Official)`);
+    logger.debug(`   Project: ${this.projectPath}`);
+    logger.debug(`   Model: ${this.claudeModel}`);
+    logger.debug(`   Mode: Anthropic API`);
 
     this.connected = true;
   }
@@ -61,9 +61,9 @@ export class ClaudeCodeAdapter implements IDEAdapter {
       await this.connect();
     }
 
-    console.log(chalk.blue(`\n🤖 Processing with Claude Code (Official)...`));
-    console.log(chalk.gray(`   Model: ${this.claudeModel}`));
-    console.log(chalk.gray(`   Instruction: ${instruction.substring(0, 60)}${instruction.length > 60 ? '...' : ''}\n`));
+    logger.debug(`Processing with Claude Code (Official)...`);
+    logger.debug(`   Model: ${this.claudeModel}`);
+    logger.debug(`   Instruction: ${instruction}`);
 
     return new Promise((resolve, reject) => {
       const startTime = Date.now();
@@ -86,9 +86,9 @@ export class ClaudeCodeAdapter implements IDEAdapter {
       args.push('--append-system-prompt', systemPrompt);
       args.push(instruction);
 
-      console.log(chalk.cyan(`📡 Spawning Claude CLI...`));
-      console.log(chalk.gray(`   Command: claude ${args.join(' ')}`));
-      console.log(chalk.gray(`   Working directory: ${this.projectPath}\n`));
+      logger.debug(`Spawning Claude CLI...`);
+      logger.debug(`   Command: claude ${args.join(' ')}`);
+      logger.debug(`   Working directory: ${this.projectPath}`);
 
       const child = spawn('claude', args, {
         cwd: this.projectPath,
@@ -101,13 +101,13 @@ export class ClaudeCodeAdapter implements IDEAdapter {
       child.stdout.on('data', (data) => {
         const text = data.toString();
         output += text;
-        process.stdout.write(chalk.gray(text));
+        logger.debug(text.trimEnd());
       });
 
       child.stderr.on('data', (data) => {
         const text = data.toString();
         errorOutput += text;
-        process.stderr.write(chalk.red(text));
+        logger.debug(text.trimEnd());
       });
 
       child.on('exit', (code, signal) => {
@@ -120,22 +120,21 @@ export class ClaudeCodeAdapter implements IDEAdapter {
         }
 
         if (code === 0) {
-          console.log(chalk.green(`\n✅ Command executed successfully!`));
-          console.log(chalk.gray(`   Time taken: ${elapsed}s\n`));
+          logger.debug(`Command executed successfully! Time: ${elapsed}s`);
           resolve(this.formatResponse(output));
         } else {
-          console.error(chalk.red(`\n❌ Process exited with code ${code}\n`));
+          logger.error(`Process exited with code ${code}`);
           reject(new Error(errorOutput || `Process exited with code ${code}`));
         }
       });
 
       child.on('error', (error) => {
         this.currentProcess = null;
-        console.error(chalk.red(`\n❌ Failed to spawn Claude CLI\n`));
+        logger.error('Failed to spawn Claude CLI', error);
         
         if (error.message.includes('ENOENT')) {
           reject(new Error(
-            '❌ Claude CLI not found in PATH.\n\n' +
+            'Claude CLI not found in PATH.\n\n' +
             'Please install Claude CLI first.\n' +
             'Visit: https://claude.ai'
           ));
@@ -148,17 +147,17 @@ export class ClaudeCodeAdapter implements IDEAdapter {
 
   async getStatus(): Promise<string> {
     if (!this.connected) {
-      return '⚠️ Not connected. Will connect on first use.';
+      return 'Not connected. Will connect on first use.';
     }
 
-    return `✅ Claude Code (Official)
+    return `Claude Code (Official)
     
-📁 Project: ${path.basename(this.projectPath)}
-🤖 Model: ${this.claudeModel}
-🏠 Backend: Anthropic API
-💰 Cost: Paid (API usage)
-🔒 Privacy: Cloud-based
-🔧 Session: ${this.currentSessionId || 'None'}`;
+Project: ${path.basename(this.projectPath)}
+Model: ${this.claudeModel}
+Backend: Anthropic API
+Cost: Paid (API usage)
+Privacy: Cloud-based
+Session: ${this.currentSessionId || 'None'}`;
   }
 
   private loadSystemPrompt(): string {
@@ -174,12 +173,6 @@ export class ClaudeCodeAdapter implements IDEAdapter {
   private formatResponse(output: string): string {
     let formatted = output.trim();
     formatted = formatted.replace(/\x1b\[[0-9;]*m/g, '');
-
-    const maxLength = 2000;
-    if (formatted.length > maxLength) {
-      formatted = formatted.substring(0, maxLength) + '\n\n... (output truncated)';
-    }
-
     return formatted || 'Task completed successfully.';
   }
 }

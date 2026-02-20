@@ -1,7 +1,7 @@
 import { IDEAdapter } from '../shared/types';
 import { spawn, ChildProcess } from 'child_process';
 import { randomUUID } from 'crypto';
-import chalk from 'chalk';
+import { logger } from '../shared/logger';
 import path from 'path';
 import fs from 'fs';
 
@@ -18,7 +18,7 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
   }
 
   async connect(): Promise<void> {
-    console.log(chalk.cyan('\n🔍 Checking prerequisites...\n'));
+    logger.debug('Checking prerequisites...');
 
     try {
       const { exec } = require('child_process');
@@ -28,10 +28,10 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
           else resolve(stdout);
         });
       });
-      console.log(chalk.green('✅ Ollama installed'));
+      logger.debug('Ollama installed');
     } catch (error) {
       throw new Error(
-        '❌ Ollama not installed.\n\n' +
+        'Ollama not installed.\n\n' +
         'Please install Ollama first.\n' +
         'Visit: https://ollama.com'
       );
@@ -52,26 +52,26 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
       
       const modelExists = models.some((m: any) => m.name === this.ollamaModel);
       if (!modelExists) {
-        console.log(chalk.yellow(`⚠️  Model ${this.ollamaModel} not found`));
-        console.log(chalk.cyan(`   Available models: ${models.map((m: any) => m.name).join(', ')}`));
+        logger.debug(`Model ${this.ollamaModel} not found`);
+        logger.debug(`   Available models: ${models.map((m: any) => m.name).join(', ')}`);
         throw new Error(`Model ${this.ollamaModel} not available`);
       }
       
-      console.log(chalk.green('✅ Ollama running'));
-      console.log(chalk.green(`✅ Model ${this.ollamaModel} available`));
+      logger.debug('Ollama running');
+      logger.debug(`Model ${this.ollamaModel} available`);
     } catch (error) {
       throw new Error(
-        `❌ Ollama setup failed: ${error instanceof Error ? error.message : 'Unknown error'}\n\n` +
+        `Ollama setup failed: ${error instanceof Error ? error.message : 'Unknown error'}\n\n` +
         'Make sure:\n' +
         '1. Ollama is running: ollama serve\n' +
         '2. Model is available: ollama list'
       );
     }
 
-    console.log(chalk.green(`\n✅ Connected to Claude Code (via Ollama)`));
-    console.log(chalk.gray(`   Project: ${this.projectPath}`));
-    console.log(chalk.gray(`   Model: ${this.ollamaModel}`));
-    console.log(chalk.gray(`   Mode: Ollama Launch\n`));
+    logger.debug(`Connected to Claude Code (via Ollama)`);
+    logger.debug(`   Project: ${this.projectPath}`);
+    logger.debug(`   Model: ${this.ollamaModel}`);
+    logger.debug(`   Mode: Ollama Launch`);
 
     this.connected = true;
   }
@@ -92,9 +92,9 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
       await this.connect();
     }
 
-    console.log(chalk.blue(`\n🤖 Processing with Claude Code (via Ollama)...`));
-    console.log(chalk.gray(`   Model: ${this.ollamaModel}`));
-    console.log(chalk.gray(`   Instruction: ${instruction.substring(0, 60)}${instruction.length > 60 ? '...' : ''}\n`));
+    logger.debug(`Processing with Claude Code (via Ollama)...`);
+    logger.debug(`   Model: ${this.ollamaModel}`);
+    logger.debug(`   Instruction: ${instruction}`);
 
     return new Promise((resolve, reject) => {
       const startTime = Date.now();
@@ -121,9 +121,9 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
         args.push('--', ...claudeArgs);
       }
 
-      console.log(chalk.cyan(`📡 Spawning Ollama Claude Code...`));
-      console.log(chalk.gray(`   Command: ollama ${args.join(' ')}`));
-      console.log(chalk.gray(`   Working directory: ${this.projectPath}\n`));
+      logger.debug(`Spawning Ollama Claude Code...`);
+      logger.debug(`   Command: ollama ${args.join(' ')}`);
+      logger.debug(`   Working directory: ${this.projectPath}`);
 
       const child = spawn('ollama', args, {
         cwd: this.projectPath,
@@ -136,13 +136,13 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
       child.stdout.on('data', (data) => {
         const text = data.toString();
         output += text;
-        process.stdout.write(chalk.gray(text));
+        logger.debug(text.trimEnd());
       });
 
       child.stderr.on('data', (data) => {
         const text = data.toString();
         errorOutput += text;
-        process.stderr.write(chalk.red(text));
+        logger.debug(text.trimEnd());
       });
 
       child.on('exit', (code, signal) => {
@@ -155,22 +155,21 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
         }
 
         if (code === 0) {
-          console.log(chalk.green(`\n✅ Command executed successfully!`));
-          console.log(chalk.gray(`   Time taken: ${elapsed}s\n`));
+          logger.debug(`Command executed successfully! Time: ${elapsed}s`);
           resolve(this.formatResponse(output));
         } else {
-          console.error(chalk.red(`\n❌ Process exited with code ${code}\n`));
+          logger.error(`Process exited with code ${code}`);
           reject(new Error(errorOutput || `Process exited with code ${code}`));
         }
       });
 
       child.on('error', (error) => {
         this.currentProcess = null;
-        console.error(chalk.red(`\n❌ Failed to spawn Ollama\n`));
+        logger.error('Failed to spawn Ollama', error);
         
         if (error.message.includes('ENOENT')) {
           reject(new Error(
-            '❌ Ollama not found in PATH.\n\n' +
+            'Ollama not found in PATH.\n\n' +
             'Please install Ollama first.\n' +
             'Visit: https://ollama.com'
           ));
@@ -183,7 +182,7 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
 
   async getStatus(): Promise<string> {
     if (!this.connected) {
-      return '⚠️ Not connected. Will connect on first use.';
+      return 'Not connected. Will connect on first use.';
     }
 
     try {
@@ -191,17 +190,17 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
       const data: any = await response.json();
       const models = data.models || [];
       
-      return `✅ Claude Code (via Ollama Launch)
+      return `Claude Code (via Ollama Launch)
       
-📁 Project: ${path.basename(this.projectPath)}
-🤖 Model: ${this.ollamaModel}
-🏠 Backend: Ollama (Local)
-💰 Cost: Free
-🔒 Privacy: 100% Local
-🔧 Session: ${this.currentSessionId || 'None'}
-📊 Available models: ${models.length}`;
+Project: ${path.basename(this.projectPath)}
+Model: ${this.ollamaModel}
+Backend: Ollama (Local)
+Cost: Free
+Privacy: 100% Local
+Session: ${this.currentSessionId || 'None'}
+Available models: ${models.length}`;
     } catch {
-      return '⚠️ Ollama service not running. Start with: ollama serve';
+      return 'Ollama service not running. Start with: ollama serve';
     }
   }
 
@@ -218,12 +217,6 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
   private formatResponse(output: string): string {
     let formatted = output.trim();
     formatted = formatted.replace(/\x1b\[[0-9;]*m/g, '');
-
-    const maxLength = 2000;
-    if (formatted.length > maxLength) {
-      formatted = formatted.substring(0, maxLength) + '\n\n... (output truncated)';
-    }
-
     return formatted || 'Task completed successfully.';
   }
 }

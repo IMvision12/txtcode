@@ -4,6 +4,7 @@ import { TelegramBot } from '../../platforms/telegram';
 import { DiscordBot } from '../../platforms/discord';
 import { AgentCore } from '../../core/agent';
 import { loadConfig } from './auth';
+import { logger } from '../../shared/logger';
 
 export async function startCommand(options: { daemon?: boolean }) {
   const config = loadConfig();
@@ -14,9 +15,9 @@ export async function startCommand(options: { daemon?: boolean }) {
     process.exit(1);
   }
 
-  console.log(chalk.blue.bold('\n🤖 Starting TxtCode Agent\n'));
-  console.log(chalk.cyan(`Platform: ${config.platform}`));
-  console.log(chalk.cyan(`IDE: ${config.ideType}\n`));
+  logger.info(chalk.blue.bold('\nStarting TxtCode Agent\n'));
+  logger.info(chalk.cyan(`Platform: ${config.platform}`));
+  logger.info(chalk.cyan(`IDE: ${config.ideType}\n`));
 
   process.env.PLATFORM = config.platform;
   process.env.TELEGRAM_BOT_TOKEN = config.telegramToken;
@@ -45,11 +46,11 @@ export async function startCommand(options: { daemon?: boolean }) {
       const bot = new DiscordBot(agent);
       await bot.start();
     } else {
-      console.error(chalk.red('Invalid platform specified'));
+      logger.error('Invalid platform specified');
       process.exit(1);
     }
   } catch (error) {
-    console.error(chalk.red('Failed to start agent:'), error);
+    logger.error('Failed to start agent', error);
     process.exit(1);
   }
 }

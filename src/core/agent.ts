@@ -1,5 +1,6 @@
 import { Router } from './router';
 import { Message } from '../shared/types';
+import { logger } from '../shared/logger';
 
 export class AgentCore {
   private router: Router;
@@ -34,13 +35,13 @@ export class AgentCore {
       fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2));
       this.authorizedUser = userId;
     } catch (error) {
-      console.error('Failed to save authorized user:', error);
+      logger.error('Failed to save authorized user', error);
     }
   }
 
   isUserAllowed(userId: string): boolean {
     if (!this.authorizedUser) {
-      console.log(`[AUTH] Authorizing first user: ${userId}`);
+      logger.debug(`Authorizing first user: ${userId}`);
       this.saveAuthorizedUser(userId);
       return true;
     }
@@ -49,7 +50,7 @@ export class AgentCore {
       return true;
     }
     
-    console.log(`[AUTH] Rejected unauthorized user: ${userId} (authorized: ${this.authorizedUser})`);
+    logger.debug(`Rejected unauthorized user: ${userId} (authorized: ${this.authorizedUser})`);
     return false;
   }
 
@@ -90,15 +91,14 @@ To switch to code mode, use: /code`;
     const userMode = this.userModes.get(message.from);
 
     if (userMode === 'code') {
-      console.log('[CODE] User in CODE mode - routing to coding adapter...');
+      logger.debug('Routing to coding adapter (CODE mode)...');
       try {
         return await this.router.routeToCode(text);
       } catch (error) {
         return `[ERROR] ${error instanceof Error ? error.message : 'Unknown error'}`;
       }
     } else {
-      const modeLabel = userMode === 'chat' ? 'CHAT' : 'CHAT';
-      console.log(`[${modeLabel}] Routing to primary LLM...`);
+      logger.debug('Routing to primary LLM (CHAT mode)...');
       try {
         return await this.router.routeToChat(text);
       } catch (error) {

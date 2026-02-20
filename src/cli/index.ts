@@ -5,6 +5,7 @@ import { startCommand } from './commands/start';
 import { statusCommand } from './commands/status';
 import { authCommand } from './commands/auth';
 import { resetCommand, logoutCommand, hardResetCommand } from './commands/reset';
+import { logsCommand } from './commands/logs';
 import { showBanner } from '../shared/banner';
 import chalk from 'chalk';
 
@@ -59,5 +60,15 @@ program
   .command('hard-reset')
   .description('Delete all configuration and authentication data')
   .action(hardResetCommand);
+
+program
+  .command('logs')
+  .description('View session logs')
+  .argument('[session]', 'Session number to view (run without args to list sessions)')
+  .option('-f, --follow', 'Follow the latest session log in real-time')
+  .option('--all', 'Show full log file')
+  .option('-n, --lines <count>', 'Number of lines to show (default: 50)')
+  .option('--clear', 'Delete all session log files')
+  .action(logsCommand);
 
 program.parse();

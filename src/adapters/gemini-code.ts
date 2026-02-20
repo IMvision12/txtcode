@@ -1,6 +1,6 @@
 import { IDEAdapter } from '../shared/types';
 import { spawn, ChildProcess } from 'child_process';
-import chalk from 'chalk';
+import { logger } from '../shared/logger';
 import path from 'path';
 
 export class GeminiCodeAdapter implements IDEAdapter {
@@ -16,7 +16,7 @@ export class GeminiCodeAdapter implements IDEAdapter {
   }
 
   async connect(): Promise<void> {
-    console.log(chalk.cyan('\n🔍 Checking prerequisites...\n'));
+    logger.debug('Checking prerequisites...');
 
     try {
       const { exec } = require('child_process');
@@ -26,19 +26,19 @@ export class GeminiCodeAdapter implements IDEAdapter {
           else resolve(stdout);
         });
       });
-      console.log(chalk.green('✅ Gemini CLI installed'));
+      logger.debug('Gemini CLI installed');
     } catch (error) {
       throw new Error(
-        '❌ Gemini CLI not installed.\n\n' +
+        'Gemini CLI not installed.\n\n' +
         'Please install Gemini CLI first.\n' +
         'Visit: https://github.com/google/generative-ai-cli'
       );
     }
 
-    console.log(chalk.green(`\n✅ Connected to Gemini Code`));
-    console.log(chalk.gray(`   Project: ${this.projectPath}`));
-    console.log(chalk.gray(`   Model: ${this.geminiModel || 'default (Gemini CLI)'}`));
-    console.log(chalk.gray(`   Mode: Google AI API\n`));
+    logger.debug(`Connected to Gemini Code`);
+    logger.debug(`   Project: ${this.projectPath}`);
+    logger.debug(`   Model: ${this.geminiModel || 'default (Gemini CLI)'}`);
+    logger.debug(`   Mode: Google AI API`);
 
     this.connected = true;
   }
@@ -60,9 +60,9 @@ export class GeminiCodeAdapter implements IDEAdapter {
       await this.connect();
     }
 
-    console.log(chalk.blue(`\n🤖 Processing with Gemini Code...`));
-    console.log(chalk.gray(`   Model: ${this.geminiModel || 'default (Gemini CLI)'}`));
-    console.log(chalk.gray(`   Instruction: ${instruction.substring(0, 60)}${instruction.length > 60 ? '...' : ''}\n`));
+    logger.debug(`Processing with Gemini Code...`);
+    logger.debug(`   Model: ${this.geminiModel || 'default (Gemini CLI)'}`);
+    logger.debug(`   Instruction: ${instruction}`);
 
     return new Promise((resolve, reject) => {
       const startTime = Date.now();
@@ -78,9 +78,9 @@ export class GeminiCodeAdapter implements IDEAdapter {
 
       args.push('-p', instruction);
 
-      console.log(chalk.cyan(`📡 Spawning Gemini CLI...`));
-      console.log(chalk.gray(`   Command: gemini ${args.join(' ')}`));
-      console.log(chalk.gray(`   Working directory: ${this.projectPath}\n`));
+      logger.debug(`Spawning Gemini CLI...`);
+      logger.debug(`   Command: gemini ${args.join(' ')}`);
+      logger.debug(`   Working directory: ${this.projectPath}`);
 
       const isWindows = process.platform === 'win32';
       let command: string;
@@ -111,13 +111,13 @@ export class GeminiCodeAdapter implements IDEAdapter {
       child.stdout.on('data', (data) => {
         const text = data.toString();
         output += text;
-        process.stdout.write(chalk.gray(text));
+        logger.debug(text.trimEnd());
       });
 
       child.stderr.on('data', (data) => {
         const text = data.toString();
         errorOutput += text;
-        process.stderr.write(chalk.red(text));
+        logger.debug(text.trimEnd());
       });
 
       child.on('exit', (code, signal) => {
@@ -130,22 +130,21 @@ export class GeminiCodeAdapter implements IDEAdapter {
         }
 
         if (code === 0 || output.length > 0) {
-          console.log(chalk.green(`\n✅ Command executed successfully!`));
-          console.log(chalk.gray(`   Time taken: ${elapsed}s\n`));
+          logger.debug(`Command executed successfully! Time: ${elapsed}s`);
           resolve(this.formatResponse(output || 'Task completed successfully.'));
         } else {
-          console.error(chalk.red(`\n❌ Process exited with code ${code}\n`));
+          logger.error(`Process exited with code ${code}`);
           reject(new Error(errorOutput || `Process exited with code ${code}`));
         }
       });
 
       child.on('error', (error) => {
         this.currentProcess = null;
-        console.error(chalk.red(`\n❌ Failed to spawn Gemini CLI\n`));
+        logger.error('Failed to spawn Gemini CLI', error);
         
         if (error.message.includes('ENOENT')) {
           reject(new Error(
-            '❌ Gemini CLI not found in PATH.\n\n' +
+            'Gemini CLI not found in PATH.\n\n' +
             'Please install Gemini CLI first.\n' +
             'Visit: https://github.com/google/generative-ai-cli'
           ));
@@ -158,19 +157,19 @@ export class GeminiCodeAdapter implements IDEAdapter {
 
   async getStatus(): Promise<string> {
     if (!this.connected) {
-      return '⚠️ Not connected. Will connect on first use.';
+      return 'Not connected. Will connect on first use.';
     }
 
     const modelDisplay = this.geminiModel ? this.geminiModel : 'default (Gemini CLI)';
 
-    return `✅ Gemini Code
+    return `Gemini Code
     
-📁 Project: ${path.basename(this.projectPath)}
-🤖 Model: ${modelDisplay}
-🏠 Backend: Google AI API
-💰 Cost: Paid (API usage)
-🔒 Privacy: Cloud-based
-🔧 Session: ${this.sessionStarted ? 'Active' : 'None'}`;
+Project: ${path.basename(this.projectPath)}
+Model: ${modelDisplay}
+Backend: Google AI API
+Cost: Paid (API usage)
+Privacy: Cloud-based
+Session: ${this.sessionStarted ? 'Active' : 'None'}`;
   }
 
   private formatResponse(output: string): string {
@@ -179,12 +178,6 @@ export class GeminiCodeAdapter implements IDEAdapter {
     formatted = formatted.replace(/YOLO mode is enabled.*?\n/g, '');
     formatted = formatted.replace(/Hook registry initialized.*?\n/g, '');
     formatted = formatted.replace(/Loaded cached credentials.*?\n/g, '');
-
-    const maxLength = 1800;
-    if (formatted.length > maxLength) {
-      formatted = formatted.substring(0, maxLength) + '\n\n... (output truncated)';
-    }
-
     return formatted || 'Task completed successfully.';
   }
 }

@@ -1,6 +1,6 @@
 import { Client, GatewayIntentBits, Message, Partials } from 'discord.js';
-import chalk from 'chalk';
 import { AgentCore } from '../core/agent';
+import { logger } from '../shared/logger';
 
 export class DiscordBot {
   private client: Client;
@@ -27,8 +27,8 @@ export class DiscordBot {
 
   private setupHandlers() {
     this.client.once('ready', () => {
-      console.log(chalk.green(`\n[OK] Discord bot logged in as ${this.client.user?.tag}!\n`));
-      console.log(chalk.cyan('Waiting for messages...\n'));
+      logger.info(`Discord bot logged in as ${this.client.user?.tag}!`);
+      logger.info('Waiting for messages...');
     });
 
     this.client.on('messageCreate', async (message: Message) => {
@@ -43,7 +43,7 @@ export class DiscordBot {
 
       if (!text) return;
 
-      console.log(chalk.blue(`[MSG] Message from ${message.author.tag}: ${text}`));
+      logger.debug(`Incoming message from ${message.author.tag}: ${text}`);
 
       if ('sendTyping' in message.channel) {
         await message.channel.sendTyping();
@@ -56,25 +56,20 @@ export class DiscordBot {
       });
 
       try {
-        const maxLength = 1900;
-        const truncatedResponse = response.length > maxLength 
-          ? response.substring(0, maxLength) + '\n\n... (output truncated)'
-          : response;
-        
-        await message.reply(truncatedResponse);
-        console.log(chalk.green(`[OK] Replied: ${truncatedResponse.substring(0, 50)}...`));
+        await message.reply(response);
+        logger.debug(`Replied: ${response}`);
       } catch (error: any) {
-        console.error(chalk.red('Failed to send Discord message:'), error);
+        logger.error('Failed to send Discord message', error);
         try {
           await message.reply('[OK] Task completed, but output was too long to display.');
         } catch (fallbackError) {
-          console.error(chalk.red('Failed to send fallback message:'), fallbackError);
+          logger.error('Failed to send fallback message', fallbackError);
         }
       }
     });
 
     this.client.on('error', (error) => {
-      console.error(chalk.red('Discord client error:'), error);
+      logger.error('Discord client error', error);
     });
   }
 
@@ -85,7 +80,7 @@ export class DiscordBot {
       throw new Error('DISCORD_BOT_TOKEN not set in config');
     }
 
-    console.log(chalk.cyan('Connecting to Discord...\n'));
+    logger.info('Connecting to Discord...');
     await this.client.login(token);
   }
 }

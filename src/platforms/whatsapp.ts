@@ -4,28 +4,25 @@ import makeWASocket, {
   WAMessage,
   proto
 } from '@whiskeysockets/baileys';
-import chalk from 'chalk';
 import { AgentCore } from '../core/agent';
 import { Boom } from '@hapi/boom';
+import { logger } from '../shared/logger';
 import fs from 'fs';
 
 export class WhatsAppBot {
   private agent: AgentCore;
   private sock: any;
   private lastProcessedTimestamp: number = 0;
-  private authorizedNumber: string;
 
   constructor(agent: AgentCore) {
     this.agent = agent;
-    this.authorizedNumber = process.env.AUTHORIZED_USER_ID || '';
   }
 
   async start() {
-    console.log(chalk.cyan('Starting WhatsApp bot...\n'));
+    logger.info('Starting WhatsApp bot...');
 
     if (!fs.existsSync('.wacli_auth')) {
-      console.log(chalk.red('\n[ERROR] WhatsApp not authenticated!'));
-      console.log(chalk.yellow('Please run: ' + chalk.bold('txtcode auth') + ' first\n'));
+      logger.error('WhatsApp not authenticated! Run: txtcode auth');
       process.exit(1);
     }
 
@@ -58,19 +55,18 @@ export class WhatsAppBot {
       const { connection, lastDisconnect } = update;
 
       if (connection === 'open') {
-        console.log(chalk.green('\n[OK] WhatsApp connected!\n'));
-        console.log(chalk.cyan(`Authorized number: ${this.authorizedNumber}`));
-        console.log(chalk.cyan('Waiting for messages...\n'));
+        logger.info('WhatsApp connected!');
+        logger.info('Waiting for messages...');
       }
 
       if (connection === 'close') {
         const shouldReconnect = (lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
         
         if (shouldReconnect) {
-          console.log(chalk.yellow('Connection closed. Reconnecting...'));
+          logger.error('Connection closed. Reconnecting...');
           await this.start();
         } else {
-          console.log(chalk.red('\n[ERROR] WhatsApp logged out. Run ' + chalk.bold('txtcode auth') + ' again.\n'));
+          logger.error('WhatsApp logged out. Run txtcode auth again.');
           process.exit(1);
         }
       }
@@ -89,32 +85,9 @@ export class WhatsAppBot {
           const isFromMe = msg.key.fromMe || false;
           const messageTimestamp = (msg.messageTimestamp as number) || 0;
           
-          if (from.endsWith('@g.us')) {
-            console.log(chalk.gray(`[SKIP] Ignoring group message from: ${from}`));
-            continue;
-          }
+          if (!isFromMe) continue;
 
-          if (!isFromMe) {
-            console.log(chalk.gray(`[SKIP] Ignoring message from others (not from self)`));
-            continue;
-          }
-
-          if (from.endsWith('@lid')) {
-            console.log(chalk.cyan(`[DEBUG] Self-message via LID: ${from}, isFromMe: ${isFromMe}`));
-          } else {
-            let senderNumber = from.split('@')[0];
-            
-            if (senderNumber.includes(':')) {
-              senderNumber = senderNumber.split(':')[0];
-            }
-            
-            console.log(chalk.cyan(`[DEBUG] Raw JID: ${from}, Extracted number: ${senderNumber}, Authorized: ${this.authorizedNumber}, isFromMe: ${isFromMe}`));
-            
-            if (senderNumber !== this.authorizedNumber) {
-              console.log(chalk.yellow(`[BLOCKED] Unauthorized number: ${senderNumber} (expected: ${this.authorizedNumber})`));
-              continue;
-            }
-          }
+          if (from.endsWith('@g.us')) continue;
 
           const text = msg.message.conversation || 
                        msg.message.extendedTextMessage?.text || '';
@@ -127,7 +100,7 @@ export class WhatsAppBot {
 
           this.lastProcessedTimestamp = messageTimestamp;
 
-          console.log(chalk.blue(`[MSG] Authorized message: ${text.substring(0, 100)}...`));
+          logger.debug(`Incoming message: ${text}`);
 
           const response = await this.agent.processMessage({
             from,
@@ -136,9 +109,9 @@ export class WhatsAppBot {
           });
 
           await this.sock.sendMessage(from, { text: response });
-          console.log(chalk.green(`[OK] Replied: ${response.substring(0, 50)}...`));
+          logger.debug(`Replied: ${response}`);
         } catch (error) {
-          console.error(chalk.red('Error processing message:'), error);
+          logger.error('Error processing message', error);
         }
       }
     });

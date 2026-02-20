@@ -1,6 +1,6 @@
 import { IDEAdapter } from '../shared/types';
 import { spawn, ChildProcess } from 'child_process';
-import chalk from 'chalk';
+import { logger } from '../shared/logger';
 import path from 'path';
 
 export class CodexAdapter implements IDEAdapter {
@@ -13,7 +13,7 @@ export class CodexAdapter implements IDEAdapter {
   }
 
   async connect(): Promise<void> {
-    console.log(chalk.cyan('\n🔍 Checking prerequisites...\n'));
+    logger.debug('Checking prerequisites...');
 
     try {
       const { exec } = require('child_process');
@@ -23,20 +23,20 @@ export class CodexAdapter implements IDEAdapter {
           else resolve(stdout);
         });
       });
-      console.log(chalk.green('✅ OpenAI Codex CLI installed'));
+      logger.debug('OpenAI Codex CLI installed');
     } catch (error) {
       throw new Error(
-        '❌ OpenAI Codex CLI not installed.\n\n' +
+        'OpenAI Codex CLI not installed.\n\n' +
         'Install it with:\n' +
         '  npm install -g @openai/codex\n\n' +
         'Visit: https://github.com/openai/codex'
       );
     }
 
-    console.log(chalk.green(`\n✅ Connected to OpenAI Codex`));
-    console.log(chalk.gray(`   Project: ${this.projectPath}`));
-    console.log(chalk.gray(`   Model: configured in ~/.codex/config.toml`));
-    console.log(chalk.gray(`   Mode: OpenAI API\n`));
+    logger.debug(`Connected to OpenAI Codex`);
+    logger.debug(`   Project: ${this.projectPath}`);
+    logger.debug(`   Model: configured in ~/.codex/config.toml`);
+    logger.debug(`   Mode: OpenAI API`);
 
     this.connected = true;
   }
@@ -57,8 +57,8 @@ export class CodexAdapter implements IDEAdapter {
       await this.connect();
     }
 
-    console.log(chalk.blue(`\n🤖 Processing with OpenAI Codex...`));
-    console.log(chalk.gray(`   Instruction: ${instruction.substring(0, 60)}${instruction.length > 60 ? '...' : ''}\n`));
+    logger.debug(`Processing with OpenAI Codex...`);
+    logger.debug(`   Instruction: ${instruction}`);
 
     return new Promise((resolve, reject) => {
       const startTime = Date.now();
@@ -73,9 +73,9 @@ export class CodexAdapter implements IDEAdapter {
 
       args.push(instruction);
 
-      console.log(chalk.cyan(`📡 Spawning Codex CLI...`));
-      console.log(chalk.gray(`   Command: codex ${args.join(' ')}`));
-      console.log(chalk.gray(`   Working directory: ${this.projectPath}\n`));
+      logger.debug(`Spawning Codex CLI...`);
+      logger.debug(`   Command: codex ${args.join(' ')}`);
+      logger.debug(`   Working directory: ${this.projectPath}`);
 
       const isWindows = process.platform === 'win32';
       let command: string;
@@ -102,13 +102,13 @@ export class CodexAdapter implements IDEAdapter {
       child.stdout.on('data', (data) => {
         const text = data.toString();
         output += text;
-        process.stdout.write(chalk.gray(text));
+        logger.debug(text.trimEnd());
       });
 
       child.stderr.on('data', (data) => {
         const text = data.toString();
         errorOutput += text;
-        process.stderr.write(chalk.red(text));
+        logger.debug(text.trimEnd());
       });
 
       child.on('exit', (code, signal) => {
@@ -121,22 +121,21 @@ export class CodexAdapter implements IDEAdapter {
         }
 
         if (code === 0 || output.length > 0) {
-          console.log(chalk.green(`\n✅ Command executed successfully!`));
-          console.log(chalk.gray(`   Time taken: ${elapsed}s\n`));
+          logger.debug(`Command executed successfully! Time: ${elapsed}s`);
           resolve(this.formatResponse(output || 'Task completed successfully.'));
         } else {
-          console.error(chalk.red(`\n❌ Process exited with code ${code}\n`));
+          logger.error(`Process exited with code ${code}`);
           reject(new Error(errorOutput || `Process exited with code ${code}`));
         }
       });
 
       child.on('error', (error) => {
         this.currentProcess = null;
-        console.error(chalk.red(`\n❌ Failed to spawn Codex CLI\n`));
+        logger.error('Failed to spawn Codex CLI', error);
 
         if (error.message.includes('ENOENT')) {
           reject(new Error(
-            '❌ Codex CLI not found in PATH.\n\n' +
+            'Codex CLI not found in PATH.\n\n' +
             'Install it with:\n' +
             '  npm install -g @openai/codex\n\n' +
             'Visit: https://github.com/openai/codex'
@@ -150,28 +149,22 @@ export class CodexAdapter implements IDEAdapter {
 
   async getStatus(): Promise<string> {
     if (!this.connected) {
-      return '⚠️ Not connected. Will connect on first use.';
+      return 'Not connected. Will connect on first use.';
     }
 
-    return `✅ OpenAI Codex
+    return `OpenAI Codex
 
-📁 Project: ${path.basename(this.projectPath)}
-🤖 Model: configured in ~/.codex/config.toml
-🏠 Backend: OpenAI API
-💰 Cost: Paid (API usage)
-🔒 Privacy: Cloud-based (sandboxed execution)
-🔧 Session: Stateless (per-invocation)`;
+Project: ${path.basename(this.projectPath)}
+Model: configured in ~/.codex/config.toml
+Backend: OpenAI API
+Cost: Paid (API usage)
+Privacy: Cloud-based (sandboxed execution)
+Session: Stateless (per-invocation)`;
   }
 
   private formatResponse(output: string): string {
     let formatted = output.trim();
     formatted = formatted.replace(/\x1b\[[0-9;]*m/g, '');
-
-    const maxLength = 2000;
-    if (formatted.length > maxLength) {
-      formatted = formatted.substring(0, maxLength) + '\n\n... (output truncated)';
-    }
-
     return formatted || 'Task completed successfully.';
   }
 }

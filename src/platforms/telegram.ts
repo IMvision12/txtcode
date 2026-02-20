@@ -1,6 +1,6 @@
 import { Telegraf } from 'telegraf';
-import chalk from 'chalk';
 import { AgentCore } from '../core/agent';
+import { logger } from '../shared/logger';
 
 export class TelegramBot {
   private bot: Telegraf;
@@ -27,7 +27,7 @@ export class TelegramBot {
       const from = ctx.from.id.toString();
       const text = ctx.message.text;
 
-      console.log(chalk.blue(`[MSG] Message from ${from}: ${text}`));
+      logger.debug(`Incoming message from ${from}: ${text}`);
 
       const response = await this.agent.processMessage({
         from,
@@ -36,14 +36,14 @@ export class TelegramBot {
       });
 
       await ctx.reply(response);
-      console.log(chalk.green(`[OK] Replied`));
+      logger.debug('Replied successfully');
     });
   }
 
   async start() {
-    console.log(chalk.cyan('Starting Telegram bot...\n'));
+    logger.info('Starting Telegram bot...');
     await this.bot.launch();
-    console.log(chalk.green('[OK] Telegram bot is running!\n'));
+    logger.info('Telegram bot is running!');
 
     process.once('SIGINT', () => this.bot.stop('SIGINT'));
     process.once('SIGTERM', () => this.bot.stop('SIGTERM'));
