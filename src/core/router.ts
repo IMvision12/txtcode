@@ -1,7 +1,7 @@
 import { OllamaClaudeCodeAdapter } from '../adapters/ollama-claude-code';
 import { ClaudeCodeAdapter } from '../adapters/claude-code';
 import { GeminiCodeAdapter } from '../adapters/gemini-code';
-import { CodexAdapter } from '../adapters/codex';
+import { CodexAdapter } from '../adapters/openai-codex';
 import { processWithAnthropic } from '../providers/anthropic';
 import { processWithOpenAI } from '../providers/openai';
 import { processWithGemini } from '../providers/gemini';
