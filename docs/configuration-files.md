@@ -18,10 +18,12 @@ This document explains all configuration files added to the txtcode project.
 **Purpose:** Configuration for detect-secrets tool that scans for accidentally committed secrets (API keys, passwords, tokens).
 
 **What it does:**
+
 - Defines file patterns to exclude from scanning (node_modules, dist, package-lock.json)
 - Defines line patterns to ignore (false positives like "apiKey" field names)
 
 **Usage:**
+
 ```bash
 # Scan for secrets
 python -m detect_secrets scan --baseline .secrets.baseline
@@ -39,6 +41,7 @@ python -m detect_secrets audit .secrets.baseline
 **Purpose:** Baseline file that stores known false positives from secret scanning.
 
 **What it contains:**
+
 - List of detected "secrets" that have been reviewed and marked as safe
 - Currently contains 4 false positives from `models-catalog.json` (field names like "apiKeyEnv")
 
@@ -53,11 +56,13 @@ python -m detect_secrets audit .secrets.baseline
 **Purpose:** Configuration for oxfmt - a fast code formatter (like Prettier but written in Rust).
 
 **Settings:**
+
 - `experimentalSortImports`: Automatically sorts import statements alphabetically
 - `experimentalSortPackageJson`: Sorts scripts in package.json
 - `ignorePatterns`: Skips dist/, node_modules/, package-lock.json
 
 **Usage:**
+
 ```bash
 # Format all files
 npm run format
@@ -75,12 +80,14 @@ npm run format:check
 **Purpose:** Configuration for oxlint - a fast linter (like ESLint but 50-100x faster, written in Rust).
 
 **Settings:**
+
 - Enabled plugins: unicorn (best practices), typescript, oxc
 - Error categories: correctness, perf, suspicious
 - Strict rules: no `any` types, requires curly braces
 - Flexible rules: allows await in loops, variable shadowing
 
 **Usage:**
+
 ```bash
 # Check for issues
 npm run lint
@@ -100,11 +107,13 @@ npm run lint:fix
 **Purpose:** Tells Git how to handle line endings across different operating systems.
 
 **Setting:**
+
 ```
 * text=auto eol=lf
 ```
 
 **What it does:**
+
 - Forces all text files to use LF (Unix-style) line endings in the repository
 - On checkout: Converts to your OS's line endings (CRLF on Windows, LF on Mac/Linux)
 - On commit: Converts everything to LF before storing
@@ -120,6 +129,7 @@ npm run lint:fix
 **Purpose:** GitHub Actions workflow that runs security scanning on every push/PR.
 
 **What it does:**
+
 - Installs Python and detect-secrets
 - Scans codebase for secrets
 - Fails the build if new secrets are detected
@@ -133,6 +143,7 @@ npm run lint:fix
 **Purpose:** GitHub Actions workflow for continuous integration checks.
 
 **Jobs:**
+
 1. **Lint** - Runs oxlint to check code quality
 2. **Format** - Checks if code is properly formatted with oxfmt
 3. **Build** - Compiles TypeScript to ensure no build errors
@@ -146,6 +157,7 @@ npm run lint:fix
 ## Summary
 
 All these files work together to:
+
 - **Prevent security issues** (detect-secrets)
 - **Maintain code quality** (oxlint)
 - **Ensure consistent formatting** (oxfmt)

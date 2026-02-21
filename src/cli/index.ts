@@ -1,74 +1,59 @@
 #!/usr/bin/env node
-import { Command } from 'commander';
-import { configCommand } from './commands/config';
-import { startCommand } from './commands/start';
-import { authCommand } from './commands/auth';
-import { resetCommand, logoutCommand, hardResetCommand } from './commands/reset';
-import { logsCommand } from './commands/logs';
-import { listModelsCommand } from './commands/list-models';
-import { showBanner } from '../shared/banner';
-import chalk from 'chalk';
+import chalk from "chalk";
+import { Command } from "commander";
+import { showBanner } from "../shared/banner";
+import { authCommand } from "./commands/auth";
+import { configCommand } from "./commands/config";
+import { listModelsCommand } from "./commands/list-models";
+import { logsCommand } from "./commands/logs";
+import { resetCommand, logoutCommand, hardResetCommand } from "./commands/reset";
+import { startCommand } from "./commands/start";
 
 showBanner();
 
 const program = new Command();
 
-program
-  .name('txtcode')
-  .description('Remote IDE control via WhatsApp/Telegram')
-  .version('0.1.0');
+program.name("txtcode").description("Remote IDE control via WhatsApp/Telegram").version("0.1.0");
+
+program.command("auth").description("Authenticate and configure TxtCode").action(authCommand);
 
 program
-  .command('auth')
-  .description('Authenticate and configure TxtCode')
-  .action(authCommand);
-
-program
-  .command('start')
-  .description('Start the TxtCode agent')
-  .option('-d, --daemon', 'Run as daemon')
+  .command("start")
+  .description("Start the TxtCode agent")
+  .option("-d, --daemon", "Run as daemon")
   .action(startCommand);
 
-program
-  .command('config')
-  .description('Configure TxtCode settings')
-  .action(configCommand);
+program.command("config").description("Configure TxtCode settings").action(configCommand);
 
 program
-  .command('stop')
-  .description('Stop the agent')
+  .command("stop")
+  .description("Stop the agent")
   .action(() => {
-    console.log(chalk.yellow('Stopping agent...'));
+    console.log(chalk.yellow("Stopping agent..."));
   });
 
-program
-  .command('reset')
-  .description('Reset authorized user')
-  .action(resetCommand);
+program.command("reset").description("Reset authorized user").action(resetCommand);
 
 program
-  .command('logout')
-  .description('Logout from WhatsApp (delete session)')
+  .command("logout")
+  .description("Logout from WhatsApp (delete session)")
   .action(logoutCommand);
 
 program
-  .command('hard-reset')
-  .description('Delete all configuration and authentication data')
+  .command("hard-reset")
+  .description("Delete all configuration and authentication data")
   .action(hardResetCommand);
 
 program
-  .command('logs')
-  .description('View session logs')
-  .argument('[session]', 'Session number to view (run without args to list sessions)')
-  .option('-f, --follow', 'Follow the latest session log in real-time')
-  .option('--all', 'Show full log file')
-  .option('-n, --lines <count>', 'Number of lines to show (default: 50)')
-  .option('--clear', 'Delete all session log files')
+  .command("logs")
+  .description("View session logs")
+  .argument("[session]", "Session number to view (run without args to list sessions)")
+  .option("-f, --follow", "Follow the latest session log in real-time")
+  .option("--all", "Show full log file")
+  .option("-n, --lines <count>", "Number of lines to show (default: 50)")
+  .option("--clear", "Delete all session log files")
   .action(logsCommand);
 
-program
-  .command('list-models')
-  .description('List available AI models')
-  .action(listModelsCommand);
+program.command("list-models").description("List available AI models").action(listModelsCommand);
 
 program.parse();

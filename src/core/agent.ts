@@ -1,26 +1,26 @@
-import { Router, AVAILABLE_ADAPTERS } from './router';
-import { Message } from '../shared/types';
-import { logger } from '../shared/logger';
+import { logger } from "../shared/logger";
+import { Message } from "../shared/types";
+import { Router, AVAILABLE_ADAPTERS } from "./router";
 
 export class AgentCore {
   private router: Router;
   private authorizedUser: string | null;
   private configPath: string;
-  private userModes: Map<string, 'chat' | 'code'> = new Map();
+  private userModes: Map<string, "chat" | "code"> = new Map();
   private pendingSwitch: Map<string, boolean> = new Map();
 
   constructor() {
     this.router = new Router();
     this.authorizedUser = null;
-    this.configPath = require('path').join(require('os').homedir(), '.txtcode', 'config.json');
+    this.configPath = require("path").join(require("os").homedir(), ".txtcode", "config.json");
     this.loadAuthorizedUser();
   }
 
   private loadAuthorizedUser() {
     try {
-      const fs = require('fs');
+      const fs = require("fs");
       if (fs.existsSync(this.configPath)) {
-        const config = JSON.parse(fs.readFileSync(this.configPath, 'utf-8'));
+        const config = JSON.parse(fs.readFileSync(this.configPath, "utf-8"));
         this.authorizedUser = config.authorizedUser || null;
       }
     } catch (error) {
@@ -30,13 +30,13 @@ export class AgentCore {
 
   private saveAuthorizedUser(userId: string) {
     try {
-      const fs = require('fs');
-      const config = JSON.parse(fs.readFileSync(this.configPath, 'utf-8'));
+      const fs = require("fs");
+      const config = JSON.parse(fs.readFileSync(this.configPath, "utf-8"));
       config.authorizedUser = userId;
       fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2));
       this.authorizedUser = userId;
     } catch (error) {
-      logger.error('Failed to save authorized user', error);
+      logger.error("Failed to save authorized user", error);
     }
   }
 
@@ -57,7 +57,7 @@ export class AgentCore {
 
   async processMessage(message: Message): Promise<string> {
     if (!this.isUserAllowed(message.from)) {
-      return '[UNAUTHORIZED]';
+      return "[UNAUTHORIZED]";
     }
 
     const text = message.text.trim();
@@ -68,8 +68,8 @@ export class AgentCore {
       return await this.handleSwitchSelection(message.from, text);
     }
 
-    if (lowerText === '/code') {
-      this.userModes.set(message.from, 'code');
+    if (lowerText === "/code") {
+      this.userModes.set(message.from, "code");
       return `[CODE MODE] Switched to CODE mode
 
 All your messages will now be sent to the coding adapter (${this.router.getAdapterName()}).
@@ -77,8 +77,8 @@ All your messages will now be sent to the coding adapter (${this.router.getAdapt
 To switch back to chat mode, use: /chat`;
     }
 
-    if (lowerText === '/chat') {
-      this.userModes.set(message.from, 'chat');
+    if (lowerText === "/chat") {
+      this.userModes.set(message.from, "chat");
       return `[CHAT MODE] Switched to CHAT mode
 
 All your messages will now be sent to the primary LLM (${this.router.getProviderName()}).
@@ -86,40 +86,40 @@ All your messages will now be sent to the primary LLM (${this.router.getProvider
 To switch to code mode, use: /code`;
     }
 
-    if (lowerText === '/switch') {
+    if (lowerText === "/switch") {
       return this.showAdapterList(message.from);
     }
 
-    if (lowerText === 'help' || lowerText === '/help') {
+    if (lowerText === "help" || lowerText === "/help") {
       return this.getHelpMessage();
     }
 
-    if (lowerText === 'status' || lowerText === '/status') {
+    if (lowerText === "status" || lowerText === "/status") {
       return await this.router.getAdapterStatus();
     }
 
     const userMode = this.userModes.get(message.from);
 
-    if (userMode === 'code') {
-      logger.debug('Routing to coding adapter (CODE mode)...');
-      
+    if (userMode === "code") {
+      logger.debug("Routing to coding adapter (CODE mode)...");
+
       // Abort any previous command when new message arrives
       this.router.abortCurrentCommand();
-      
+
       try {
         return await this.router.routeToCode(text);
       } catch (error) {
-        if (error instanceof Error && error.message.includes('aborted')) {
-          return '[ABORTED] Previous command was cancelled. Processing new request...';
+        if (error instanceof Error && error.message.includes("aborted")) {
+          return "[ABORTED] Previous command was cancelled. Processing new request...";
         }
-        return `[ERROR] ${error instanceof Error ? error.message : 'Unknown error'}`;
+        return `[ERROR] ${error instanceof Error ? error.message : "Unknown error"}`;
       }
     } else {
-      logger.debug('Routing to primary LLM (CHAT mode)...');
+      logger.debug("Routing to primary LLM (CHAT mode)...");
       try {
         return await this.router.routeToChat(text);
       } catch (error) {
-        return `[ERROR] ${error instanceof Error ? error.message : 'Unknown error'}`;
+        return `[ERROR] ${error instanceof Error ? error.message : "Unknown error"}`;
       }
     }
   }
@@ -132,7 +132,7 @@ To switch to code mode, use: /code`;
 
     adapters.forEach((adapter, index) => {
       const isCurrent = adapter.id === currentAdapter;
-      const marker = isCurrent ? ' ✓' : '';
+      const marker = isCurrent ? " ✓" : "";
       response += `${index + 1}. ${adapter.label}${marker}\n`;
     });
 
@@ -161,7 +161,9 @@ To switch to code mode, use: /code`;
     }
 
     try {
-      const { handoffGenerated, oldAdapter, entryCount } = await this.router.switchAdapter(selectedAdapter.id);
+      const { handoffGenerated, oldAdapter, entryCount } = await this.router.switchAdapter(
+        selectedAdapter.id,
+      );
 
       let response = `✅ Adapter switched!\n\n`;
       response += `${oldAdapter} → ${selectedAdapter.id}\n`;
@@ -176,7 +178,7 @@ To switch to code mode, use: /code`;
 
       return response;
     } catch (error) {
-      return `[ERROR] Failed to switch adapter: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      return `[ERROR] Failed to switch adapter: ${error instanceof Error ? error.message : "Unknown error"}`;
     }
   }
 

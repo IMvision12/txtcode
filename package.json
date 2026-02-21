@@ -2,10 +2,29 @@
   "name": "txtcode",
   "version": "0.1.0",
   "description": "Remote IDE control via WhatsApp/Telegram/Discord - Code from anywhere using AI-powered messaging",
-  "main": "dist/index.js",
+  "keywords": [
+    "ai",
+    "claude",
+    "cli",
+    "code-assistant",
+    "discord",
+    "gemini",
+    "ide",
+    "messaging-ide",
+    "mobile-coding",
+    "openai",
+    "remote",
+    "remote-development",
+    "telegram",
+    "text-based-coding",
+    "whatsapp"
+  ],
+  "license": "MIT",
+  "author": "",
   "bin": {
     "txtcode": "dist/cli/index.js"
   },
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -16,26 +35,6 @@
     "prepublishOnly": "npm run build",
     "start": "node dist/cli.js"
   },
-  "keywords": [
-    "cli",
-    "remote",
-    "ide",
-    "whatsapp",
-    "telegram",
-    "discord",
-    "ai",
-    "code-assistant",
-    "mobile-coding",
-    "remote-development",
-    "claude",
-    "openai",
-    "gemini",
-    "text-based-coding",
-    "messaging-ide"
-  ],
-  "author": "",
-  "license": "MIT",
-  "preferGlobal": true,
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",
     "@google/generative-ai": "^0.24.1",
@@ -58,5 +57,6 @@
     "oxfmt": "^0.34.0",
     "oxlint": "^1.49.0",
     "typescript": "^5.3.3"
-  }
+  },
+  "preferGlobal": true
 }

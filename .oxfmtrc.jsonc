@@ -1,14 +1,10 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
   "experimentalSortImports": {
-    "newlinesBetween": false
+    "newlinesBetween": false,
   },
   "experimentalSortPackageJson": {
-    "sortScripts": true
+    "sortScripts": true,
   },
-  "ignorePatterns": [
-    "dist/",
-    "node_modules/",
-    "package-lock.json"
-  ]
+  "ignorePatterns": ["dist/", "node_modules/", "package-lock.json"],
 }

@@ -1,4 +1,4 @@
-export type ParameterType = 'string' | 'number' | 'boolean' | 'object' | 'array';
+export type ParameterType = "string" | "number" | "boolean" | "object" | "array";
 
 export interface ParameterProperty {
   type: ParameterType;
@@ -14,7 +14,7 @@ export interface ToolDefinition {
   name: string;
   description: string;
   parameters: {
-    type: 'object';
+    type: "object";
     properties: Record<string, ParameterProperty>;
     required: string[];
   };

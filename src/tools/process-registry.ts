@@ -1,12 +1,12 @@
-import { ChildProcessWithoutNullStreams } from 'child_process';
-import crypto from 'crypto';
+import { ChildProcessWithoutNullStreams } from "child_process";
+import crypto from "crypto";
 
 const DEFAULT_SESSION_TTL_MS = 30 * 60 * 1000;
 const DEFAULT_MAX_OUTPUT_CHARS = 200_000;
 const DEFAULT_PENDING_MAX_OUTPUT_CHARS = 30_000;
 const TAIL_CHARS = 2000;
 
-export type ProcessStatus = 'running' | 'completed' | 'failed' | 'killed';
+export type ProcessStatus = "running" | "completed" | "failed" | "killed";
 
 export interface ProcessSession {
   id: string;
@@ -73,8 +73,8 @@ export function createSession(opts: {
     pendingStderr: [],
     pendingStdoutChars: 0,
     pendingStderrChars: 0,
-    aggregated: '',
-    tail: '',
+    aggregated: "",
+    tail: "",
     exited: false,
     truncated: false,
     backgrounded: false,
@@ -97,9 +97,13 @@ export function deleteSession(id: string): void {
   finishedSessions.delete(id);
 }
 
-export function appendOutput(session: ProcessSession, stream: 'stdout' | 'stderr', chunk: string): void {
-  const buffer = stream === 'stdout' ? session.pendingStdout : session.pendingStderr;
-  const bufferCharsKey = stream === 'stdout' ? 'pendingStdoutChars' : 'pendingStderrChars';
+export function appendOutput(
+  session: ProcessSession,
+  stream: "stdout" | "stderr",
+  chunk: string,
+): void {
+  const buffer = stream === "stdout" ? session.pendingStdout : session.pendingStderr;
+  const bufferCharsKey = stream === "stdout" ? "pendingStdoutChars" : "pendingStderrChars";
   const pendingCap = Math.min(session.pendingMaxOutputChars, session.maxOutputChars);
 
   buffer.push(chunk);
@@ -123,8 +127,8 @@ export function appendOutput(session: ProcessSession, stream: 'stdout' | 'stderr
 }
 
 export function drainSession(session: ProcessSession): { stdout: string; stderr: string } {
-  const stdout = session.pendingStdout.join('');
-  const stderr = session.pendingStderr.join('');
+  const stdout = session.pendingStdout.join("");
+  const stderr = session.pendingStderr.join("");
   session.pendingStdout = [];
   session.pendingStderr = [];
   session.pendingStdoutChars = 0;
@@ -181,7 +185,9 @@ export function clearFinished(): void {
 }
 
 export function tail(text: string, max = TAIL_CHARS): string {
-  if (text.length <= max) return text;
+  if (text.length <= max) {
+    return text;
+  }
   return text.slice(text.length - max);
 }
 
@@ -218,7 +224,11 @@ function pruneFinishedSessions(): void {
 }
 
 function startSweeper(): void {
-  if (sweeper) return;
+  if (sweeper) {
+    return;
+  }
   sweeper = setInterval(pruneFinishedSessions, 60_000);
-  if (sweeper.unref) sweeper.unref();
+  if (sweeper.unref) {
+    sweeper.unref();
+  }
 }

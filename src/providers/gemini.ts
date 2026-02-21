@@ -1,16 +1,16 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { ToolRegistry } from '../tools/registry';
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { ToolRegistry } from "../tools/registry";
 
 const MAX_ITERATIONS = 10;
 
 function loadSystemPrompt(): string {
   try {
-    const promptPath = path.join(__dirname, '..', 'data', 'primary_llm_system_prompt.txt');
-    return fs.readFileSync(promptPath, 'utf-8');
+    const promptPath = path.join(__dirname, "..", "data", "primary_llm_system_prompt.txt");
+    return fs.readFileSync(promptPath, "utf-8");
   } catch {
-    return 'You are a helpful coding assistant.';
+    return "You are a helpful coding assistant.";
   }
 }
 
@@ -18,14 +18,12 @@ export async function processWithGemini(
   instruction: string,
   apiKey: string,
   model: string,
-  toolRegistry?: ToolRegistry
+  toolRegistry?: ToolRegistry,
 ): Promise<string> {
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    const tools = toolRegistry
-      ? toolRegistry.getDefinitionsForProvider('gemini')
-      : undefined;
+    const tools = toolRegistry ? toolRegistry.getDefinitionsForProvider("gemini") : undefined;
 
     const genModel = genAI.getGenerativeModel({
       model,
@@ -48,7 +46,7 @@ export async function processWithGemini(
       for (const call of calls) {
         const execResult = await toolRegistry.execute(
           call.name,
-          (call.args || {}) as Record<string, unknown>
+          (call.args || {}) as Record<string, unknown>,
         );
         toolResults.push({
           functionResponse: {
@@ -61,8 +59,11 @@ export async function processWithGemini(
       result = await chat.sendMessage(toolResults);
     }
 
-    return 'Reached maximum tool iterations.';
+    return "Reached maximum tool iterations.";
   } catch (error) {
-    throw new Error(`Gemini API error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Gemini API error: ${error instanceof Error ? error.message : "Unknown error"}`,
+      { cause: error },
+    );
   }
 }

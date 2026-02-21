@@ -26,9 +26,9 @@ export interface IDEAdapter {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
   executeCommand(
-    instruction: string, 
-    conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>,
-    signal?: AbortSignal
+    instruction: string,
+    conversationHistory?: Array<{ role: "user" | "assistant"; content: string }>,
+    signal?: AbortSignal,
   ): Promise<string>;
   getStatus(): Promise<string>;
   isHealthy(): Promise<boolean>;
@@ -36,7 +36,7 @@ export interface IDEAdapter {
 }
 
 export interface ConversationEntry {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: string;
   adapter: string;

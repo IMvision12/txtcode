@@ -14,9 +14,5 @@
     "typescript/no-extraneous-class": "off",
     "unicorn/consistent-function-scoping": "off"
   },
-  "ignorePatterns": [
-    "dist/",
-    "node_modules/",
-    "package-lock.json"
-  ]
+  "ignorePatterns": ["dist/", "node_modules/", "package-lock.json"]
 }

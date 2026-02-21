@@ -1,25 +1,25 @@
-import { OllamaClaudeCodeAdapter } from '../adapters/ollama-claude-code';
-import { ClaudeCodeAdapter } from '../adapters/claude-code';
-import { GeminiCodeAdapter } from '../adapters/gemini-cli';
-import { CodexAdapter } from '../adapters/openai-codex';
-import { KiroAdapter } from '../adapters/kiro-cli';
-import { processWithAnthropic } from '../providers/anthropic';
-import { processWithOpenAI } from '../providers/openai';
-import { processWithGemini } from '../providers/gemini';
-import { processWithOpenRouter } from '../providers/openrouter';
-import { ToolRegistry } from '../tools/registry';
-import { TerminalTool } from '../tools/terminal';
-import { ProcessTool } from '../tools/process';
-import { IDEAdapter } from '../shared/types';
-import { ContextManager } from './context-manager';
-import { logger } from '../shared/logger';
+import { ClaudeCodeAdapter } from "../adapters/claude-code";
+import { GeminiCodeAdapter } from "../adapters/gemini-cli";
+import { KiroAdapter } from "../adapters/kiro-cli";
+import { OllamaClaudeCodeAdapter } from "../adapters/ollama-claude-code";
+import { CodexAdapter } from "../adapters/openai-codex";
+import { processWithAnthropic } from "../providers/anthropic";
+import { processWithGemini } from "../providers/gemini";
+import { processWithOpenAI } from "../providers/openai";
+import { processWithOpenRouter } from "../providers/openrouter";
+import { logger } from "../shared/logger";
+import { IDEAdapter } from "../shared/types";
+import { ProcessTool } from "../tools/process";
+import { ToolRegistry } from "../tools/registry";
+import { TerminalTool } from "../tools/terminal";
+import { ContextManager } from "./context-manager";
 
 export const AVAILABLE_ADAPTERS = [
-  { id: 'claude-code', label: 'Claude Code (Anthropic API)' },
-  { id: 'gemini-code', label: 'Gemini Code (Google AI API)' },
-  { id: 'codex', label: 'OpenAI Codex (OpenAI API)' },
-  { id: 'ollama-claude-code', label: 'Claude Code via Ollama (Local)' },
-  { id: 'kiro', label: 'Kiro CLI (AWS)' },
+  { id: "claude-code", label: "Claude Code (Anthropic API)" },
+  { id: "gemini-code", label: "Gemini Code (Google AI API)" },
+  { id: "codex", label: "OpenAI Codex (OpenAI API)" },
+  { id: "ollama-claude-code", label: "Claude Code via Ollama (Local)" },
+  { id: "kiro", label: "Kiro CLI (AWS)" },
 ];
 
 export class Router {
@@ -34,9 +34,9 @@ export class Router {
   private currentAbortController: AbortController | null = null;
 
   constructor() {
-    this.provider = process.env.AI_PROVIDER || 'anthropic';
-    this.apiKey = process.env.AI_API_KEY || '';
-    this.model = process.env.AI_MODEL || '';
+    this.provider = process.env.AI_PROVIDER || "anthropic";
+    this.apiKey = process.env.AI_API_KEY || "";
+    this.model = process.env.AI_MODEL || "";
 
     this.toolRegistry = new ToolRegistry();
     this.toolRegistry.register(new TerminalTool());
@@ -44,7 +44,7 @@ export class Router {
 
     this.contextManager = new ContextManager();
 
-    const ideType = process.env.IDE_TYPE || '';
+    const ideType = process.env.IDE_TYPE || "";
     this.currentAdapterName = ideType;
     this.contextManager.setCurrentAdapter(ideType);
     this.adapter = this.createAdapter(ideType);
@@ -52,24 +52,26 @@ export class Router {
 
   private createAdapter(ideType: string): IDEAdapter {
     switch (ideType) {
-      case 'claude-code':
+      case "claude-code":
         return new ClaudeCodeAdapter();
-      case 'gemini-code':
+      case "gemini-code":
         return new GeminiCodeAdapter();
-      case 'codex':
+      case "codex":
         return new CodexAdapter();
-      case 'ollama-claude-code':
+      case "ollama-claude-code":
         return new OllamaClaudeCodeAdapter();
-      case 'kiro':
+      case "kiro":
         return new KiroAdapter();
       default:
         throw new Error(
-          `No coding adapter configured (IDE_TYPE="${ideType}"). Run: txtcode config`
+          `No coding adapter configured (IDE_TYPE="${ideType}"). Run: txtcode config`,
         );
     }
   }
 
-  async switchAdapter(newAdapterName: string): Promise<{ handoffGenerated: boolean; oldAdapter: string; entryCount: number }> {
+  async switchAdapter(
+    newAdapterName: string,
+  ): Promise<{ handoffGenerated: boolean; oldAdapter: string; entryCount: number }> {
     const oldAdapter = this.currentAdapterName;
     const entryCount = this.contextManager.getEntryCount();
 
@@ -95,21 +97,21 @@ export class Router {
 
   async routeToChat(instruction: string): Promise<string> {
     if (!this.apiKey) {
-      return '[WARN] AI API key not configured. Run: txtcode config';
+      return "[WARN] AI API key not configured. Run: txtcode config";
     }
 
     if (!this.model) {
-      return '[WARN] AI model not configured. Run: txtcode config';
+      return "[WARN] AI model not configured. Run: txtcode config";
     }
 
     switch (this.provider) {
-      case 'anthropic':
+      case "anthropic":
         return await processWithAnthropic(instruction, this.apiKey, this.model, this.toolRegistry);
-      case 'openai':
+      case "openai":
         return await processWithOpenAI(instruction, this.apiKey, this.model, this.toolRegistry);
-      case 'gemini':
+      case "gemini":
         return await processWithGemini(instruction, this.apiKey, this.model, this.toolRegistry);
-      case 'openrouter':
+      case "openrouter":
         return await processWithOpenRouter(instruction, this.apiKey, this.model, this.toolRegistry);
       default:
         return `[ERROR] Unsupported AI provider: ${this.provider}. Run: txtcode config`;
@@ -119,7 +121,7 @@ export class Router {
   async routeToCode(instruction: string): Promise<string> {
     // Abort any pending command
     if (this.currentAbortController) {
-      logger.debug('Aborting previous command...');
+      logger.debug("Aborting previous command...");
       this.currentAbortController.abort();
     }
 
@@ -129,23 +131,21 @@ export class Router {
 
     try {
       // Track user message
-      this.contextManager.addEntry('user', instruction);
+      this.contextManager.addEntry("user", instruction);
 
       // If there's a pending handoff, pass it as conversationHistory
-      let conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> | undefined;
+      let conversationHistory: Array<{ role: "user" | "assistant"; content: string }> | undefined;
 
       if (this.pendingHandoff) {
-        conversationHistory = [
-          { role: 'user', content: this.pendingHandoff }
-        ];
+        conversationHistory = [{ role: "user", content: this.pendingHandoff }];
         this.pendingHandoff = null;
-        logger.debug('Injecting handoff context via conversationHistory parameter');
+        logger.debug("Injecting handoff context via conversationHistory parameter");
       }
 
       const result = await this.adapter.executeCommand(instruction, conversationHistory, signal);
 
       // Track assistant response
-      this.contextManager.addEntry('assistant', result);
+      this.contextManager.addEntry("assistant", result);
 
       return result;
     } finally {
@@ -158,10 +158,10 @@ export class Router {
 
   abortCurrentCommand(): void {
     if (this.currentAbortController) {
-      logger.debug('Aborting current command via Router...');
+      logger.debug("Aborting current command via Router...");
       this.currentAbortController.abort();
       this.currentAbortController = null;
-      
+
       // Also call adapter's abort method if available
       if (this.adapter.abort) {
         this.adapter.abort();

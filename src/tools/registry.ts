@@ -1,4 +1,4 @@
-import { Tool, ToolCall, ToolDefinition, ToolResult, ParameterProperty } from './types';
+import { Tool, ToolCall, ToolDefinition, ToolResult, ParameterProperty } from "./types";
 
 export class ToolRegistry {
   private tools: Map<string, Tool> = new Map();
@@ -15,16 +15,16 @@ export class ToolRegistry {
     const defs = this.getDefinitions();
 
     switch (provider) {
-      case 'anthropic':
+      case "anthropic":
         return defs.map((d) => ({
           name: d.name,
           description: d.description,
           input_schema: toJsonSchema(d.parameters),
         }));
 
-      case 'openai':
+      case "openai":
         return defs.map((d) => ({
-          type: 'function',
+          type: "function",
           function: {
             name: d.name,
             description: d.description,
@@ -32,7 +32,7 @@ export class ToolRegistry {
           },
         }));
 
-      case 'gemini':
+      case "gemini":
         return [
           {
             functionDeclarations: defs.map((d) => ({
@@ -48,16 +48,20 @@ export class ToolRegistry {
     }
   }
 
-  async execute(name: string, args: Record<string, unknown>, signal?: AbortSignal): Promise<ToolResult> {
+  async execute(
+    name: string,
+    args: Record<string, unknown>,
+    signal?: AbortSignal,
+  ): Promise<ToolResult> {
     const tool = this.tools.get(name);
     if (!tool) {
-      return { toolCallId: '', output: `Unknown tool: ${name}`, isError: true };
+      return { toolCallId: "", output: `Unknown tool: ${name}`, isError: true };
     }
-    
+
     if (signal?.aborted) {
-      return { toolCallId: '', output: 'Tool execution aborted', isError: true };
+      return { toolCallId: "", output: "Tool execution aborted", isError: true };
     }
-    
+
     return tool.execute(args, signal);
   }
 
@@ -65,14 +69,14 @@ export class ToolRegistry {
     const results: ToolResult[] = [];
     for (const call of calls) {
       if (signal?.aborted) {
-        results.push({ 
-          toolCallId: call.id, 
-          output: 'Tool execution aborted', 
-          isError: true 
+        results.push({
+          toolCallId: call.id,
+          output: "Tool execution aborted",
+          isError: true,
         });
         continue;
       }
-      
+
       const result = await this.execute(call.name, call.arguments, signal);
       result.toolCallId = call.id;
       results.push(result);
@@ -81,9 +85,9 @@ export class ToolRegistry {
   }
 }
 
-function toJsonSchema(params: ToolDefinition['parameters']): Record<string, unknown> {
+function toJsonSchema(params: ToolDefinition["parameters"]): Record<string, unknown> {
   return {
-    type: 'object',
+    type: "object",
     properties: Object.fromEntries(
       Object.entries(params.properties).map(([key, prop]) => [key, propertyToJsonSchema(prop)]),
     ),
@@ -116,14 +120,11 @@ function propertyToJsonSchema(prop: ParameterProperty): Record<string, unknown> 
   return schema;
 }
 
-function toGeminiSchema(params: ToolDefinition['parameters']): Record<string, unknown> {
+function toGeminiSchema(params: ToolDefinition["parameters"]): Record<string, unknown> {
   return {
-    type: 'OBJECT',
+    type: "OBJECT",
     properties: Object.fromEntries(
-      Object.entries(params.properties).map(([key, prop]) => [
-        key,
-        propertyToGeminiSchema(prop),
-      ]),
+      Object.entries(params.properties).map(([key, prop]) => [key, propertyToGeminiSchema(prop)]),
     ),
     required: params.required,
   };
