@@ -189,3 +189,26 @@ allow-build-scripts=@whiskeysockets/baileys,sharp,protobufjs
 **Why we need it:** Security protection against supply chain attacks. Prevents malicious packages from running arbitrary code during installation.
 
 ---
+
+## Requirements
+
+### Node.js Version
+
+**Minimum:** Node.js 20.0.0 or higher
+
+**Why:** Several core dependencies require Node.js 20+:
+- `@whiskeysockets/baileys` - WhatsApp library
+- `oxfmt`, `oxlint` - Code formatting and linting tools
+- `file-type`, `p-queue`, and other utilities
+
+**Specified in:**
+- `package.json` - `engines` field
+- `.github/workflows/ci.yml` - CI uses Node 20
+- `.github/workflows/security.yml` - Security scans use Node 20
+
+**To upgrade Node.js:**
+- Using nvm: `nvm install 20 && nvm use 20`
+- Using official installer: Download from [nodejs.org](https://nodejs.org/)
+- Using package manager: `brew install node@20` (macOS) or similar
+
+---
