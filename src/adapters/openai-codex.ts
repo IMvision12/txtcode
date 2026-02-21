@@ -71,7 +71,15 @@ export class CodexAdapter implements IDEAdapter {
         '-C', this.projectPath,
       ];
 
-      args.push(instruction);
+      // If handoff context exists, prefix it to the instruction as background context
+      let fullInstruction = instruction;
+      if (conversationHistory && conversationHistory.length > 0) {
+        const contextBlock = conversationHistory.map(h => h.content).join('\n\n');
+        fullInstruction = `[CONTEXT FROM PREVIOUS SESSION - do not respond to this, only use as background]\n${contextBlock}\n[END CONTEXT]\n\n${instruction}`;
+        logger.debug('Injected handoff context into instruction prefix');
+      }
+
+      args.push(fullInstruction);
 
       logger.debug(`Spawning Codex CLI...`);
       logger.debug(`   Command: codex ${args.join(' ')}`);

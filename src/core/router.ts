@@ -11,13 +11,26 @@ import { ToolRegistry } from '../tools/registry';
 import { TerminalTool } from '../tools/terminal';
 import { ProcessTool } from '../tools/process';
 import { IDEAdapter } from '../shared/types';
+import { ContextManager } from './context-manager';
+import { logger } from '../shared/logger';
+
+export const AVAILABLE_ADAPTERS = [
+  { id: 'claude-code', label: 'Claude Code (Anthropic API)' },
+  { id: 'gemini-code', label: 'Gemini Code (Google AI API)' },
+  { id: 'codex', label: 'OpenAI Codex (OpenAI API)' },
+  { id: 'ollama-claude-code', label: 'Claude Code via Ollama (Local)' },
+  { id: 'kiro', label: 'Kiro CLI (AWS)' },
+];
 
 export class Router {
   private adapter: IDEAdapter;
+  private currentAdapterName: string;
   private provider: string;
   private apiKey: string;
   private model: string;
   private toolRegistry: ToolRegistry;
+  private contextManager: ContextManager;
+  private pendingHandoff: string | null = null;
 
   constructor() {
     this.provider = process.env.AI_PROVIDER || 'anthropic';
@@ -28,28 +41,55 @@ export class Router {
     this.toolRegistry.register(new TerminalTool());
     this.toolRegistry.register(new ProcessTool());
 
+    this.contextManager = new ContextManager();
+
     const ideType = process.env.IDE_TYPE || '';
+    this.currentAdapterName = ideType;
+    this.contextManager.setCurrentAdapter(ideType);
+    this.adapter = this.createAdapter(ideType);
+  }
+
+  private createAdapter(ideType: string): IDEAdapter {
     switch (ideType) {
       case 'claude-code':
-        this.adapter = new ClaudeCodeAdapter();
-        break;
+        return new ClaudeCodeAdapter();
       case 'gemini-code':
-        this.adapter = new GeminiCodeAdapter();
-        break;
+        return new GeminiCodeAdapter();
       case 'codex':
-        this.adapter = new CodexAdapter();
-        break;
+        return new CodexAdapter();
       case 'ollama-claude-code':
-        this.adapter = new OllamaClaudeCodeAdapter();
-        break;
+        return new OllamaClaudeCodeAdapter();
       case 'kiro':
-        this.adapter = new KiroAdapter();
-        break;
+        return new KiroAdapter();
       default:
         throw new Error(
           `No coding adapter configured (IDE_TYPE="${ideType}"). Run: txtcode config`
         );
     }
+  }
+
+  async switchAdapter(newAdapterName: string): Promise<{ handoffGenerated: boolean; oldAdapter: string; entryCount: number }> {
+    const oldAdapter = this.currentAdapterName;
+    const entryCount = this.contextManager.getEntryCount();
+
+    // Generate handoff and save session to disk
+    const handoff = this.contextManager.handleSwitch(oldAdapter, newAdapterName);
+    this.pendingHandoff = handoff;
+
+    // Disconnect old adapter
+    try {
+      await this.adapter.disconnect();
+    } catch (error) {
+      logger.debug(`Error disconnecting old adapter: ${error}`);
+    }
+
+    // Create and set new adapter
+    this.adapter = this.createAdapter(newAdapterName);
+    this.currentAdapterName = newAdapterName;
+
+    logger.debug(`Switched adapter: ${oldAdapter} → ${newAdapterName}`);
+
+    return { handoffGenerated: handoff !== null, oldAdapter, entryCount };
   }
 
   async routeToChat(instruction: string): Promise<string> {
@@ -76,7 +116,26 @@ export class Router {
   }
 
   async routeToCode(instruction: string): Promise<string> {
-    return await this.adapter.executeCommand(instruction);
+    // Track user message
+    this.contextManager.addEntry('user', instruction);
+
+    // If there's a pending handoff, pass it as conversationHistory
+    let conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> | undefined;
+
+    if (this.pendingHandoff) {
+      conversationHistory = [
+        { role: 'user', content: this.pendingHandoff }
+      ];
+      this.pendingHandoff = null;
+      logger.debug('Injecting handoff context via conversationHistory parameter');
+    }
+
+    const result = await this.adapter.executeCommand(instruction, conversationHistory);
+
+    // Track assistant response
+    this.contextManager.addEntry('assistant', result);
+
+    return result;
   }
 
   async getAdapterStatus(): Promise<string> {
@@ -88,6 +147,14 @@ export class Router {
   }
 
   getAdapterName(): string {
-    return process.env.IDE_TYPE || 'ollama-claude-code';
+    return this.currentAdapterName;
+  }
+
+  getAvailableAdapters(): typeof AVAILABLE_ADAPTERS {
+    return AVAILABLE_ADAPTERS;
+  }
+
+  getContextEntryCount(): number {
+    return this.contextManager.getEntryCount();
   }
 }

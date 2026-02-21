@@ -42,21 +42,21 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
       if (!response.ok) {
         throw new Error('Ollama not responding');
       }
-      
+
       const data: any = await response.json();
       const models = data.models || [];
-      
+
       if (models.length === 0) {
         throw new Error('No models found. Please pull a model first.');
       }
-      
+
       const modelExists = models.some((m: any) => m.name === this.ollamaModel);
       if (!modelExists) {
         logger.debug(`Model ${this.ollamaModel} not found`);
         logger.debug(`   Available models: ${models.map((m: any) => m.name).join(', ')}`);
         throw new Error(`Model ${this.ollamaModel} not available`);
       }
-      
+
       logger.debug('Ollama running');
       logger.debug(`Model ${this.ollamaModel} available`);
     } catch (error) {
@@ -114,7 +114,16 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
       claudeArgs.push('--permission-mode', 'bypassPermissions');
 
       const systemPrompt = this.loadSystemPrompt();
-      claudeArgs.push('--append-system-prompt', systemPrompt);
+      let fullSystemPrompt = systemPrompt;
+
+      // Inject handoff context into system prompt (not as instruction)
+      if (conversationHistory && conversationHistory.length > 0) {
+        const contextBlock = conversationHistory.map(h => h.content).join('\n\n');
+        fullSystemPrompt += `\n\n${contextBlock}`;
+        logger.debug('Injected handoff context into system prompt');
+      }
+
+      claudeArgs.push('--append-system-prompt', fullSystemPrompt);
       claudeArgs.push(instruction);
 
       if (claudeArgs.length > 0) {
@@ -180,7 +189,7 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
       child.on('error', (error) => {
         this.currentProcess = null;
         logger.error('Failed to spawn Ollama', error);
-        
+
         if (error.message.includes('ENOENT')) {
           reject(new Error(
             'Ollama not found in PATH.\n\n' +
@@ -203,7 +212,7 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
       const response = await fetch('http://localhost:11434/api/tags');
       const data: any = await response.json();
       const models = data.models || [];
-      
+
       return `Claude Code (via Ollama Launch)
       
 Project: ${path.basename(this.projectPath)}
@@ -241,7 +250,7 @@ Available models: ${models.length}`;
       const data: any = await response.json();
       const models = data.models || [];
       const modelExists = models.some((m: any) => m.name === this.ollamaModel);
-      
+
       return modelExists;
     } catch (error) {
       logger.debug(`Ollama health check failed: ${error}`);

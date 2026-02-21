@@ -1,4 +1,4 @@
-import { Router } from './router';
+import { Router, AVAILABLE_ADAPTERS } from './router';
 import { Message } from '../shared/types';
 import { logger } from '../shared/logger';
 
@@ -7,6 +7,7 @@ export class AgentCore {
   private authorizedUser: string | null;
   private configPath: string;
   private userModes: Map<string, 'chat' | 'code'> = new Map();
+  private pendingSwitch: Map<string, boolean> = new Map();
 
   constructor() {
     this.router = new Router();
@@ -45,11 +46,11 @@ export class AgentCore {
       this.saveAuthorizedUser(userId);
       return true;
     }
-    
+
     if (this.authorizedUser === userId) {
       return true;
     }
-    
+
     logger.debug(`Rejected unauthorized user: ${userId} (authorized: ${this.authorizedUser})`);
     return false;
   }
@@ -61,6 +62,11 @@ export class AgentCore {
 
     const text = message.text.trim();
     const lowerText = text.toLowerCase();
+
+    // Check if user is responding to a pending /switch selection
+    if (this.pendingSwitch.get(message.from)) {
+      return await this.handleSwitchSelection(message.from, text);
+    }
 
     if (lowerText === '/code') {
       this.userModes.set(message.from, 'code');
@@ -78,6 +84,10 @@ To switch back to chat mode, use: /chat`;
 All your messages will now be sent to the primary LLM (${this.router.getProviderName()}).
 
 To switch to code mode, use: /code`;
+    }
+
+    if (lowerText === '/switch') {
+      return this.showAdapterList(message.from);
     }
 
     if (lowerText === 'help' || lowerText === '/help') {
@@ -107,6 +117,62 @@ To switch to code mode, use: /code`;
     }
   }
 
+  private showAdapterList(userId: string): string {
+    const adapters = this.router.getAvailableAdapters();
+    const currentAdapter = this.router.getAdapterName();
+
+    let response = `🔄 Switch Coding Adapter\n\nCurrent: ${currentAdapter}\n\n`;
+
+    adapters.forEach((adapter, index) => {
+      const isCurrent = adapter.id === currentAdapter;
+      const marker = isCurrent ? ' ✓' : '';
+      response += `${index + 1}. ${adapter.label}${marker}\n`;
+    });
+
+    response += `\nReply with a number (1-${adapters.length}) to switch:`;
+
+    this.pendingSwitch.set(userId, true);
+
+    return response;
+  }
+
+  private async handleSwitchSelection(userId: string, text: string): Promise<string> {
+    this.pendingSwitch.delete(userId);
+
+    const adapters = this.router.getAvailableAdapters();
+    const selection = parseInt(text, 10);
+
+    if (isNaN(selection) || selection < 1 || selection > adapters.length) {
+      return `Invalid selection. Please use /switch again and pick a number between 1-${adapters.length}.`;
+    }
+
+    const selectedAdapter = adapters[selection - 1];
+    const currentAdapter = this.router.getAdapterName();
+
+    if (selectedAdapter.id === currentAdapter) {
+      return `Already using ${selectedAdapter.label}. No change needed.`;
+    }
+
+    try {
+      const { handoffGenerated, oldAdapter, entryCount } = await this.router.switchAdapter(selectedAdapter.id);
+
+      let response = `✅ Adapter switched!\n\n`;
+      response += `${oldAdapter} → ${selectedAdapter.id}\n`;
+
+      if (handoffGenerated) {
+        response += `\n📋 Context saved & transferred (${entryCount} exchanges)\n`;
+        response += `Session persisted to ~/.txtcode/sessions/\n`;
+        response += `Your next /code message will have full context from the previous adapter.`;
+      } else {
+        response += `\nNo prior context to transfer (fresh session).`;
+      }
+
+      return response;
+    } catch (error) {
+      return `[ERROR] Failed to switch adapter: ${error instanceof Error ? error.message : 'Unknown error'}`;
+    }
+  }
+
   private getHelpMessage(): string {
     return `TxtCode Agent
 
@@ -115,6 +181,7 @@ Available commands:
 • status - Check IDE connection
 • /code - Switch to CODE mode (all messages go to coding adapter)
 • /chat - Switch to CHAT mode (all messages go to primary LLM)
+• /switch - Switch coding adapter (with context transfer)
 
 Chat Mode (default):
 Messages go to the primary LLM (${this.router.getProviderName()}) with terminal tool support.
@@ -122,6 +189,6 @@ Messages go to the primary LLM (${this.router.getProviderName()}) with terminal 
 Code Mode:
 Messages go to the coding adapter (${this.router.getAdapterName()})
 
-Use /code or /chat to switch modes!`;
+Use /code or /chat to switch modes, /switch to change adapters!`;
   }
 }

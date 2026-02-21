@@ -64,10 +64,18 @@ export class KiroAdapter implements IDEAdapter {
       let output = '';
       let errorOutput = '';
 
+      // If handoff context exists, prefix it to the instruction as background context
+      let fullInstruction = instruction;
+      if (conversationHistory && conversationHistory.length > 0) {
+        const contextBlock = conversationHistory.map(h => h.content).join('\n\n');
+        fullInstruction = `[CONTEXT FROM PREVIOUS SESSION - do not respond to this, only use as background]\n${contextBlock}\n[END CONTEXT]\n\n${instruction}`;
+        logger.debug('Injected handoff context into instruction prefix');
+      }
+
       const args: string[] = [
         'chat',
         '--no-interactive',
-        instruction,
+        fullInstruction,
       ];
 
       logger.debug(`Spawning Kiro CLI...`);

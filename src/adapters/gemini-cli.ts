@@ -76,7 +76,15 @@ export class GeminiCodeAdapter implements IDEAdapter {
         args.push('--model', this.geminiModel);
       }
 
-      args.push('-p', instruction);
+      // If handoff context exists, prefix it to the instruction as background context
+      let fullInstruction = instruction;
+      if (conversationHistory && conversationHistory.length > 0) {
+        const contextBlock = conversationHistory.map(h => h.content).join('\n\n');
+        fullInstruction = `[CONTEXT FROM PREVIOUS SESSION - do not respond to this, only use as background]\n${contextBlock}\n[END CONTEXT]\n\n${instruction}`;
+        logger.debug('Injected handoff context into instruction prefix');
+      }
+
+      args.push('-p', fullInstruction);
 
       logger.debug(`Spawning Gemini CLI...`);
       logger.debug(`   Command: gemini ${args.join(' ')}`);
@@ -85,7 +93,7 @@ export class GeminiCodeAdapter implements IDEAdapter {
       const isWindows = process.platform === 'win32';
       let command: string;
       let spawnArgs: string[];
-      
+
       if (isWindows) {
         command = 'cmd.exe';
         spawnArgs = ['/c', 'gemini', ...args];
@@ -93,7 +101,7 @@ export class GeminiCodeAdapter implements IDEAdapter {
         command = 'gemini';
         spawnArgs = args;
       }
-      
+
       const child = spawn(command, spawnArgs, {
         cwd: this.projectPath,
         env: process.env,
@@ -141,7 +149,7 @@ export class GeminiCodeAdapter implements IDEAdapter {
       child.on('error', (error) => {
         this.currentProcess = null;
         logger.error('Failed to spawn Gemini CLI', error);
-        
+
         if (error.message.includes('ENOENT')) {
           reject(new Error(
             'Gemini CLI not found in PATH.\n\n' +

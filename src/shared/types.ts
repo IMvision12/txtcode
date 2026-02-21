@@ -29,3 +29,21 @@ export interface IDEAdapter {
   getStatus(): Promise<string>;
   isHealthy(): Promise<boolean>;
 }
+
+export interface ConversationEntry {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  adapter: string;
+}
+
+export interface ContextSession {
+  id: string;
+  timestamp: string;
+  adapter: string;
+  task: string;
+  approaches: string[];
+  decisions: string[];
+  currentState: string;
+  conversationHistory: ConversationEntry[];
+}

@@ -83,7 +83,16 @@ export class ClaudeCodeAdapter implements IDEAdapter {
       args.push('--model', this.claudeModel);
 
       const systemPrompt = this.loadSystemPrompt();
-      args.push('--append-system-prompt', systemPrompt);
+      let fullSystemPrompt = systemPrompt;
+
+      // Inject handoff context into system prompt (not as instruction)
+      if (conversationHistory && conversationHistory.length > 0) {
+        const contextBlock = conversationHistory.map(h => h.content).join('\n\n');
+        fullSystemPrompt += `\n\n${contextBlock}`;
+        logger.debug('Injected handoff context into system prompt');
+      }
+
+      args.push('--append-system-prompt', fullSystemPrompt);
       args.push(instruction);
 
       logger.debug(`Spawning Claude CLI...`);
@@ -145,7 +154,7 @@ export class ClaudeCodeAdapter implements IDEAdapter {
       child.on('error', (error) => {
         this.currentProcess = null;
         logger.error('Failed to spawn Claude CLI', error);
-        
+
         if (error.message.includes('ENOENT')) {
           reject(new Error(
             'Claude CLI not found in PATH.\n\n' +
