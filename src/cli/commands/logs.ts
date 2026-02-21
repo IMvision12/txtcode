@@ -25,7 +25,7 @@ function getSessionFiles(): { name: string; fullPath: string; mtime: Date; size:
       const stat = fs.statSync(fullPath);
       return { name, fullPath, mtime: stat.mtime, size: stat.size };
     })
-    .toSorted((a, b) => b.mtime.getTime() - a.mtime.getTime());
+    .toSorted((a: { mtime: Date }, b: { mtime: Date }) => b.mtime.getTime() - a.mtime.getTime());
 }
 
 function formatSize(bytes: number): string {
