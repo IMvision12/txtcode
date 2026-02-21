@@ -56,7 +56,27 @@ export class GeminiCodeAdapter implements IDEAdapter {
   abort(): void {
     if (this.currentProcess) {
       logger.debug('Aborting current process...');
-      this.currentProcess.kill('SIGTERM');
+      
+      const isWindows = process.platform === 'win32';
+      
+      if (isWindows && this.currentProcess.pid) {
+        try {
+          const { execSync } = require('child_process');
+          execSync(`taskkill /pid ${this.currentProcess.pid} /T /F`, { stdio: 'ignore' });
+          logger.debug(`Killed process tree ${this.currentProcess.pid} with taskkill`);
+        } catch (error) {
+          logger.debug(`taskkill failed, trying SIGKILL: ${error}`);
+          this.currentProcess.kill('SIGKILL');
+        }
+      } else {
+        this.currentProcess.kill('SIGTERM');
+        setTimeout(() => {
+          if (this.currentProcess) {
+            this.currentProcess.kill('SIGKILL');
+          }
+        }, 100);
+      }
+      
       this.currentProcess = null;
     }
   }
@@ -83,7 +103,23 @@ export class GeminiCodeAdapter implements IDEAdapter {
       const abortHandler = () => {
         if (this.currentProcess) {
           logger.debug('Aborting command execution...');
-          this.currentProcess.kill('SIGTERM');
+          
+          const isWindows = process.platform === 'win32';
+          const pid = this.currentProcess.pid;
+          
+          if (isWindows && pid) {
+            try {
+              const { execSync } = require('child_process');
+              execSync(`taskkill /pid ${pid} /T /F`, { stdio: 'ignore' });
+              logger.debug(`Killed process tree ${pid} with taskkill`);
+            } catch (error) {
+              logger.debug(`taskkill failed, trying SIGKILL: ${error}`);
+              this.currentProcess.kill('SIGKILL');
+            }
+          } else {
+            this.currentProcess.kill('SIGKILL');
+          }
+          
           this.currentProcess = null;
         }
         reject(new Error('Command execution aborted'));
@@ -148,7 +184,33 @@ export class GeminiCodeAdapter implements IDEAdapter {
       child.stdout.on('data', (data) => {
         const text = data.toString();
         output += text;
-        logger.debug(text.trimEnd());
+        
+        // Log metadata but filter out code content
+        const lines = text.split('\n');
+        for (const line of lines) {
+          const trimmed = line.trim();
+          // Log file operations, status, and metadata
+          if (trimmed.startsWith('file update') || 
+              trimmed.startsWith('apply_patch') ||
+              trimmed.startsWith('Success.') ||
+              trimmed.startsWith('A ') || // Added file
+              trimmed.startsWith('M ') || // Modified file
+              trimmed.startsWith('D ') || // Deleted file
+              trimmed.includes('thinking') ||
+              trimmed.includes('gemini') ||
+              trimmed.includes('tokens used') ||
+              trimmed.includes('succeeded in') ||
+              trimmed.includes('exited') ||
+              (trimmed.length > 0 && !trimmed.startsWith('+') && !trimmed.startsWith('-') && 
+               !trimmed.startsWith('@@') && !trimmed.startsWith('diff --git') &&
+               !trimmed.startsWith('index ') && !trimmed.startsWith('---') &&
+               !trimmed.startsWith('new file mode') && !line.includes('def ') &&
+               !line.includes('class ') && !line.includes('import ') &&
+               !line.includes('from ') && !line.includes('return ') &&
+               !line.includes('  ') && trimmed.length < 200)) {
+            logger.debug(trimmed);
+          }
+        }
       });
 
       child.stderr.on('data', (data) => {
