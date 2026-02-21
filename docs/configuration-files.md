@@ -165,3 +165,27 @@ All these files work together to:
 - **Automate checks in CI/CD** (GitHub Actions)
 
 This setup ensures txtcode maintains high code quality and security standards with minimal manual effort.
+
+## Package Manager
+
+### `.npmrc`
+
+**Purpose:** Configuration for npm that controls package installation behavior.
+
+**Setting:**
+```
+allow-build-scripts=@whiskeysockets/baileys,sharp,protobufjs
+```
+
+**What it does:**
+- Explicitly allows only these specific packages to run build scripts during installation
+- Blocks all other packages from running scripts (security feature)
+
+**Allowed packages:**
+- `@whiskeysockets/baileys` - WhatsApp library (compiles native dependencies)
+- `sharp` - Image processing (compiles native C++ code)
+- `protobufjs` - Protocol buffers (generates code)
+
+**Why we need it:** Security protection against supply chain attacks. Prevents malicious packages from running arbitrary code during installation.
+
+---
