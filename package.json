@@ -2,10 +2,6 @@
   "name": "txtcode",
   "version": "0.1.0",
   "description": "Remote IDE control via WhatsApp/Telegram/Discord - Code from anywhere using AI-powered messaging",
-  "engines": {
-    "node": ">=20.0.0",
-    "npm": ">=10.0.0"
-  },
   "keywords": [
     "ai",
     "claude",
@@ -62,5 +58,9 @@
     "oxlint": "^1.49.0",
     "typescript": "^5.3.3"
   },
-  "preferGlobal": true
+  "preferGlobal": true,
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
 }

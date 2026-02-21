@@ -57,7 +57,9 @@ export function summarizeHistory(history: ConversationEntry[]): {
   const task = firstUser ? firstUser.content.substring(0, 200) : "Coding session";
 
   // Extract current state from the last assistant response
-  const lastAssistant = [...history].toReversed().find((e: ConversationEntry) => e.role === "assistant");
+  const lastAssistant = [...history]
+    .toReversed()
+    .find((e: ConversationEntry) => e.role === "assistant");
   const currentState = lastAssistant ? lastAssistant.content.substring(0, 200) : "In progress";
 
   // Extract approaches from user messages (each user message is roughly an approach/instruction)
