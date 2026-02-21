@@ -1,7 +1,18 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { ToolRegistry } from '../tools/registry';
+import fs from 'fs';
+import path from 'path';
 
 const MAX_ITERATIONS = 10;
+
+function loadSystemPrompt(): string {
+  try {
+    const promptPath = path.join(__dirname, '..', 'data', 'primary_llm_system_prompt.txt');
+    return fs.readFileSync(promptPath, 'utf-8');
+  } catch {
+    return 'You are a helpful coding assistant.';
+  }
+}
 
 export async function processWithAnthropic(
   instruction: string,
@@ -22,6 +33,7 @@ export async function processWithAnthropic(
       const response = await anthropic.messages.create({
         model,
         max_tokens: 4096,
+        system: loadSystemPrompt(),
         messages,
         ...(tools ? { tools } : {}),
       });

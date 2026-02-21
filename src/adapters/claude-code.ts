@@ -200,7 +200,7 @@ Session: ${this.currentSessionId || 'None'}`;
   }
 
   private loadSystemPrompt(): string {
-    const promptPath = path.join(__dirname, '..', 'data', 'system-prompt.txt');
+    const promptPath = path.join(__dirname, '..', 'data', 'code_adaptors_system_prompt.txt');
     try {
       const base = fs.readFileSync(promptPath, 'utf-8');
       return base + `\n- You're working in: ${this.projectPath}`;

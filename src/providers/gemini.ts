@@ -1,7 +1,18 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ToolRegistry } from '../tools/registry';
+import fs from 'fs';
+import path from 'path';
 
 const MAX_ITERATIONS = 10;
+
+function loadSystemPrompt(): string {
+  try {
+    const promptPath = path.join(__dirname, '..', 'data', 'primary_llm_system_prompt.txt');
+    return fs.readFileSync(promptPath, 'utf-8');
+  } catch {
+    return 'You are a helpful coding assistant.';
+  }
+}
 
 export async function processWithGemini(
   instruction: string,
@@ -18,6 +29,7 @@ export async function processWithGemini(
 
     const genModel = genAI.getGenerativeModel({
       model,
+      systemInstruction: loadSystemPrompt(),
       ...(tools ? { tools } : {}),
     });
 

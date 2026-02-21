@@ -1,7 +1,18 @@
 import OpenAI from 'openai';
 import { ToolRegistry } from '../tools/registry';
+import fs from 'fs';
+import path from 'path';
 
 const MAX_ITERATIONS = 10;
+
+function loadSystemPrompt(): string {
+  try {
+    const promptPath = path.join(__dirname, '..', 'data', 'primary_llm_system_prompt.txt');
+    return fs.readFileSync(promptPath, 'utf-8');
+  } catch {
+    return 'You are a helpful coding assistant.';
+  }
+}
 
 export async function processWithOpenRouter(
   instruction: string,
@@ -23,7 +34,10 @@ export async function processWithOpenRouter(
       ? toolRegistry.getDefinitionsForProvider('openai')
       : undefined;
 
-    const messages: any[] = [{ role: 'user', content: instruction }];
+    const messages: any[] = [
+      { role: 'system', content: loadSystemPrompt() },
+      { role: 'user', content: instruction },
+    ];
 
     for (let i = 0; i < MAX_ITERATIONS; i++) {
       const completion = await client.chat.completions.create({
