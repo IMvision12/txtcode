@@ -25,9 +25,14 @@ export interface Config {
 export interface IDEAdapter {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
-  executeCommand(instruction: string, conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>): Promise<string>;
+  executeCommand(
+    instruction: string, 
+    conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>,
+    signal?: AbortSignal
+  ): Promise<string>;
   getStatus(): Promise<string>;
   isHealthy(): Promise<boolean>;
+  abort?(): void;
 }
 
 export interface ConversationEntry {

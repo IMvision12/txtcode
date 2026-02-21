@@ -102,9 +102,16 @@ To switch to code mode, use: /code`;
 
     if (userMode === 'code') {
       logger.debug('Routing to coding adapter (CODE mode)...');
+      
+      // Abort any previous command when new message arrives
+      this.router.abortCurrentCommand();
+      
       try {
         return await this.router.routeToCode(text);
       } catch (error) {
+        if (error instanceof Error && error.message.includes('aborted')) {
+          return '[ABORTED] Previous command was cancelled. Processing new request...';
+        }
         return `[ERROR] ${error instanceof Error ? error.message : 'Unknown error'}`;
       }
     } else {

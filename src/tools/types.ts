@@ -37,5 +37,5 @@ export interface Tool {
   name: string;
   description: string;
   getDefinition(): ToolDefinition;
-  execute(args: Record<string, unknown>): Promise<ToolResult>;
+  execute(args: Record<string, unknown>, signal?: AbortSignal): Promise<ToolResult>;
 }

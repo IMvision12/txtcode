@@ -31,6 +31,7 @@ export class Router {
   private toolRegistry: ToolRegistry;
   private contextManager: ContextManager;
   private pendingHandoff: string | null = null;
+  private currentAbortController: AbortController | null = null;
 
   constructor() {
     this.provider = process.env.AI_PROVIDER || 'anthropic';
@@ -116,26 +117,56 @@ export class Router {
   }
 
   async routeToCode(instruction: string): Promise<string> {
-    // Track user message
-    this.contextManager.addEntry('user', instruction);
-
-    // If there's a pending handoff, pass it as conversationHistory
-    let conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> | undefined;
-
-    if (this.pendingHandoff) {
-      conversationHistory = [
-        { role: 'user', content: this.pendingHandoff }
-      ];
-      this.pendingHandoff = null;
-      logger.debug('Injecting handoff context via conversationHistory parameter');
+    // Abort any pending command
+    if (this.currentAbortController) {
+      logger.debug('Aborting previous command...');
+      this.currentAbortController.abort();
     }
 
-    const result = await this.adapter.executeCommand(instruction, conversationHistory);
+    // Create new abort controller for this command
+    this.currentAbortController = new AbortController();
+    const signal = this.currentAbortController.signal;
 
-    // Track assistant response
-    this.contextManager.addEntry('assistant', result);
+    try {
+      // Track user message
+      this.contextManager.addEntry('user', instruction);
 
-    return result;
+      // If there's a pending handoff, pass it as conversationHistory
+      let conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> | undefined;
+
+      if (this.pendingHandoff) {
+        conversationHistory = [
+          { role: 'user', content: this.pendingHandoff }
+        ];
+        this.pendingHandoff = null;
+        logger.debug('Injecting handoff context via conversationHistory parameter');
+      }
+
+      const result = await this.adapter.executeCommand(instruction, conversationHistory, signal);
+
+      // Track assistant response
+      this.contextManager.addEntry('assistant', result);
+
+      return result;
+    } finally {
+      // Clear abort controller after command completes
+      if (this.currentAbortController && !signal.aborted) {
+        this.currentAbortController = null;
+      }
+    }
+  }
+
+  abortCurrentCommand(): void {
+    if (this.currentAbortController) {
+      logger.debug('Aborting current command via Router...');
+      this.currentAbortController.abort();
+      this.currentAbortController = null;
+      
+      // Also call adapter's abort method if available
+      if (this.adapter.abort) {
+        this.adapter.abort();
+      }
+    }
   }
 
   async getAdapterStatus(): Promise<string> {

@@ -43,9 +43,13 @@ export class ProcessTool implements Tool {
     };
   }
 
-  async execute(args: Record<string, unknown>): Promise<ToolResult> {
+  async execute(args: Record<string, unknown>, signal?: AbortSignal): Promise<ToolResult> {
     const action = args.action as string;
     const sessionId = args.session_id as string | undefined;
+
+    if (signal?.aborted) {
+      return { toolCallId: '', output: 'Process tool execution aborted', isError: true };
+    }
 
     switch (action) {
       case 'list':

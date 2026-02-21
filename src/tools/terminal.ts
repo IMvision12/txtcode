@@ -114,10 +114,14 @@ export class TerminalTool implements Tool {
     };
   }
 
-  async execute(args: Record<string, unknown>): Promise<ToolResult> {
+  async execute(args: Record<string, unknown>, signal?: AbortSignal): Promise<ToolResult> {
     const command = args.command as string;
     if (!command) {
       return { toolCallId: '', output: 'Error: no command provided.', isError: true };
+    }
+
+    if (signal?.aborted) {
+      return { toolCallId: '', output: 'Command execution aborted', isError: true };
     }
 
     const workdir = (args.workdir as string)?.trim() || this.defaultCwd;
@@ -155,7 +159,7 @@ export class TerminalTool implements Tool {
     });
 
     try {
-      const outcome = await this.runProcess(session, command, workdir, env, timeoutSec, yieldMs);
+      const outcome = await this.runProcess(session, command, workdir, env, timeoutSec, yieldMs, signal);
       return this.formatResult(outcome, session);
     } catch (error) {
       return {
@@ -173,6 +177,7 @@ export class TerminalTool implements Tool {
     env: Record<string, string | undefined>,
     timeoutSec: number,
     yieldMs: number,
+    signal?: AbortSignal,
   ): Promise<ExecOutcome> {
     return new Promise((resolve) => {
       const isWindows = process.platform === 'win32';
@@ -199,6 +204,27 @@ export class TerminalTool implements Tool {
       session.pid = proc.pid;
       let yielded = false;
       let processExited = false;
+
+      // Handle abort signal
+      const abortHandler = () => {
+        if (!processExited) {
+          try { proc.kill('SIGTERM'); } catch {}
+          if (!yielded) {
+            markExited(session, null, 'SIGTERM', 'killed');
+            resolve({
+              status: 'failed',
+              exitCode: null,
+              durationMs: Date.now() - startedAt,
+              aggregated: session.aggregated.trim() + '\n\n(Command aborted)',
+              timedOut: false,
+            });
+          } else {
+            markExited(session, null, 'SIGTERM', 'killed');
+          }
+        }
+      };
+
+      signal?.addEventListener('abort', abortHandler, { once: true });
 
       proc.stdout.on('data', (data: Buffer) => {
         appendOutput(session, 'stdout', data.toString());

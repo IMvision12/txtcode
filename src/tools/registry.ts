@@ -48,18 +48,32 @@ export class ToolRegistry {
     }
   }
 
-  async execute(name: string, args: Record<string, unknown>): Promise<ToolResult> {
+  async execute(name: string, args: Record<string, unknown>, signal?: AbortSignal): Promise<ToolResult> {
     const tool = this.tools.get(name);
     if (!tool) {
       return { toolCallId: '', output: `Unknown tool: ${name}`, isError: true };
     }
-    return tool.execute(args);
+    
+    if (signal?.aborted) {
+      return { toolCallId: '', output: 'Tool execution aborted', isError: true };
+    }
+    
+    return tool.execute(args, signal);
   }
 
-  async executeAll(calls: ToolCall[]): Promise<ToolResult[]> {
+  async executeAll(calls: ToolCall[], signal?: AbortSignal): Promise<ToolResult[]> {
     const results: ToolResult[] = [];
     for (const call of calls) {
-      const result = await this.execute(call.name, call.arguments);
+      if (signal?.aborted) {
+        results.push({ 
+          toolCallId: call.id, 
+          output: 'Tool execution aborted', 
+          isError: true 
+        });
+        continue;
+      }
+      
+      const result = await this.execute(call.name, call.arguments, signal);
       result.toolCallId = call.id;
       results.push(result);
     }

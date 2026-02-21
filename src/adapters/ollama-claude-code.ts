@@ -84,9 +84,18 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
     this.connected = false;
   }
 
+  abort(): void {
+    if (this.currentProcess) {
+      logger.debug('Aborting current process...');
+      this.currentProcess.kill('SIGTERM');
+      this.currentProcess = null;
+    }
+  }
+
   async executeCommand(
     instruction: string,
-    conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>
+    conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>,
+    signal?: AbortSignal
   ): Promise<string> {
     if (!this.connected) {
       await this.connect();
@@ -101,6 +110,23 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
       let output = '';
       let errorOutput = '';
 
+      // Handle abort signal
+      const abortHandler = () => {
+        if (this.currentProcess) {
+          logger.debug('Aborting command execution...');
+          this.currentProcess.kill('SIGTERM');
+          this.currentProcess = null;
+        }
+        reject(new Error('Command execution aborted'));
+      };
+
+      if (signal?.aborted) {
+        reject(new Error('Command execution aborted'));
+        return;
+      }
+
+      signal?.addEventListener('abort', abortHandler, { once: true });
+
       const args: string[] = ['launch', 'claude', '--model', this.ollamaModel];
       const claudeArgs: string[] = [];
 
@@ -113,18 +139,17 @@ export class OllamaClaudeCodeAdapter implements IDEAdapter {
 
       claudeArgs.push('--permission-mode', 'bypassPermissions');
 
-      const systemPrompt = this.loadSystemPrompt();
-      let fullSystemPrompt = systemPrompt;
-
-      // Inject handoff context into system prompt (not as instruction)
+      // Build the instruction - just pass the user's request directly
+      let fullInstruction = instruction;
+      
+      // If handoff context exists, add it as background context
       if (conversationHistory && conversationHistory.length > 0) {
         const contextBlock = conversationHistory.map(h => h.content).join('\n\n');
-        fullSystemPrompt += `\n\n${contextBlock}`;
-        logger.debug('Injected handoff context into system prompt');
+        fullInstruction = `[CONTEXT FROM PREVIOUS SESSION]\n${contextBlock}\n[END CONTEXT]\n\n${instruction}`;
+        logger.debug('Injected handoff context');
       }
 
-      claudeArgs.push('--append-system-prompt', fullSystemPrompt);
-      claudeArgs.push(instruction);
+      claudeArgs.push(fullInstruction);
 
       if (claudeArgs.length > 0) {
         args.push('--', ...claudeArgs);
@@ -255,16 +280,6 @@ Available models: ${models.length}`;
     } catch (error) {
       logger.debug(`Ollama health check failed: ${error}`);
       return false;
-    }
-  }
-
-  private loadSystemPrompt(): string {
-    const promptPath = path.join(__dirname, '..', 'data', 'code_adaptors_system_prompt.txt');
-    try {
-      const base = fs.readFileSync(promptPath, 'utf-8');
-      return base + `\n- You're working in: ${this.projectPath}`;
-    } catch {
-      return `You are an expert code assistant. You're working in: ${this.projectPath}`;
     }
   }
 
