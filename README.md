@@ -244,6 +244,29 @@ Then run `txtcode` from anywhere (or `node dist/cli/index.js` from the repo).
 
 ---
 
+## Security
+
+This project uses `detect-secrets` for automated secret detection in CI/CD.
+
+Run locally:
+
+```bash
+pip install detect-secrets==1.5.0
+python -m detect_secrets scan --baseline .secrets.baseline \
+  --exclude-files "(^|/)(dist/|node_modules/|package-lock\.json$|\.detect-secrets\.cfg$)" \
+  --exclude-lines "AI_API_KEY=|OPENROUTER_API_KEY=|CLAUDE_MODEL=|GEMINI_MODEL=|apiKey:|botToken:|apiKeyEnv:|\"apiKeyEnv\"|=== \"string\""
+```
+
+If the scan finds new secrets, review them interactively:
+
+```bash
+python -m detect_secrets audit .secrets.baseline
+```
+
+Mark false positives as verified, then commit the updated `.secrets.baseline`.
+
+---
+
 ## License
 
 MIT
