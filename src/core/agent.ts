@@ -87,6 +87,16 @@ To switch to code mode, use: /code`;
     }
 
     if (lowerText === "/switch") {
+      const userMode = this.userModes.get(message.from);
+      if (userMode !== "code") {
+        return `[ERROR] /switch only works in CODE mode
+
+You are currently in ${userMode === "chat" ? "CHAT" : "default"} mode.
+
+Please switch to CODE mode first:
+• Use /code to enter CODE mode
+• Then use /switch to change adapters`;
+      }
       return this.showAdapterList(message.from);
     }
 
@@ -190,7 +200,7 @@ Available commands:
 • status - Check IDE connection
 • /code - Switch to CODE mode (all messages go to coding adapter)
 • /chat - Switch to CHAT mode (all messages go to primary LLM)
-• /switch - Switch coding adapter (with context transfer)
+• /switch - Switch coding adapter (only works in CODE mode)
 
 Chat Mode (default):
 Messages go to the primary LLM (${this.router.getProviderName()}) with terminal tool support.
@@ -198,6 +208,8 @@ Messages go to the primary LLM (${this.router.getProviderName()}) with terminal 
 Code Mode:
 Messages go to the coding adapter (${this.router.getAdapterName()})
 
-Use /code or /chat to switch modes, /switch to change adapters!`;
+To switch adapters:
+1. First use /code to enter CODE mode
+2. Then use /switch to change adapters`;
   }
 }
