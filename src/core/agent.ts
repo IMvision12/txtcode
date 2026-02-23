@@ -28,6 +28,14 @@ export class AgentCore {
     }
   }
 
+  isUserInCodeMode(userId: string): boolean {
+    return this.userModes.get(userId) === "code";
+  }
+
+  isPendingSwitch(userId: string): boolean {
+    return this.pendingSwitch.get(userId) === true;
+  }
+
   private saveAuthorizedUser(userId: string) {
     try {
       const fs = require("fs");
@@ -55,7 +63,7 @@ export class AgentCore {
     return false;
   }
 
-  async processMessage(message: Message): Promise<string> {
+  async processMessage(message: Message, onProgress?: (chunk: string) => void): Promise<string> {
     if (!this.isUserAllowed(message.from)) {
       return "[UNAUTHORIZED]";
     }
@@ -117,7 +125,7 @@ Please switch to CODE mode first:
       this.router.abortCurrentCommand();
 
       try {
-        return await this.router.routeToCode(text);
+        return await this.router.routeToCode(text, onProgress);
       } catch (error) {
         if (error instanceof Error && error.message.includes("aborted")) {
           return "[ABORTED] Previous command was cancelled. Processing new request...";

@@ -85,6 +85,7 @@ export class KiroAdapter implements IDEAdapter {
     instruction: string,
     conversationHistory?: Array<{ role: "user" | "assistant"; content: string }>,
     signal?: AbortSignal,
+    onProgress?: (chunk: string) => void,
   ): Promise<string> {
     if (!this.connected) {
       await this.connect();
@@ -173,38 +174,49 @@ export class KiroAdapter implements IDEAdapter {
         const text = data.toString();
         output += text;
 
-        // Log metadata but filter out code content
+        // Send progress update if callback provided
+        if (onProgress) {
+          onProgress(text);
+        }
+
+        // Only log high-level status, skip all code and diffs
         const lines = text.split("\n");
         for (const line of lines) {
           const trimmed = line.trim();
-          // Log file operations, status, and metadata
+
+          // Skip all code-related content
           if (
-            trimmed.startsWith("file update") ||
-            trimmed.startsWith("apply_patch") ||
-            trimmed.startsWith("Success.") ||
-            trimmed.startsWith("A ") || // Added file
-            trimmed.startsWith("M ") || // Modified file
-            trimmed.startsWith("D ") || // Deleted file
+            trimmed.startsWith("+") ||
+            trimmed.startsWith("-") ||
+            trimmed.startsWith("@@") ||
+            trimmed.startsWith("diff ") ||
+            trimmed.startsWith("index ") ||
+            trimmed.startsWith("---") ||
+            trimmed.startsWith("+++") ||
+            trimmed.startsWith("new file") ||
+            trimmed.startsWith("deleted file") ||
+            trimmed.includes("def ") ||
+            trimmed.includes("class ") ||
+            trimmed.includes("import ") ||
+            trimmed.includes("from ") ||
+            trimmed.includes("return ") ||
+            trimmed.includes("    ") || // Any indented code (4+ spaces)
+            trimmed.length > 150 // Long lines are usually code
+          ) {
+            continue;
+          }
+
+          // Only log important status messages
+          if (
             trimmed.includes("thinking") ||
             trimmed.includes("kiro") ||
             trimmed.includes("tokens used") ||
             trimmed.includes("succeeded in") ||
-            trimmed.includes("exited") ||
-            (trimmed.length > 0 &&
-              !trimmed.startsWith("+") &&
-              !trimmed.startsWith("-") &&
-              !trimmed.startsWith("@@") &&
-              !trimmed.startsWith("diff --git") &&
-              !trimmed.startsWith("index ") &&
-              !trimmed.startsWith("---") &&
-              !trimmed.startsWith("new file mode") &&
-              !line.includes("def ") &&
-              !line.includes("class ") &&
-              !line.includes("import ") &&
-              !line.includes("from ") &&
-              !line.includes("return ") &&
-              !line.includes("  ") &&
-              trimmed.length < 200)
+            trimmed.includes("Command executed") ||
+            trimmed.startsWith("exec") ||
+            trimmed.startsWith("file update") ||
+            trimmed.startsWith("apply_patch") ||
+            trimmed.startsWith("Success")
           ) {
             logger.debug(trimmed);
           }

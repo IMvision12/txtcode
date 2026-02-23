@@ -29,6 +29,7 @@ export interface IDEAdapter {
     instruction: string,
     conversationHistory?: Array<{ role: "user" | "assistant"; content: string }>,
     signal?: AbortSignal,
+    onProgress?: (chunk: string) => void,
   ): Promise<string>;
   getStatus(): Promise<string>;
   isHealthy(): Promise<boolean>;

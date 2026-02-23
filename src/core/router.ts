@@ -118,7 +118,7 @@ export class Router {
     }
   }
 
-  async routeToCode(instruction: string): Promise<string> {
+  async routeToCode(instruction: string, onProgress?: (chunk: string) => void): Promise<string> {
     // Abort any pending command
     if (this.currentAbortController) {
       logger.debug("Aborting previous command...");
@@ -142,7 +142,12 @@ export class Router {
         logger.debug("Injecting handoff context via conversationHistory parameter");
       }
 
-      const result = await this.adapter.executeCommand(instruction, conversationHistory, signal);
+      const result = await this.adapter.executeCommand(
+        instruction,
+        conversationHistory,
+        signal,
+        onProgress,
+      );
 
       // Track assistant response
       this.contextManager.addEntry("assistant", result);
