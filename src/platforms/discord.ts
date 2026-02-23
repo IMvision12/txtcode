@@ -1,6 +1,9 @@
 import { Client, GatewayIntentBits, Message, Partials } from "discord.js";
 import { AgentCore } from "../core/agent";
 import { logger } from "../shared/logger";
+import { BlockReplyPipeline } from "../shared/block-reply-pipeline";
+import { DiscordTypingSignaler } from "../shared/typing-signaler";
+import type { StreamChunk } from "../shared/streaming-types";
 
 export class DiscordBot {
   private client: Client;
@@ -75,17 +78,12 @@ export class DiscordBot {
         return;
       }
 
-      // CODE mode - use streaming with heartbeat
-      if ("sendTyping" in message.channel) {
-        await message.channel.sendTyping();
-      }
-
-      let progressMessage: Message | null = null;
-      let progressBuffer = "";
+      // CODE mode - use streaming with block reply pipeline
       let taskStartTime = Date.now();
       let heartbeatInterval: NodeJS.Timeout | null = null;
+      let progressMessage: Message | null = null;
 
-      // Send initial "working" message
+      // Send initial "working" message immediately
       try {
         progressMessage = await message.reply(`⏳ Working on your request...`);
         logger.debug(`[PROGRESS] Sent initial working message`);
@@ -93,7 +91,34 @@ export class DiscordBot {
         logger.debug(`Failed to send initial message: ${error}`);
       }
 
-      // Start heartbeat to send periodic updates every 5 seconds
+      // Create typing signaler
+      const typingSignaler = new DiscordTypingSignaler(message.channel);
+
+      // Create block reply pipeline
+      const pipeline = new BlockReplyPipeline({
+        chunking: {
+          minChars: 150,
+          maxChars: 500,
+          breakPreference: "paragraph",
+          flushOnParagraph: true,
+        },
+        typingSignaler,
+        onChunk: async (chunk: StreamChunk) => {
+          try {
+            const prefix = chunk.isComplete ? "✅" : "⏳ Progress...";
+            if (progressMessage) {
+              await (progressMessage as Message).edit(
+                `${prefix}\n\`\`\`\n${chunk.text}\n\`\`\``,
+              );
+            }
+            logger.debug(`[PIPELINE] Sent chunk: ${chunk.text.length} chars`);
+          } catch (error) {
+            logger.debug(`Failed to send chunk: ${error}`);
+          }
+        },
+      });
+
+      // Start heartbeat to send periodic updates every 25 seconds
       heartbeatInterval = setInterval(async () => {
         const elapsed = Math.floor((Date.now() - taskStartTime) / 1000);
         try {
@@ -104,7 +129,7 @@ export class DiscordBot {
         } catch (error) {
           logger.debug(`Failed to send heartbeat: ${error}`);
         }
-      }, 5000);
+      }, 25000);
 
       try {
         const response = await this.agent.processMessage(
@@ -114,21 +139,8 @@ export class DiscordBot {
             timestamp: new Date(),
           },
           async (chunk: string) => {
-            // Accumulate progress updates
-            progressBuffer += chunk;
-
-            // When we get actual output, send it immediately
-            const preview = this.formatProgress(progressBuffer);
-
-            try {
-              if (progressMessage) {
-                await (progressMessage as Message).edit(
-                  `⏳ Progress...\n\`\`\`\n${preview}\n\`\`\``,
-                );
-              }
-            } catch (error) {
-              logger.debug(`Failed to update progress message: ${error}`);
-            }
+            // Process through pipeline
+            await pipeline.processText(chunk);
           },
         );
 
@@ -136,6 +148,9 @@ export class DiscordBot {
         if (heartbeatInterval) {
           clearInterval(heartbeatInterval);
         }
+
+        // Flush pipeline
+        await pipeline.flush({ force: true });
 
         try {
           if (progressMessage) {
@@ -162,6 +177,7 @@ export class DiscordBot {
         if (heartbeatInterval) {
           clearInterval(heartbeatInterval);
         }
+        await typingSignaler.stopTyping();
         throw error;
       }
     });
@@ -180,12 +196,5 @@ export class DiscordBot {
 
     logger.info("Connecting to Discord...");
     await this.client.login(token);
-  }
-
-  private formatProgress(buffer: string): string {
-    // Extract last 300 chars for preview
-    const lines = buffer.split("\n").filter((l) => l.trim());
-    const lastLines = lines.slice(-5).join("\n");
-    return lastLines.slice(-300);
   }
 }

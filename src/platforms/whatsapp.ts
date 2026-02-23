@@ -10,6 +10,9 @@ import makeWASocket, {
 } from "@whiskeysockets/baileys";
 import { AgentCore } from "../core/agent";
 import { logger } from "../shared/logger";
+import { BlockReplyPipeline } from "../shared/block-reply-pipeline";
+import { WhatsAppTypingSignaler } from "../shared/typing-signaler";
+import type { StreamChunk } from "../shared/streaming-types";
 
 const WA_AUTH_DIR = path.join(os.homedir(), ".txtcode", ".wacli_auth");
 
@@ -143,8 +146,7 @@ export class WhatsAppBot {
               continue;
             }
 
-            // CODE mode - use streaming with heartbeat
-            let progressBuffer = "";
+            // CODE mode - use streaming with block reply pipeline
             let taskStartTime = Date.now();
             let heartbeatInterval: NodeJS.Timeout | null = null;
 
@@ -160,7 +162,32 @@ export class WhatsAppBot {
               logger.debug(`Failed to send initial message: ${error}`);
             }
 
-            // Start heartbeat to send periodic updates every 5 seconds
+            // Create typing signaler
+            const typingSignaler = new WhatsAppTypingSignaler(this.sock, from);
+
+            // Create block reply pipeline
+            const pipeline = new BlockReplyPipeline({
+              chunking: {
+                minChars: 150,
+                maxChars: 500,
+                breakPreference: "paragraph",
+                flushOnParagraph: true,
+              },
+              typingSignaler,
+              onChunk: async (chunk: StreamChunk) => {
+                try {
+                  const prefix = chunk.isComplete ? "✅" : "⏳ Progress...";
+                  await this.sock.sendMessage(from, {
+                    text: `${prefix}\n\`\`\`\n${chunk.text}\n\`\`\``,
+                  });
+                  logger.debug(`[PIPELINE] Sent chunk: ${chunk.text.length} chars`);
+                } catch (error) {
+                  logger.debug(`Failed to send chunk: ${error}`);
+                }
+              },
+            });
+
+            // Start heartbeat to send periodic updates every 25 seconds
             heartbeatInterval = setInterval(async () => {
               const elapsed = Math.floor((Date.now() - taskStartTime) / 1000);
               try {
@@ -171,7 +198,7 @@ export class WhatsAppBot {
               } catch (error) {
                 logger.debug(`Failed to send heartbeat: ${error}`);
               }
-            }, 5000);
+            }, 25000);
 
             try {
               const response = await this.agent.processMessage(
@@ -181,28 +208,8 @@ export class WhatsAppBot {
                   timestamp: new Date(messageTimestamp * 1000),
                 },
                 async (chunk: string) => {
-                  // Accumulate progress updates
-                  progressBuffer += chunk;
-
-                  logger.debug(
-                    `[PROGRESS] Received ${chunk.length} chars, buffer: ${progressBuffer.length}`,
-                  );
-
-                  // When we get actual output, send it immediately
-                  const preview = this.formatProgress(progressBuffer);
-
-                  logger.debug(
-                    `[PROGRESS] Sending update to WhatsApp, preview length: ${preview.length}`,
-                  );
-
-                  try {
-                    await this.sock.sendMessage(from, {
-                      text: `⏳ Progress...\n\`\`\`\n${preview}\n\`\`\``,
-                    });
-                    logger.debug(`[PROGRESS] Sent progress update`);
-                  } catch (error) {
-                    logger.debug(`Failed to send progress update: ${error}`);
-                  }
+                  // Process through pipeline
+                  await pipeline.processText(chunk);
                 },
               );
 
@@ -211,6 +218,9 @@ export class WhatsAppBot {
                 clearInterval(heartbeatInterval);
               }
 
+              // Flush pipeline
+              await pipeline.flush({ force: true });
+
               await this.sock.sendMessage(from, { text: response }, { quoted: msg });
               logger.debug(`Replied: ${response}`);
             } catch (error) {
@@ -218,6 +228,7 @@ export class WhatsAppBot {
               if (heartbeatInterval) {
                 clearInterval(heartbeatInterval);
               }
+              await typingSignaler.stopTyping();
               throw error;
             }
           } catch (error) {
@@ -226,12 +237,5 @@ export class WhatsAppBot {
         }
       },
     );
-  }
-
-  private formatProgress(buffer: string): string {
-    // Extract last 300 chars for preview
-    const lines = buffer.split("\n").filter((l) => l.trim());
-    const lastLines = lines.slice(-5).join("\n");
-    return lastLines.slice(-300);
   }
 }

@@ -1,6 +1,9 @@
 import { Telegraf } from "telegraf";
 import { AgentCore } from "../core/agent";
 import { logger } from "../shared/logger";
+import { BlockReplyPipeline } from "../shared/block-reply-pipeline";
+import { TelegramTypingSignaler } from "../shared/typing-signaler";
+import type { StreamChunk } from "../shared/streaming-types";
 
 export class TelegramBot {
   private bot: Telegraf;
@@ -58,13 +61,12 @@ export class TelegramBot {
         return;
       }
 
-      // CODE mode - use streaming with heartbeat
-      let progressMessageId: number | null = null;
-      let progressBuffer = "";
+      // CODE mode - use streaming with block reply pipeline
       let taskStartTime = Date.now();
       let heartbeatInterval: NodeJS.Timeout | null = null;
+      let progressMessageId: number | null = null;
 
-      // Send initial "working" message
+      // Send initial "working" message immediately
       try {
         const msg = await ctx.reply(`⏳ Working on your request...`);
         progressMessageId = msg.message_id;
@@ -73,7 +75,37 @@ export class TelegramBot {
         logger.debug(`Failed to send initial message: ${error}`);
       }
 
-      // Start heartbeat to send periodic updates every 5 seconds
+      // Create typing signaler
+      const typingSignaler = new TelegramTypingSignaler(ctx);
+
+      // Create block reply pipeline
+      const pipeline = new BlockReplyPipeline({
+        chunking: {
+          minChars: 150,
+          maxChars: 500,
+          breakPreference: "paragraph",
+          flushOnParagraph: true,
+        },
+        typingSignaler,
+        onChunk: async (chunk: StreamChunk) => {
+          try {
+            const prefix = chunk.isComplete ? "✅" : "⏳ Progress...";
+            if (progressMessageId) {
+              await ctx.telegram.editMessageText(
+                ctx.chat.id,
+                progressMessageId,
+                undefined,
+                `${prefix}\n\`\`\`\n${chunk.text}\n\`\`\``,
+              );
+            }
+            logger.debug(`[PIPELINE] Sent chunk: ${chunk.text.length} chars`);
+          } catch (error) {
+            logger.debug(`Failed to send chunk: ${error}`);
+          }
+        },
+      });
+
+      // Start heartbeat to send periodic updates every 25 seconds
       heartbeatInterval = setInterval(async () => {
         const elapsed = Math.floor((Date.now() - taskStartTime) / 1000);
         try {
@@ -89,7 +121,7 @@ export class TelegramBot {
         } catch (error) {
           logger.debug(`Failed to send heartbeat: ${error}`);
         }
-      }, 5000);
+      }, 25000);
 
       try {
         const response = await this.agent.processMessage(
@@ -99,24 +131,8 @@ export class TelegramBot {
             timestamp: new Date(),
           },
           async (chunk: string) => {
-            // Accumulate progress updates
-            progressBuffer += chunk;
-
-            // When we get actual output, send it immediately
-            const preview = this.formatProgress(progressBuffer);
-
-            try {
-              if (progressMessageId) {
-                await ctx.telegram.editMessageText(
-                  ctx.chat.id,
-                  progressMessageId,
-                  undefined,
-                  `⏳ Progress...\n\`\`\`\n${preview}\n\`\`\``,
-                );
-              }
-            } catch (error) {
-              logger.debug(`Failed to update progress message: ${error}`);
-            }
+            // Process through pipeline
+            await pipeline.processText(chunk);
           },
         );
 
@@ -124,6 +140,9 @@ export class TelegramBot {
         if (heartbeatInterval) {
           clearInterval(heartbeatInterval);
         }
+
+        // Flush pipeline
+        await pipeline.flush({ force: true });
 
         try {
           if (progressMessageId) {
@@ -150,6 +169,7 @@ export class TelegramBot {
         if (heartbeatInterval) {
           clearInterval(heartbeatInterval);
         }
+        await typingSignaler.stopTyping();
         throw error;
       }
     });
@@ -164,10 +184,4 @@ export class TelegramBot {
     process.once("SIGTERM", () => this.bot.stop("SIGTERM"));
   }
 
-  private formatProgress(buffer: string): string {
-    // Extract last 300 chars for preview
-    const lines = buffer.split("\n").filter((l) => l.trim());
-    const lastLines = lines.slice(-5).join("\n");
-    return lastLines.slice(-300);
-  }
 }

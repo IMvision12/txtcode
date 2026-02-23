@@ -2,7 +2,16 @@
 
 ## Overview
 
-The system supports real-time streaming of output from CLI adapters to platforms, but only when executing code tasks in CODE mode. Users get live progress updates during long-running operations, while commands and chat interactions remain instant and clean.
+The system supports real-time streaming of output from CLI adapters to platforms using an intelligent block-based pipeline inspired by OpenClaw. Streaming is only active when executing code tasks in CODE mode. Users get live progress updates during long-running operations, while commands and chat interactions remain instant and clean.
+
+## Architecture
+
+The streaming system uses a multi-layer pipeline:
+
+1. **BlockChunker** - Intelligently breaks text into readable chunks at paragraph/sentence/newline boundaries
+2. **StreamNormalizer** - Strips ANSI codes, control characters, and heartbeat tokens
+3. **TypingSignaler** - Platform-specific typing indicators (Discord, Telegram, WhatsApp)
+4. **BlockReplyPipeline** - Orchestrates the entire streaming flow with rate limiting
 
 ## When Streaming is Active
 
@@ -90,7 +99,7 @@ Only important status messages are logged:
 
 #### Platform Implementation
 
-Platforms implement mode checking and heartbeat mechanism:
+Platforms implement mode checking, heartbeat mechanism, and BlockReplyPipeline:
 
 **Mode Check (All Platforms):**
 ```typescript
@@ -114,26 +123,58 @@ if (isCommand) {
 }
 ```
 
+**BlockReplyPipeline Setup:**
+```typescript
+// Create typing signaler
+const typingSignaler = new WhatsAppTypingSignaler(sock, from);
+
+// Create block reply pipeline
+const pipeline = new BlockReplyPipeline({
+  chunking: {
+    minChars: 150,
+    maxChars: 500,
+    breakPreference: "paragraph",
+    flushOnParagraph: true,
+  },
+  typingSignaler,
+  onChunk: async (chunk: StreamChunk) => {
+    const prefix = chunk.isComplete ? "✅" : "⏳ Progress...";
+    await sendMessage(`${prefix}\n\`\`\`\n${chunk.text}\n\`\`\`\`);
+  },
+});
+
+// Process CLI output through pipeline
+const response = await agent.processMessage(
+  { from, text, timestamp },
+  async (chunk: string) => {
+    await pipeline.processText(chunk);
+  }
+);
+
+// Flush remaining content
+await pipeline.flush({ force: true });
+```
+
 **Heartbeat Implementation:**
 - Initial message: "⏳ Working on your request..."
-- Periodic updates: "⏳ Still working... (Xs elapsed)" every 5 seconds
-- Progress updates: "⏳ Progress... [CLI output]" when CLI outputs
+- Periodic updates: "⏳ Still working... (Xs elapsed)" every 25 seconds
+- Progress chunks: "⏳ Progress... [CLI output]" sent intelligently (min 2s interval)
 - Cleanup: Heartbeat cleared on completion or error
 
 **Discord:**
 - Edits the same message to show progress
-- Shows last 5 lines (max 300 chars) as preview
-- Heartbeat every 5 seconds
+- Uses DiscordTypingSignaler (refreshes every 8 seconds)
+- Intelligent chunking at paragraph boundaries
 
 **Telegram:**
 - Edits the same message to show progress
-- Shows last 5 lines (max 300 chars) as preview
-- Heartbeat every 5 seconds
+- Uses TelegramTypingSignaler (refreshes every 4 seconds)
+- Intelligent chunking at paragraph boundaries
 
 **WhatsApp:**
 - Sends new messages for progress (WhatsApp doesn't support message editing)
-- Shows last 5 lines (max 300 chars) as preview
-- Heartbeat every 5 seconds
+- Uses WhatsAppTypingSignaler (refreshes every 3 seconds)
+- Intelligent chunking at paragraph boundaries
 
 ## Example User Experience
 
@@ -161,11 +202,11 @@ Bot: Hello! I'm a coding assistant...
 User: Create a new React component
 Bot: ⏳ Working on your request...
 
-[5 seconds later]
-Bot: ⏳ Still working... (5s elapsed)
+[25 seconds later]
+Bot: ⏳ Still working... (25s elapsed)
 
-[10 seconds later]
-Bot: ⏳ Still working... (10s elapsed)
+[50 seconds later]
+Bot: ⏳ Still working... (50s elapsed)
 
 [CLI outputs something]
 Bot: ⏳ Progress...
@@ -198,14 +239,28 @@ No configuration needed - the feature is automatically enabled based on user mod
 ## Technical Details
 
 ### Heartbeat Interval
-- 5 seconds between updates
+- 25 seconds between updates
 - Tracks elapsed time from task start
 - Automatically cleared on completion or error
 
-### Progress Preview
-- Extracts last 5 lines from buffer
-- Maximum 300 characters
-- Filters out verbose code content
+### Intelligent Chunking
+- **minChars**: 150 - Minimum characters before sending a chunk
+- **maxChars**: 500 - Maximum characters in a single chunk
+- **breakPreference**: "paragraph" - Prefers breaking at paragraph boundaries
+- **flushOnParagraph**: true - Sends chunk immediately after paragraph
+- Breaks at: paragraph > sentence > newline > word boundaries
+
+### Stream Normalization
+- Strips ANSI escape codes (colors, cursor movements)
+- Removes control characters
+- Filters heartbeat tokens
+- Preserves meaningful content
+
+### Rate Limiting
+- Minimum 2 seconds between progress chunks
+- Prevents message spam
+- Deduplicates identical chunks
+- Typing indicators refresh at platform-specific intervals
 
 ### CLI Buffering Limitation
 CLI tools (Codex, Claude, Gemini, etc.) often buffer their output and send it in chunks rather than streaming continuously. The heartbeat mechanism ensures users still get periodic updates even when the CLI produces no output.
@@ -215,9 +270,39 @@ CLI tools (Codex, Claude, Gemini, etc.) often buffer their output and send it in
 - Progress messages fail gracefully
 - Final response always sent
 
+## Components
+
+### BlockChunker (`shared/block-chunker.ts`)
+Intelligently breaks text into readable chunks at natural boundaries.
+
+### StreamNormalizer (`shared/stream-normalizer.ts`)
+Cleans CLI output by removing ANSI codes and control characters.
+
+### TypingSignaler (`shared/typing-signaler.ts`)
+Platform-specific typing indicators:
+- `DiscordTypingSignaler` - Refreshes every 8 seconds
+- `TelegramTypingSignaler` - Refreshes every 4 seconds
+- `WhatsAppTypingSignaler` - Refreshes every 3 seconds
+
+### BlockReplyPipeline (`shared/block-reply-pipeline.ts`)
+Orchestrates the entire streaming flow with rate limiting and deduplication.
+
+### StreamChunk Type (`shared/streaming-types.ts`)
+```typescript
+export interface StreamChunk {
+  text: string;
+  timestamp: number;
+  isComplete: boolean;
+}
+```
+
 ## Backward Compatibility
 
 The `onProgress` parameter is optional, so:
 - Existing code works without changes
 - Platforms can choose to implement streaming or not
 - Adapters work with or without the callback
+
+## Inspiration
+
+This implementation is inspired by [OpenClaw](https://github.com/openclaw/openclaw)'s intelligent streaming approach, adapted for TxtCode's multi-platform architecture.
