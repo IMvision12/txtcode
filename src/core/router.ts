@@ -182,6 +182,23 @@ export class Router {
     return this.provider;
   }
 
+  getCurrentModel(): string {
+    return this.model;
+  }
+
+  updateProvider(provider: string, apiKey: string, model: string): void {
+    this.provider = provider;
+    this.apiKey = apiKey;
+    this.model = model;
+    
+    // Update environment variables for consistency
+    process.env.AI_PROVIDER = provider;
+    process.env.AI_API_KEY = apiKey;
+    process.env.AI_MODEL = model;
+    
+    logger.debug(`Provider updated: ${provider} with model ${model}`);
+  }
+
   getAdapterName(): string {
     return this.currentAdapterName;
   }

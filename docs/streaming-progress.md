@@ -302,7 +302,3 @@ The `onProgress` parameter is optional, so:
 - Existing code works without changes
 - Platforms can choose to implement streaming or not
 - Adapters work with or without the callback
-
-## Inspiration
-
-This implementation is inspired by [OpenClaw](https://github.com/openclaw/openclaw)'s intelligent streaming approach, adapted for TxtCode's multi-platform architecture.
