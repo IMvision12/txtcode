@@ -1512,6 +1512,69 @@
           "description": "Solidity-tuned CodeLlama 7B via OpenRouter"
         }
       ]
+    },
+    "moonshot": {
+      "name": "Moonshot AI",
+      "apiKeyEnv": "MOONSHOT_API_KEY",
+      "models": [
+        {
+          "id": "moonshot-v1-128k",
+          "name": "Moonshot v1 128K",
+          "description": "Moonshot v1 with 128K context window",
+          "recommended": true
+        },
+        {
+          "id": "moonshot-v1-8k",
+          "name": "Moonshot v1 8K",
+          "description": "Moonshot v1 with 8K context window"
+        },
+        {
+          "id": "kimi-k2-thinking",
+          "name": "Kimi K2 Thinking",
+          "description": "Kimi K2 model with enhanced reasoning capabilities",
+          "recommended": true
+        },
+        {
+          "id": "kimi-k2-thinking-turbo",
+          "name": "Kimi K2 Thinking Turbo",
+          "description": "Faster variant of Kimi K2 Thinking"
+        },
+        {
+          "id": "kimi-k2-0711-preview",
+          "name": "Kimi K2 (2024-07-11 Preview)",
+          "description": "Preview version of Kimi K2 from July 2024"
+        },
+        {
+          "id": "moonshot-v1-32k",
+          "name": "Moonshot v1 32K",
+          "description": "Moonshot v1 with 32K context window"
+        },
+        {
+          "id": "moonshot-v1-auto",
+          "name": "Moonshot v1 Auto",
+          "description": "Automatically selects optimal Moonshot v1 variant"
+        },
+        {
+          "id": "kimi-k2-turbo-preview",
+          "name": "Kimi K2 Turbo Preview",
+          "description": "Preview of Kimi K2 Turbo model"
+        },
+        {
+          "id": "kimi-latest",
+          "name": "Kimi Latest",
+          "description": "Latest Kimi model version"
+        },
+        {
+          "id": "kimi-k2.5",
+          "name": "Kimi K2.5",
+          "description": "Kimi K2.5 model"
+        },
+        {
+          "id": "kimi-k2-0905-preview",
+          "name": "Kimi K2 (2024-09-05 Preview)",
+          "description": "Preview version of Kimi K2 from September 2024"
+        }
+      ]
     }
   }
 }

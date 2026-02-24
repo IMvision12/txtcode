@@ -5,6 +5,7 @@ import { OllamaClaudeCodeAdapter } from "../adapters/ollama-claude-code";
 import { CodexAdapter } from "../adapters/openai-codex";
 import { processWithAnthropic } from "../providers/anthropic";
 import { processWithGemini } from "../providers/gemini";
+import { processWithMoonshot } from "../providers/moonshot";
 import { processWithOpenAI } from "../providers/openai";
 import { processWithOpenRouter } from "../providers/openrouter";
 import { logger } from "../shared/logger";
@@ -113,6 +114,8 @@ export class Router {
         return await processWithGemini(instruction, this.apiKey, this.model, this.toolRegistry);
       case "openrouter":
         return await processWithOpenRouter(instruction, this.apiKey, this.model, this.toolRegistry);
+      case "moonshot":
+        return await processWithMoonshot(instruction, this.apiKey, this.model, this.toolRegistry);
       default:
         return `[ERROR] Unsupported AI provider: ${this.provider}. Run: txtcode config`;
     }
