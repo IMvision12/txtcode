@@ -26,7 +26,7 @@
   },
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc && node scripts/copy-data.js",
+    "build": "tsc",
     "dev": "tsc --watch",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
