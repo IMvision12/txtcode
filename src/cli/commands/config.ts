@@ -4,6 +4,7 @@ import path from "path";
 import chalk from "chalk";
 import inquirer from "inquirer";
 import { loadConfig } from "./auth";
+import { setApiKey, getApiKey, setBotToken, getBotToken } from "../../utils/keychain";
 
 const CONFIG_DIR = path.join(os.homedir(), ".txtcode");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
@@ -79,7 +80,7 @@ async function configurePlatform(config: any) {
 
   config.platform = answers.platform;
 
-  // Get tokens if needed
+  // Get tokens if needed and store in keychain
   if (answers.platform === "telegram") {
     const { token } = await inquirer.prompt([
       {
@@ -87,10 +88,9 @@ async function configurePlatform(config: any) {
         name: "token",
         message: "Enter Telegram Bot Token:",
         mask: "*",
-        default: config.telegramToken,
       },
     ]);
-    config.telegramToken = token;
+    await setBotToken("telegram", token);
   } else if (answers.platform === "discord") {
     const { token } = await inquirer.prompt([
       {
@@ -98,10 +98,9 @@ async function configurePlatform(config: any) {
         name: "token",
         message: "Enter Discord Bot Token:",
         mask: "*",
-        default: config.discordToken,
       },
     ]);
-    config.discordToken = token;
+    await setBotToken("discord", token);
   }
 
   saveConfig(config);
@@ -166,6 +165,8 @@ async function configureIDE(config: any) {
 
 async function configureAI(config: any) {
   console.log(chalk.cyan("\n🧠 AI Provider Configuration\n"));
+  console.log(chalk.yellow("Note: This updates the primary provider only.\n"));
+  console.log(chalk.gray("To reconfigure all providers, run: txtcode auth\n"));
 
   const answers = await inquirer.prompt([
     {
@@ -176,6 +177,7 @@ async function configureAI(config: any) {
         { name: "Anthropic (Claude)", value: "anthropic" },
         { name: "OpenAI (GPT)", value: "openai" },
         { name: "Google (Gemini)", value: "gemini" },
+        { name: "OpenRouter", value: "openrouter" },
       ],
       default: config.aiProvider,
     },
@@ -184,12 +186,13 @@ async function configureAI(config: any) {
       name: "aiApiKey",
       message: "Enter AI API Key:",
       mask: "*",
-      default: config.aiApiKey,
     },
   ]);
 
   config.aiProvider = answers.aiProvider;
-  config.aiApiKey = answers.aiApiKey;
+  
+  // Store API key in keychain
+  await setApiKey(answers.aiProvider, answers.aiApiKey);
 
   saveConfig(config);
   console.log(chalk.green("\n✅ AI provider configuration updated!\n"));

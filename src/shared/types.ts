@@ -6,11 +6,8 @@ export interface Message {
 
 export interface Config {
   aiProvider: string;
-  aiApiKey: string;
   aiModel?: string;
   platform: string;
-  telegramToken?: string;
-  discordToken?: string;
   ideType: string;
   idePort: number;
   authorizedUser: string;
@@ -20,6 +17,11 @@ export interface Config {
   claudeModel?: string;
   geminiModel?: string;
   updatedAt?: string;
+  providers?: {
+    [key: string]: {
+      model: string;
+    };
+  };
 }
 
 export interface IDEAdapter {

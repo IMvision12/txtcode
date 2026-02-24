@@ -5,6 +5,7 @@ import { TelegramBot } from "../../platforms/telegram";
 import { WhatsAppBot } from "../../platforms/whatsapp";
 import { logger } from "../../shared/logger";
 import { loadConfig } from "./auth";
+import { getApiKey, getBotToken } from "../../utils/keychain";
 
 export async function startCommand(options: { daemon?: boolean }) {
   const config = loadConfig();
@@ -21,12 +22,40 @@ export async function startCommand(options: { daemon?: boolean }) {
   logger.info(chalk.cyan(`Platform: ${config.platform}`));
   logger.info(chalk.cyan(`IDE: ${config.ideType}\n`));
 
+  // Retrieve API key from keychain
+  const apiKey = await getApiKey(config.aiProvider);
+  if (!apiKey) {
+    console.log(chalk.red("\n[ERROR] Failed to retrieve API key from keychain"));
+    console.log(chalk.yellow("Please run: txtcode auth\n"));
+    process.exit(1);
+  }
+
+  // Retrieve bot tokens from keychain if needed
+  let telegramToken = "";
+  let discordToken = "";
+  
+  if (config.platform === "telegram") {
+    telegramToken = (await getBotToken("telegram")) || "";
+    if (!telegramToken) {
+      console.log(chalk.red("\n[ERROR] Failed to retrieve Telegram token from keychain"));
+      console.log(chalk.yellow("Please run: txtcode auth\n"));
+      process.exit(1);
+    }
+  } else if (config.platform === "discord") {
+    discordToken = (await getBotToken("discord")) || "";
+    if (!discordToken) {
+      console.log(chalk.red("\n[ERROR] Failed to retrieve Discord token from keychain"));
+      console.log(chalk.yellow("Please run: txtcode auth\n"));
+      process.exit(1);
+    }
+  }
+
   process.env.PLATFORM = config.platform;
-  process.env.TELEGRAM_BOT_TOKEN = config.telegramToken;
-  process.env.DISCORD_BOT_TOKEN = config.discordToken;
+  process.env.TELEGRAM_BOT_TOKEN = telegramToken;
+  process.env.DISCORD_BOT_TOKEN = discordToken;
   process.env.IDE_TYPE = config.ideType;
   process.env.IDE_PORT = config.idePort;
-  process.env.AI_API_KEY = config.aiApiKey;
+  process.env.AI_API_KEY = apiKey;
   process.env.AI_PROVIDER = config.aiProvider;
   process.env.AI_MODEL = config.aiModel;
   process.env.PROJECT_PATH = config.projectPath || process.cwd();

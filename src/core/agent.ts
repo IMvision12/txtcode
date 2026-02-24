@@ -1,6 +1,7 @@
 import { logger } from "../shared/logger";
 import { Message } from "../shared/types";
 import { Router, AVAILABLE_ADAPTERS } from "./router";
+import { getApiKey } from "../utils/keychain";
 
 export class AgentCore {
   private router: Router;
@@ -245,16 +246,21 @@ Reply with 1 or 2:`;
     const providerConfig = configuredProviders[selectedProvider];
 
     try {
+      // Retrieve API key from keychain
+      const apiKey = await getApiKey(selectedProvider);
+      if (!apiKey) {
+        return `[ERROR] Failed to retrieve API key for ${selectedProvider} from keychain. Please run 'txtcode auth' to reconfigure.`;
+      }
+
       // Update config file with new active provider
       config.aiProvider = selectedProvider;
-      config.aiApiKey = providerConfig.apiKey;
       config.aiModel = providerConfig.model;
       config.updatedAt = new Date().toISOString();
 
       fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2));
 
       // Update router
-      this.router.updateProvider(selectedProvider, providerConfig.apiKey, providerConfig.model);
+      this.router.updateProvider(selectedProvider, apiKey, providerConfig.model);
 
       return `✅ Primary LLM switched!
 

@@ -6,6 +6,7 @@ import chalk from "chalk";
 import inquirer from "inquirer";
 import qrcode from "qrcode-terminal";
 import modelsCatalog from "../../data/models-catalog.json";
+import { setApiKey, setBotToken, isKeychainAvailable } from "../../utils/keychain";
 
 const CONFIG_DIR = path.join(os.homedir(), ".txtcode");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
@@ -344,32 +345,45 @@ export async function authCommand() {
     fs.mkdirSync(CONFIG_DIR, { recursive: true });
   }
 
-  // Save configuration with all 3 providers
+  // Store API keys in keychain
+  try {
+    await setApiKey(primaryProvider.provider, primaryProvider.apiKey);
+    await setApiKey(secondaryProvider1.provider, secondaryProvider1.apiKey);
+    await setApiKey(secondaryProvider2.provider, secondaryProvider2.apiKey);
+    
+    // Store bot tokens in keychain
+    if (telegramToken) {
+      await setBotToken("telegram", telegramToken);
+    }
+    if (discordToken) {
+      await setBotToken("discord", discordToken);
+    }
+  } catch (error) {
+    console.log(chalk.red("\n[ERROR] Failed to store credentials in keychain"));
+    console.log(chalk.yellow("Falling back to encrypted file storage...\n"));
+    // Continue with file storage as fallback
+  }
+
+  // Save configuration WITHOUT API keys (stored in keychain)
   const config = {
     // Primary provider (active)
     aiProvider: primaryProvider.provider,
-    aiApiKey: primaryProvider.apiKey,
     aiModel: primaryProvider.model,
     
-    // Secondary providers
+    // Secondary providers (models only, keys in keychain)
     providers: {
       [primaryProvider.provider]: {
-        apiKey: primaryProvider.apiKey,
         model: primaryProvider.model,
       },
       [secondaryProvider1.provider]: {
-        apiKey: secondaryProvider1.apiKey,
         model: secondaryProvider1.model,
       },
       [secondaryProvider2.provider]: {
-        apiKey: secondaryProvider2.apiKey,
         model: secondaryProvider2.model,
       },
     },
     
     platform: platformAnswers.platform,
-    telegramToken: telegramToken,
-    discordToken: discordToken,
     ideType: ideAnswers.ideType,
     idePort: 3000,
     authorizedUser: "", // Will be set on first message
@@ -377,6 +391,14 @@ export async function authCommand() {
   };
 
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+  
+  // Set strict file permissions
+  try {
+    fs.chmodSync(CONFIG_DIR, 0o700);
+    fs.chmodSync(CONFIG_FILE, 0o600);
+  } catch (error) {
+    // Windows doesn't support chmod, will use icacls in security-check
+  }
 
   console.log(chalk.green("\nAuthentication successful!"));
   console.log(chalk.gray(`\nConfiguration saved to: ${CONFIG_FILE}`));
