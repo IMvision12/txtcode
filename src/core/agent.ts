@@ -177,26 +177,38 @@ Reply with 1 or 2:`;
     const currentProvider = this.router.getProviderName();
     const currentModel = this.router.getCurrentModel();
 
-    // Get configured providers
+    // Get configured providers and validate them
     const configuredProviders = config.providers || {};
-    const availableProviders = Object.keys(configuredProviders);
+    const allProviders = Object.keys(configuredProviders);
 
-    if (availableProviders.length === 0) {
-      return `[ERROR] No providers configured. Please run 'txtcode auth' to configure providers.`;
+    // Filter out providers with invalid configurations
+    const validProviders = allProviders.filter(provider => {
+      const providerConfig = configuredProviders[provider];
+      return providerConfig && providerConfig.model;
+    });
+
+    if (validProviders.length === 0) {
+      return `[ERROR] No valid providers configured. Please run 'txtcode auth' to configure providers.`;
+    }
+
+    // Warn if some providers were filtered out
+    if (validProviders.length < allProviders.length) {
+      const invalidCount = allProviders.length - validProviders.length;
+      logger.debug(`${invalidCount} provider(s) have invalid configuration and were excluded`);
     }
 
     this.pendingSwitch.set(userId, "provider");
 
     let response = `🤖 Switch Primary LLM\n\nCurrent: ${currentProvider} (${currentModel})\n\nConfigured Providers:\n`;
     
-    availableProviders.forEach((provider, index) => {
+    validProviders.forEach((provider, index) => {
       const providerConfig = configuredProviders[provider];
       const isCurrent = provider === currentProvider;
       const marker = isCurrent ? " ✓" : "";
       response += `${index + 1}. ${provider} (${providerConfig.model})${marker}\n`;
     });
 
-    response += `\nReply with a number (1-${availableProviders.length}) to switch:`;
+    response += `\nReply with a number (1-${validProviders.length}) to switch:`;
     
     return response;
   }
@@ -258,14 +270,20 @@ Reply with 1 or 2:`;
     }
 
     const configuredProviders = config.providers || {};
-    const availableProviders = Object.keys(configuredProviders);
+    const allProviders = Object.keys(configuredProviders);
+
+    // Filter out providers with invalid configurations (same as showProviderList)
+    const validProviders = allProviders.filter(provider => {
+      const providerConfig = configuredProviders[provider];
+      return providerConfig && providerConfig.model;
+    });
 
     const selection = parseInt(text, 10);
-    if (isNaN(selection) || selection < 1 || selection > availableProviders.length) {
-      return `Invalid selection. Please use /switch again and pick a number between 1-${availableProviders.length}.`;
+    if (isNaN(selection) || selection < 1 || selection > validProviders.length) {
+      return `Invalid selection. Please use /switch again and pick a number between 1-${validProviders.length}.`;
     }
 
-    const selectedProvider = availableProviders[selection - 1];
+    const selectedProvider = validProviders[selection - 1];
     const currentProvider = this.router.getProviderName();
 
     if (selectedProvider === currentProvider) {
@@ -273,6 +291,11 @@ Reply with 1 or 2:`;
     }
 
     const providerConfig = configuredProviders[selectedProvider];
+
+    // Validate provider configuration (redundant check for safety)
+    if (!providerConfig || !providerConfig.model) {
+      return `[ERROR] Provider configuration for ${selectedProvider} is invalid.\n\nPlease run 'txtcode auth' to reconfigure.`;
+    }
 
     try {
       // Retrieve API key from keychain
