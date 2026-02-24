@@ -5,9 +5,11 @@ import { OllamaClaudeCodeAdapter } from "../adapters/ollama-claude-code";
 import { CodexAdapter } from "../adapters/openai-codex";
 import { processWithAnthropic } from "../providers/anthropic";
 import { processWithGemini } from "../providers/gemini";
+import { processWithMistral } from "../providers/mistral";
 import { processWithMoonshot } from "../providers/moonshot";
 import { processWithOpenAI } from "../providers/openai";
 import { processWithOpenRouter } from "../providers/openrouter";
+import { processWithXAI } from "../providers/xai";
 import { logger } from "../shared/logger";
 import { IDEAdapter } from "../shared/types";
 import { ProcessTool } from "../tools/process";
@@ -116,6 +118,10 @@ export class Router {
         return await processWithOpenRouter(instruction, this.apiKey, this.model, this.toolRegistry);
       case "moonshot":
         return await processWithMoonshot(instruction, this.apiKey, this.model, this.toolRegistry);
+      case "mistral":
+        return await processWithMistral(instruction, this.apiKey, this.model, this.toolRegistry);
+      case "xai":
+        return await processWithXAI(instruction, this.apiKey, this.model, this.toolRegistry);
       default:
         return `[ERROR] Unsupported AI provider: ${this.provider}. Run: txtcode config`;
     }

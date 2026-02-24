@@ -1575,6 +1575,241 @@
           "description": "Preview version of Kimi K2 from September 2024"
         }
       ]
+    },
+    "mistral": {
+      "name": "Mistral AI",
+      "apiKeyEnv": "MISTRAL_API_KEY",
+      "models": [
+        {
+          "id": "mistral-large-latest",
+          "name": "Mistral Large Latest",
+          "description": "Latest and most capable Mistral model",
+          "recommended": true
+        },
+        {
+          "id": "mistral-large-2411",
+          "name": "Mistral Large (2411)",
+          "description": "Mistral Large snapshot from November 2024"
+        },
+        {
+          "id": "mistral-large-2512",
+          "name": "Mistral Large (2512)",
+          "description": "Mistral Large snapshot from December 2025"
+        },
+        {
+          "id": "mistral-medium-latest",
+          "name": "Mistral Medium Latest",
+          "description": "Balanced performance and cost"
+        },
+        {
+          "id": "mistral-medium-2505",
+          "name": "Mistral Medium (2505)",
+          "description": "Mistral Medium snapshot from May 2025"
+        },
+        {
+          "id": "mistral-medium-2508",
+          "name": "Mistral Medium (2508)",
+          "description": "Mistral Medium snapshot from August 2025"
+        },
+        {
+          "id": "mistral-small-latest",
+          "name": "Mistral Small Latest",
+          "description": "Fast and efficient small model"
+        },
+        {
+          "id": "mistral-small-2506",
+          "name": "Mistral Small (2506)",
+          "description": "Mistral Small snapshot from June 2025"
+        },
+        {
+          "id": "mistral-nemo",
+          "name": "Mistral Nemo",
+          "description": "Compact and efficient model"
+        },
+        {
+          "id": "codestral-latest",
+          "name": "Codestral Latest",
+          "description": "Latest coding-specialized model",
+          "recommended": true
+        },
+        {
+          "id": "devstral-2512",
+          "name": "Devstral (2512)",
+          "description": "Development-focused model from December 2025"
+        },
+        {
+          "id": "devstral-medium-latest",
+          "name": "Devstral Medium Latest",
+          "description": "Medium-sized development model"
+        },
+        {
+          "id": "devstral-medium-2507",
+          "name": "Devstral Medium (2507)",
+          "description": "Devstral Medium snapshot from July 2025"
+        },
+        {
+          "id": "devstral-small-2507",
+          "name": "Devstral Small (2507)",
+          "description": "Compact development model from July 2025"
+        },
+        {
+          "id": "labs-devstral-small-2512",
+          "name": "Labs Devstral Small (2512)",
+          "description": "Experimental small development model"
+        },
+        {
+          "id": "devstral-small-2505",
+          "name": "Devstral Small (2505)",
+          "description": "Devstral Small snapshot from May 2025"
+        },
+        {
+          "id": "magistral-medium-latest",
+          "name": "Magistral Medium Latest",
+          "description": "Magistral Medium with reasoning capabilities"
+        },
+        {
+          "id": "magistral-small",
+          "name": "Magistral Small",
+          "description": "Compact reasoning model"
+        },
+        {
+          "id": "ministral-3b-latest",
+          "name": "Ministral 3B Latest",
+          "description": "Ultra-compact 3B parameter model"
+        },
+        {
+          "id": "ministral-8b-latest",
+          "name": "Ministral 8B Latest",
+          "description": "Compact 8B parameter model"
+        },
+        {
+          "id": "open-mistral-7b",
+          "name": "Open Mistral 7B",
+          "description": "Open source 7B model"
+        },
+        {
+          "id": "open-mistral-large-latest",
+          "name": "Open Mistral Large Latest",
+          "description": "Latest open source large model"
+        },
+        {
+          "id": "open-mixtral-8x22b",
+          "name": "Open Mixtral 8x22B",
+          "description": "Mixture of Experts 8x22B model"
+        },
+        {
+          "id": "open-mixtral-8x7b",
+          "name": "Open Mixtral 8x7B",
+          "description": "Mixture of Experts 8x7B model"
+        },
+        {
+          "id": "pixtral-12b",
+          "name": "Pixtral 12B",
+          "description": "Multimodal 12B model"
+        },
+        {
+          "id": "pixtral-large-latest",
+          "name": "Pixtral Large Latest",
+          "description": "Latest large multimodal model"
+        }
+      ]
+    },
+    "xai": {
+      "name": "xAI",
+      "apiKeyEnv": "XAI_API_KEY",
+      "models": [
+        {
+          "id": "grok-4",
+          "name": "Grok 4",
+          "description": "Latest Grok model with enhanced capabilities",
+          "recommended": true
+        },
+        {
+          "id": "grok-2",
+          "name": "Grok 2",
+          "description": "Grok 2 base model"
+        },
+        {
+          "id": "grok-2-1212",
+          "name": "Grok 2 (1212)",
+          "description": "Grok 2 snapshot from December 12"
+        },
+        {
+          "id": "grok-2-latest",
+          "name": "Grok 2 Latest",
+          "description": "Latest Grok 2 release"
+        },
+        {
+          "id": "grok-3",
+          "name": "Grok 3",
+          "description": "Grok 3 base model"
+        },
+        {
+          "id": "grok-3-fast",
+          "name": "Grok 3 Fast",
+          "description": "Fast variant of Grok 3"
+        },
+        {
+          "id": "grok-3-fast-latest",
+          "name": "Grok 3 Fast Latest",
+          "description": "Latest Grok 3 Fast release"
+        },
+        {
+          "id": "grok-3-latest",
+          "name": "Grok 3 Latest",
+          "description": "Latest Grok 3 release"
+        },
+        {
+          "id": "grok-3-mini",
+          "name": "Grok 3 Mini",
+          "description": "Compact Grok 3 model"
+        },
+        {
+          "id": "grok-3-mini-fast",
+          "name": "Grok 3 Mini Fast",
+          "description": "Fast variant of Grok 3 Mini"
+        },
+        {
+          "id": "grok-3-mini-fast-latest",
+          "name": "Grok 3 Mini Fast Latest",
+          "description": "Latest Grok 3 Mini Fast release"
+        },
+        {
+          "id": "grok-3-mini-latest",
+          "name": "Grok 3 Mini Latest",
+          "description": "Latest Grok 3 Mini release"
+        },
+        {
+          "id": "grok-4-fast",
+          "name": "Grok 4 Fast",
+          "description": "Fast variant of Grok 4"
+        },
+        {
+          "id": "grok-4-fast-non-reasoning",
+          "name": "Grok 4 Fast Non-Reasoning",
+          "description": "Fast Grok 4 without reasoning capabilities"
+        },
+        {
+          "id": "grok-4-1-fast",
+          "name": "Grok 4.1 Fast",
+          "description": "Fast variant of Grok 4.1"
+        },
+        {
+          "id": "grok-4-1-fast-non-reasoning",
+          "name": "Grok 4.1 Fast Non-Reasoning",
+          "description": "Fast Grok 4.1 without reasoning capabilities"
+        },
+        {
+          "id": "grok-beta",
+          "name": "Grok Beta",
+          "description": "Beta version of Grok"
+        },
+        {
+          "id": "grok-code-fast-1",
+          "name": "Grok Code Fast 1",
+          "description": "Fast coding-specialized Grok model"
+        }
+      ]
     }
   }
 }
