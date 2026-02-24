@@ -7,7 +7,7 @@ export class AgentCore {
   private authorizedUser: string | null;
   private configPath: string;
   private userModes: Map<string, "chat" | "code"> = new Map();
-  private pendingSwitch: Map<string, "main" | "adapter" | "provider" | "apikey"> = new Map();
+  private pendingSwitch: Map<string, "main" | "adapter" | "provider"> = new Map();
 
   constructor() {
     this.router = new Router();
@@ -146,21 +146,33 @@ Reply with 1 or 2:`;
   }
 
   private showProviderList(userId: string): string {
+    const fs = require("fs");
+    const config = JSON.parse(fs.readFileSync(this.configPath, "utf-8"));
     const currentProvider = this.router.getProviderName();
     const currentModel = this.router.getCurrentModel();
 
+    // Get configured providers
+    const configuredProviders = config.providers || {};
+    const availableProviders = Object.keys(configuredProviders);
+
+    if (availableProviders.length === 0) {
+      return `[ERROR] No providers configured. Please run 'txtcode auth' to configure providers.`;
+    }
+
     this.pendingSwitch.set(userId, "provider");
 
-    return `🤖 Switch Primary LLM
+    let response = `🤖 Switch Primary LLM\n\nCurrent: ${currentProvider} (${currentModel})\n\nConfigured Providers:\n`;
+    
+    availableProviders.forEach((provider, index) => {
+      const providerConfig = configuredProviders[provider];
+      const isCurrent = provider === currentProvider;
+      const marker = isCurrent ? " ✓" : "";
+      response += `${index + 1}. ${provider} (${providerConfig.model})${marker}\n`;
+    });
 
-Current: ${currentProvider} (${currentModel})
-
-1. Anthropic (Claude)
-2. OpenAI (GPT)
-3. Google Gemini
-4. OpenRouter
-
-Reply with a number (1-4) to switch:`;
+    response += `\nReply with a number (1-${availableProviders.length}) to switch:`;
+    
+    return response;
   }
 
   private showAdapterList(userId: string): string {
@@ -206,80 +218,52 @@ Reply with a number (1-4) to switch:`;
       return await this.handleAdapterSelection(userId, text);
     }
 
-    if (switchState === "apikey") {
-      return await this.handleApiKeyInput(userId, text);
-    }
-
     this.pendingSwitch.delete(userId);
     return `Invalid state. Please use /switch again.`;
   }
 
   private async handleProviderSelection(userId: string, text: string): Promise<string> {
-    const selection = parseInt(text, 10);
-    const providers = ["anthropic", "openai", "gemini", "openrouter"];
+    this.pendingSwitch.delete(userId);
+    
+    const fs = require("fs");
+    const config = JSON.parse(fs.readFileSync(this.configPath, "utf-8"));
+    const configuredProviders = config.providers || {};
+    const availableProviders = Object.keys(configuredProviders);
 
-    if (isNaN(selection) || selection < 1 || selection > providers.length) {
-      this.pendingSwitch.delete(userId);
-      return `Invalid selection. Please use /switch again and pick a number between 1-4.`;
+    const selection = parseInt(text, 10);
+    if (isNaN(selection) || selection < 1 || selection > availableProviders.length) {
+      return `Invalid selection. Please use /switch again and pick a number between 1-${availableProviders.length}.`;
     }
 
-    const selectedProvider = providers[selection - 1];
+    const selectedProvider = availableProviders[selection - 1];
     const currentProvider = this.router.getProviderName();
 
     if (selectedProvider === currentProvider) {
-      this.pendingSwitch.delete(userId);
       return `Already using ${selectedProvider}. No change needed.`;
     }
 
-    // Store selected provider temporarily
-    (this as any).tempProvider = selectedProvider;
-    this.pendingSwitch.set(userId, "apikey");
-
-    return `Please enter your API key for ${selectedProvider}:
-
-(Your API key will be saved securely in ~/.txtcode/config.json)`;
-  }
-
-  private async handleApiKeyInput(userId: string, apiKey: string): Promise<string> {
-    this.pendingSwitch.delete(userId);
-
-    const selectedProvider = (this as any).tempProvider;
-    delete (this as any).tempProvider;
-
-    if (!apiKey || apiKey.trim().length === 0) {
-      return `[ERROR] API key cannot be empty. Please use /switch again.`;
-    }
+    const providerConfig = configuredProviders[selectedProvider];
 
     try {
-      // Update config file
-      const fs = require("fs");
-      const config = JSON.parse(fs.readFileSync(this.configPath, "utf-8"));
+      // Update config file with new active provider
       config.aiProvider = selectedProvider;
-      config.aiApiKey = apiKey.trim();
+      config.aiApiKey = providerConfig.apiKey;
+      config.aiModel = providerConfig.model;
       config.updatedAt = new Date().toISOString();
-
-      // Load models catalog to get default model
-      const modelsCatalog = require("../../data/models-catalog.json");
-      const providerModels = modelsCatalog.providers[selectedProvider];
-      const defaultModel = providerModels.models.find((m: any) => m.recommended)?.id || providerModels.models[0]?.id;
-      
-      if (defaultModel) {
-        config.aiModel = defaultModel;
-      }
 
       fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2));
 
       // Update router
-      this.router.updateProvider(selectedProvider, apiKey.trim(), defaultModel || "");
+      this.router.updateProvider(selectedProvider, providerConfig.apiKey, providerConfig.model);
 
       return `✅ Primary LLM switched!
 
 Provider: ${selectedProvider}
-Model: ${defaultModel || "default"}
+Model: ${providerConfig.model}
 
 Your chat messages will now use ${selectedProvider}.`;
-    } catch (error) {
-      return `[ERROR] Failed to update provider: ${error instanceof Error ? error.message : "Unknown error"}`;
+    } catch (error: any) {
+      return `[ERROR] Failed to switch provider: ${error.message}`;
     }
   }
 

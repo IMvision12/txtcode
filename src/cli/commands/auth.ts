@@ -179,54 +179,85 @@ export async function authCommand() {
   console.log(chalk.blue.bold("\nTxtCode Authentication\n"));
   console.log(chalk.gray("Configure your TxtCode CLI for remote IDE control\n"));
 
-  // Step 1: AI Provider
-  const aiAnswers = await inquirer.prompt([
-    {
-      type: "list",
-      name: "aiProvider",
-      message: "Select AI provider:",
-      choices: [
-        { name: "Anthropic (Claude)", value: "anthropic" },
-        { name: "OpenAI (GPT)", value: "openai" },
-        { name: "Google (Gemini)", value: "gemini" },
-        { name: "OpenRouter (any model)", value: "openrouter" },
-      ],
-    },
-    {
-      type: "password",
-      name: "aiApiKey",
-      message: "Enter AI API Key:",
-      mask: "*",
-      validate: (input) => input.length > 0 || "API key is required",
-    },
-  ]);
+  const selectedProviders = new Set<string>();
 
-  console.log(chalk.green("\nAI provider configured\n"));
+  // Helper function to configure a provider
+  async function configureProvider(label: string) {
+    console.log(chalk.cyan(`\n${label}\n`));
+    
+    // Get available providers (excluding already selected ones)
+    const allProviders = [
+      { name: "Anthropic (Claude)", value: "anthropic" },
+      { name: "OpenAI (GPT)", value: "openai" },
+      { name: "Google (Gemini)", value: "gemini" },
+      { name: "OpenRouter (any model)", value: "openrouter" },
+    ];
+    
+    const availableProviders = allProviders.filter(p => !selectedProviders.has(p.value));
+    
+    if (availableProviders.length === 0) {
+      throw new Error("No more providers available to configure");
+    }
+    
+    const providerAnswers = await inquirer.prompt([
+      {
+        type: "list",
+        name: "provider",
+        message: `Select ${label.toLowerCase()}:`,
+        choices: availableProviders,
+      },
+      {
+        type: "password",
+        name: "apiKey",
+        message: "Enter API Key:",
+        mask: "*",
+        validate: (input) => input.length > 0 || "API key is required",
+      },
+    ]);
 
-  // Load models from catalog
-  const providerModels =
-    modelsCatalog.providers[aiAnswers.aiProvider as keyof typeof modelsCatalog.providers];
-  const modelChoices = providerModels.models.map((model: any) => ({
-    name: model.recommended
-      ? `${model.name} (${model.description}) - Recommended`
-      : `${model.name} (${model.description})`,
-    value: model.id,
-  }));
+    // Mark this provider as selected
+    selectedProviders.add(providerAnswers.provider);
 
-  const modelAnswer = await inquirer.prompt([
-    {
-      type: "list",
-      name: "model",
-      message: "Select model:",
-      choices: modelChoices,
-      default: modelChoices[0]?.value,
-      pageSize: 10,
-    },
-  ]);
+    // Load models from catalog
+    const providerModels =
+      modelsCatalog.providers[providerAnswers.provider as keyof typeof modelsCatalog.providers];
+    const modelChoices = providerModels.models.map((model: any) => ({
+      name: model.recommended
+        ? `${model.name} - Recommended`
+        : model.name,
+      value: model.id,
+    }));
 
-  console.log(chalk.green(`\nModel selected: ${modelAnswer.model}\n`));
+    const modelAnswer = await inquirer.prompt([
+      {
+        type: "list",
+        name: "model",
+        message: "Select model:",
+        choices: modelChoices,
+        default: modelChoices[0]?.value,
+        pageSize: 10,
+      },
+    ]);
 
-  // Step 2: Messaging Platform
+    console.log(chalk.green(`\n${label} configured: ${providerAnswers.provider} (${modelAnswer.model})\n`));
+
+    return {
+      provider: providerAnswers.provider,
+      apiKey: providerAnswers.apiKey,
+      model: modelAnswer.model,
+    };
+  }
+
+  // Step 1: Configure Primary AI Provider
+  const primaryProvider = await configureProvider("Primary AI Provider");
+
+  // Step 2: Configure Secondary Provider 1
+  const secondaryProvider1 = await configureProvider("Secondary AI Provider #1");
+
+  // Step 3: Configure Secondary Provider 2
+  const secondaryProvider2 = await configureProvider("Secondary AI Provider #2");
+
+  // Step 4: Messaging Platform
   const platformAnswers = await inquirer.prompt([
     {
       type: "list",
@@ -292,7 +323,7 @@ export async function authCommand() {
     console.log(chalk.green("\nWhatsApp authenticated successfully!\n"));
   }
 
-  // Step 3: Coding Adapter Selection
+  // Step 5: Coding Adapter Selection
   const ideAnswers = await inquirer.prompt([
     {
       type: "list",
@@ -313,11 +344,29 @@ export async function authCommand() {
     fs.mkdirSync(CONFIG_DIR, { recursive: true });
   }
 
-  // Save configuration
+  // Save configuration with all 3 providers
   const config = {
-    aiProvider: aiAnswers.aiProvider,
-    aiApiKey: aiAnswers.aiApiKey,
-    aiModel: modelAnswer.model,
+    // Primary provider (active)
+    aiProvider: primaryProvider.provider,
+    aiApiKey: primaryProvider.apiKey,
+    aiModel: primaryProvider.model,
+    
+    // Secondary providers
+    providers: {
+      [primaryProvider.provider]: {
+        apiKey: primaryProvider.apiKey,
+        model: primaryProvider.model,
+      },
+      [secondaryProvider1.provider]: {
+        apiKey: secondaryProvider1.apiKey,
+        model: secondaryProvider1.model,
+      },
+      [secondaryProvider2.provider]: {
+        apiKey: secondaryProvider2.apiKey,
+        model: secondaryProvider2.model,
+      },
+    },
+    
     platform: platformAnswers.platform,
     telegramToken: telegramToken,
     discordToken: discordToken,
@@ -331,6 +380,10 @@ export async function authCommand() {
 
   console.log(chalk.green("\nAuthentication successful!"));
   console.log(chalk.gray(`\nConfiguration saved to: ${CONFIG_FILE}`));
+  console.log(chalk.cyan("\nConfigured Providers:"));
+  console.log(chalk.white(`  Primary: ${primaryProvider.provider} (${primaryProvider.model})`));
+  console.log(chalk.white(`  Secondary 1: ${secondaryProvider1.provider} (${secondaryProvider1.model})`));
+  console.log(chalk.white(`  Secondary 2: ${secondaryProvider2.provider} (${secondaryProvider2.model})`));
   console.log(chalk.cyan("\nNext steps:"));
   console.log(chalk.white("  1. Run: " + chalk.bold("txtcode start")));
 
@@ -343,6 +396,7 @@ export async function authCommand() {
   }
 
   console.log(chalk.white("  3. Start coding from your phone!\n"));
+  console.log(chalk.gray("  Use /switch to change between your configured providers\n"));
 
   // Force exit to ensure terminal closes (WhatsApp socket may have lingering listeners)
   setTimeout(() => {
