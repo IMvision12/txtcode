@@ -168,34 +168,41 @@ async function configureAI(config: any) {
   console.log(chalk.yellow("Note: This updates the primary provider only.\n"));
   console.log(chalk.gray("To reconfigure all providers, run: txtcode auth\n"));
 
-  const answers = await inquirer.prompt([
+  // Get list of already configured providers
+  const configuredProviders = config.providers || {};
+  const providerList = Object.keys(configuredProviders);
+
+  if (providerList.length === 0) {
+    console.log(chalk.red("\n[ERROR] No providers configured.\n"));
+    console.log(chalk.yellow("Please run 'txtcode auth' first to configure providers.\n"));
+    return;
+  }
+
+  // Show configured providers
+  const providerChoices = providerList.map(providerId => ({
+    name: `${providerId} (${configuredProviders[providerId].model})`,
+    value: providerId,
+  }));
+
+  const { selectedProvider } = await inquirer.prompt([
     {
       type: "list",
-      name: "aiProvider",
-      message: "Select AI provider for general chat:",
-      choices: [
-        { name: "Anthropic (Claude)", value: "anthropic" },
-        { name: "OpenAI (GPT)", value: "openai" },
-        { name: "Google (Gemini)", value: "gemini" },
-        { name: "OpenRouter", value: "openrouter" },
-      ],
+      name: "selectedProvider",
+      message: "Select primary provider:",
+      choices: providerChoices,
       default: config.aiProvider,
-    },
-    {
-      type: "password",
-      name: "aiApiKey",
-      message: "Enter AI API Key:",
-      mask: "*",
     },
   ]);
 
-  config.aiProvider = answers.aiProvider;
-  
-  // Store API key in keychain
-  await setApiKey(answers.aiProvider, answers.aiApiKey);
+  // Update top-level fields to match selected provider
+  config.aiProvider = selectedProvider;
+  config.aiModel = configuredProviders[selectedProvider].model;
+  config.updatedAt = new Date().toISOString();
 
   saveConfig(config);
-  console.log(chalk.green("\n✅ AI provider configuration updated!\n"));
+  console.log(chalk.green("\n✅ Primary provider updated!\n"));
+  console.log(chalk.white(`Active: ${selectedProvider} (${config.aiModel})\n`));
+  console.log(chalk.gray("Note: To change API key or add/remove providers, run: txtcode auth\n"));
 }
 
 async function configureProject(config: any) {
