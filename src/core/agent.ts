@@ -29,6 +29,20 @@ export class AgentCore {
     }
   }
 
+  private loadConfigSafely(): any | null {
+    try {
+      const fs = require("fs");
+      if (!fs.existsSync(this.configPath)) {
+        return null;
+      }
+      const configData = fs.readFileSync(this.configPath, "utf-8");
+      return JSON.parse(configData);
+    } catch (error) {
+      logger.error("Failed to load config file", error);
+      return null;
+    }
+  }
+
   isUserInCodeMode(userId: string): boolean {
     return this.userModes.get(userId) === "code";
   }
@@ -39,9 +53,16 @@ export class AgentCore {
 
   private saveAuthorizedUser(userId: string) {
     try {
-      const fs = require("fs");
-      const config = JSON.parse(fs.readFileSync(this.configPath, "utf-8"));
+      const config = this.loadConfigSafely();
+      
+      if (!config) {
+        logger.error("Failed to load config file to save authorized user");
+        return;
+      }
+
       config.authorizedUser = userId;
+      
+      const fs = require("fs");
       fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2));
       this.authorizedUser = userId;
     } catch (error) {
@@ -147,8 +168,12 @@ Reply with 1 or 2:`;
   }
 
   private showProviderList(userId: string): string {
-    const fs = require("fs");
-    const config = JSON.parse(fs.readFileSync(this.configPath, "utf-8"));
+    const config = this.loadConfigSafely();
+    
+    if (!config) {
+      return `[ERROR] Failed to load configuration. Config file may be corrupted.\n\nPlease run 'txtcode auth' to reconfigure.`;
+    }
+
     const currentProvider = this.router.getProviderName();
     const currentModel = this.router.getCurrentModel();
 
@@ -226,8 +251,12 @@ Reply with 1 or 2:`;
   private async handleProviderSelection(userId: string, text: string): Promise<string> {
     this.pendingSwitch.delete(userId);
     
-    const fs = require("fs");
-    const config = JSON.parse(fs.readFileSync(this.configPath, "utf-8"));
+    const config = this.loadConfigSafely();
+    
+    if (!config) {
+      return `[ERROR] Failed to load configuration. Config file may be corrupted.\n\nPlease run 'txtcode auth' to reconfigure.`;
+    }
+
     const configuredProviders = config.providers || {};
     const availableProviders = Object.keys(configuredProviders);
 
@@ -257,7 +286,12 @@ Reply with 1 or 2:`;
       config.aiModel = providerConfig.model;
       config.updatedAt = new Date().toISOString();
 
-      fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2));
+      const fs = require("fs");
+      try {
+        fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2));
+      } catch (writeError) {
+        return `[ERROR] Failed to save configuration: ${writeError instanceof Error ? writeError.message : "Unknown error"}`;
+      }
 
       // Update router
       this.router.updateProvider(selectedProvider, apiKey, providerConfig.model);

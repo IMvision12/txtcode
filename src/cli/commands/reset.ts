@@ -10,13 +10,33 @@ const WA_AUTH_DIR = path.join(CONFIG_DIR, ".wacli_auth");
 
 export function resetCommand() {
   try {
-    const config = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf-8"));
+    if (!fs.existsSync(CONFIG_FILE)) {
+      console.log(chalk.red("\n❌ Config file not found.\n"));
+      console.log(chalk.yellow('Run "txtcode auth" to set up first.\n'));
+      return;
+    }
+
+    let config;
+    try {
+      const configData = fs.readFileSync(CONFIG_FILE, "utf-8");
+      config = JSON.parse(configData);
+    } catch (parseError) {
+      console.log(chalk.red("\n❌ Config file is corrupted.\n"));
+      console.log(chalk.yellow('Run "txtcode auth" to reconfigure.\n'));
+      return;
+    }
+
     config.authorizedUser = "";
-    fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
-    console.log(chalk.green("\n✅ Authorized user reset!"));
-    console.log(chalk.cyan("The next person to message will become the authorized user.\n"));
+    
+    try {
+      fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+      console.log(chalk.green("\n✅ Authorized user reset!"));
+      console.log(chalk.cyan("The next person to message will become the authorized user.\n"));
+    } catch (writeError) {
+      console.log(chalk.red("\n❌ Failed to save config file.\n"));
+    }
   } catch (error) {
-    console.log(chalk.red("\n❌ Failed to reset. Config file not found.\n"));
+    console.log(chalk.red("\n❌ Failed to reset. Unexpected error.\n"));
   }
 }
 
