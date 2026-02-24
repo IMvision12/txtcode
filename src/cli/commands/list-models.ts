@@ -1,29 +1,9 @@
-import fs from "fs";
-import path from "path";
 import chalk from "chalk";
-
-interface Model {
-  id: string;
-  name: string;
-  description: string;
-  recommended?: boolean;
-}
-
-interface Provider {
-  name: string;
-  apiKeyEnv: string;
-  models: Model[];
-}
-
-interface ModelsCatalog {
-  providers: { [key: string]: Provider };
-}
+import { loadModelsCatalog, Model } from "../../utils/models-catalog-loader";
 
 export const listModelsCommand = () => {
-  const modelsCatalogPath = path.join(__dirname, "../../../src/data/models-catalog.json");
   try {
-    const data = fs.readFileSync(modelsCatalogPath, "utf8");
-    const catalog: ModelsCatalog = JSON.parse(data);
+    const catalog = loadModelsCatalog();
 
     console.log(chalk.bold("Available AI Models:"));
     console.log("");
@@ -35,7 +15,7 @@ export const listModelsCommand = () => {
         console.log(chalk.gray(`  API Key Environment Variable: ${provider.apiKeyEnv}`));
 
         if (provider.models.length > 0) {
-          provider.models.forEach((model) => {
+          provider.models.forEach((model: Model) => {
             let modelOutput = `    ${chalk.green(model.name)} (${model.id})`;
             if (model.recommended) {
               modelOutput += chalk.yellow(" (Recommended)");

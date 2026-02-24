@@ -1,0 +1,111 @@
+{
+  "name": "Google Gemini",
+  "apiKeyEnv": "GEMINI_API_KEY",
+  "models": [
+    {
+      "id": "gemini-3.1-pro-preview",
+      "name": "Gemini 3.1 Pro Preview",
+      "description": "Latest Gemini 3.1 Pro preview",
+      "recommended": true
+    },
+    {
+      "id": "gemini-3-pro-preview",
+      "name": "Gemini 3 Pro Preview",
+      "description": "Gemini 3 Pro preview model",
+      "recommended": true
+    },
+    {
+      "id": "gemini-3-flash-preview",
+      "name": "Gemini 3 Flash Preview",
+      "description": "Fast Gemini 3 preview model",
+      "recommended": true
+    },
+    {
+      "id": "gemini-2.5-pro",
+      "name": "Gemini 2.5 Pro",
+      "description": "Stable release of Gemini 2.5 Pro (June 17th, 2025)",
+      "recommended": true
+    },
+    {
+      "id": "gemini-2.5-flash",
+      "name": "Gemini 2.5 Flash",
+      "description": "Mid-size multimodal model supporting up to 1M tokens (June 2025)",
+      "recommended": true
+    },
+    {
+      "id": "gemini-2.5-flash-lite",
+      "name": "Gemini 2.5 Flash Lite",
+      "description": "Stable lightweight version (July 2025)"
+    },
+    {
+      "id": "gemini-2.5-flash-lite-preview-09-2025",
+      "name": "Gemini 2.5 Flash Lite Preview (09-2025)",
+      "description": "Preview release of Gemini 2.5 Flash Lite (September 2025)"
+    },
+    {
+      "id": "gemini-2.0-flash",
+      "name": "Gemini 2.0 Flash",
+      "description": "Fast and versatile multimodal model"
+    },
+    {
+      "id": "gemini-2.0-flash-001",
+      "name": "Gemini 2.0 Flash (001)",
+      "description": "Stable version released January 2025"
+    },
+    {
+      "id": "gemini-2.0-flash-lite",
+      "name": "Gemini 2.0 Flash Lite",
+      "description": "Lightweight Gemini 2.0 Flash"
+    },
+    {
+      "id": "gemini-2.0-flash-lite-001",
+      "name": "Gemini 2.0 Flash Lite (001)",
+      "description": "Stable version of Gemini 2.0 Flash Lite"
+    },
+    {
+      "id": "gemini-flash-latest",
+      "name": "Gemini Flash Latest",
+      "description": "Latest release of Gemini Flash"
+    },
+    {
+      "id": "gemini-flash-lite-latest",
+      "name": "Gemini Flash Lite Latest",
+      "description": "Latest release of Gemini Flash Lite"
+    },
+    {
+      "id": "gemini-pro-latest",
+      "name": "Gemini Pro Latest",
+      "description": "Latest release of Gemini Pro"
+    },
+    {
+      "id": "gemma-3-27b-it",
+      "name": "Gemma 3 27B IT",
+      "description": "Gemma 3 27B instruction-tuned model"
+    },
+    {
+      "id": "gemma-3-12b-it",
+      "name": "Gemma 3 12B IT",
+      "description": "Gemma 3 12B instruction-tuned model"
+    },
+    {
+      "id": "gemma-3-4b-it",
+      "name": "Gemma 3 4B IT",
+      "description": "Gemma 3 4B instruction-tuned model"
+    },
+    {
+      "id": "gemma-3-1b-it",
+      "name": "Gemma 3 1B IT",
+      "description": "Gemma 3 1B instruction-tuned model"
+    },
+    {
+      "id": "gemma-3n-e4b-it",
+      "name": "Gemma 3N E4B IT",
+      "description": "Gemma 3N E4B instruction-tuned model"
+    },
+    {
+      "id": "gemma-3n-e2b-it",
+      "name": "Gemma 3N E2B IT",
+      "description": "Gemma 3N E2B instruction-tuned model"
+    }
+  ]
+}

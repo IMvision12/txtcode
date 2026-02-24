@@ -1,0 +1,97 @@
+{
+  "name": "xAI",
+  "apiKeyEnv": "XAI_API_KEY",
+  "models": [
+    {
+      "id": "grok-4",
+      "name": "Grok 4",
+      "description": "Latest Grok model with enhanced capabilities",
+      "recommended": true
+    },
+    {
+      "id": "grok-2",
+      "name": "Grok 2",
+      "description": "Grok 2 base model"
+    },
+    {
+      "id": "grok-2-1212",
+      "name": "Grok 2 (1212)",
+      "description": "Grok 2 snapshot from December 12"
+    },
+    {
+      "id": "grok-2-latest",
+      "name": "Grok 2 Latest",
+      "description": "Latest Grok 2 release"
+    },
+    {
+      "id": "grok-3",
+      "name": "Grok 3",
+      "description": "Grok 3 base model"
+    },
+    {
+      "id": "grok-3-fast",
+      "name": "Grok 3 Fast",
+      "description": "Fast variant of Grok 3"
+    },
+    {
+      "id": "grok-3-fast-latest",
+      "name": "Grok 3 Fast Latest",
+      "description": "Latest Grok 3 Fast release"
+    },
+    {
+      "id": "grok-3-latest",
+      "name": "Grok 3 Latest",
+      "description": "Latest Grok 3 release"
+    },
+    {
+      "id": "grok-3-mini",
+      "name": "Grok 3 Mini",
+      "description": "Compact Grok 3 model"
+    },
+    {
+      "id": "grok-3-mini-fast",
+      "name": "Grok 3 Mini Fast",
+      "description": "Fast variant of Grok 3 Mini"
+    },
+    {
+      "id": "grok-3-mini-fast-latest",
+      "name": "Grok 3 Mini Fast Latest",
+      "description": "Latest Grok 3 Mini Fast release"
+    },
+    {
+      "id": "grok-3-mini-latest",
+      "name": "Grok 3 Mini Latest",
+      "description": "Latest Grok 3 Mini release"
+    },
+    {
+      "id": "grok-4-fast",
+      "name": "Grok 4 Fast",
+      "description": "Fast variant of Grok 4"
+    },
+    {
+      "id": "grok-4-fast-non-reasoning",
+      "name": "Grok 4 Fast Non-Reasoning",
+      "description": "Fast Grok 4 without reasoning capabilities"
+    },
+    {
+      "id": "grok-4-1-fast",
+      "name": "Grok 4.1 Fast",
+      "description": "Fast variant of Grok 4.1"
+    },
+    {
+      "id": "grok-4-1-fast-non-reasoning",
+      "name": "Grok 4.1 Fast Non-Reasoning",
+      "description": "Fast Grok 4.1 without reasoning capabilities"
+    },
+    {
+      "id": "grok-beta",
+      "name": "Grok Beta",
+      "description": "Beta version of Grok"
+    },
+    {
+      "id": "grok-code-fast-1",
+      "name": "Grok Code Fast 1",
+      "description": "Fast coding-specialized Grok model"
+    }
+  ]
+}

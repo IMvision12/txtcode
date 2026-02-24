@@ -1,0 +1,1094 @@
+{
+  "name": "OpenRouter",
+  "apiKeyEnv": "OPENROUTER_API_KEY",
+  "models": [
+    {
+      "id": "anthropic/claude-sonnet-4",
+      "name": "Claude Sonnet 4",
+      "description": "Anthropic's balanced model via OpenRouter",
+      "recommended": true
+    },
+    {
+      "id": "anthropic/claude-opus-4",
+      "name": "Claude Opus 4",
+      "description": "Anthropic's most capable model via OpenRouter",
+      "recommended": true
+    },
+    {
+      "id": "openai/gpt-4o",
+      "name": "GPT-4o",
+      "description": "OpenAI's multimodal flagship via OpenRouter",
+      "recommended": true
+    },
+    {
+      "id": "openai/o3",
+      "name": "o3",
+      "description": "OpenAI's reasoning model via OpenRouter"
+    },
+    {
+      "id": "openai/o3-mini",
+      "name": "o3-mini",
+      "description": "OpenAI's compact reasoning model via OpenRouter"
+    },
+    {
+      "id": "openai/o3-mini-high",
+      "name": "o3-mini High",
+      "description": "OpenAI's o3-mini with high compute via OpenRouter"
+    },
+    {
+      "id": "openai/o4-mini",
+      "name": "o4-mini",
+      "description": "OpenAI's compact reasoning model via OpenRouter"
+    },
+    {
+      "id": "openai/gpt-4o-mini-search-preview",
+      "name": "GPT-4o Mini Search Preview",
+      "description": "GPT-4o Mini with search capabilities via OpenRouter"
+    },
+    {
+      "id": "openai/gpt-4o-search-preview",
+      "name": "GPT-4o Search Preview",
+      "description": "GPT-4o with search capabilities via OpenRouter"
+    },
+    {
+      "id": "openai/gpt-oss-120b",
+      "name": "GPT OSS 120B",
+      "description": "OpenAI's open source 120B model via OpenRouter"
+    },
+    {
+      "id": "openai/gpt-oss-120b:free",
+      "name": "GPT OSS 120B (Free)",
+      "description": "Free tier of GPT OSS 120B via OpenRouter"
+    },
+    {
+      "id": "openai/gpt-oss-120b:exacto",
+      "name": "GPT OSS 120B (Exacto)",
+      "description": "Exacto variant of GPT OSS 120B via OpenRouter"
+    },
+    {
+      "id": "openai/gpt-oss-20b",
+      "name": "GPT OSS 20B",
+      "description": "OpenAI's open source 20B model via OpenRouter"
+    },
+    {
+      "id": "openai/gpt-oss-20b:free",
+      "name": "GPT OSS 20B (Free)",
+      "description": "Free tier of GPT OSS 20B via OpenRouter"
+    },
+    {
+      "id": "openai/gpt-oss-safeguard-20b",
+      "name": "GPT OSS Safeguard 20B",
+      "description": "Safety-focused GPT OSS 20B via OpenRouter"
+    },
+    {
+      "id": "openai/gpt-3.5-turbo",
+      "name": "GPT-3.5 Turbo",
+      "description": "Legacy OpenAI model via OpenRouter"
+    },
+    {
+      "id": "openai/gpt-3.5-turbo-0613",
+      "name": "GPT-3.5 Turbo (0613)",
+      "description": "Specific version of GPT-3.5 Turbo via OpenRouter"
+    },
+    {
+      "id": "openai/gpt-3.5-turbo-16k",
+      "name": "GPT-3.5 Turbo 16K",
+      "description": "Extended context GPT-3.5 via OpenRouter"
+    },
+    {
+      "id": "openai/gpt-3.5-turbo-instruct",
+      "name": "GPT-3.5 Turbo Instruct",
+      "description": "Instruction-following GPT-3.5 via OpenRouter"
+    },
+    {
+      "id": "openai/gpt-4",
+      "name": "GPT-4",
+      "description": "Base GPT-4 model via OpenRouter"
+    },
+    {
+      "id": "openai/gpt-4-0314",
+      "name": "GPT-4 (0314)",
+      "description": "Specific version of GPT-4 via OpenRouter"
+    },
+    {
+      "id": "openai/gpt-4-1106-preview",
+      "name": "GPT-4 Turbo Preview",
+      "description": "GPT-4 Turbo preview via OpenRouter"
+    },
+    {
+      "id": "openai/gpt-4-turbo-preview",
+      "name": "GPT-4 Turbo Preview",
+      "description": "GPT-4 Turbo via OpenRouter"
+    },
+    {
+      "id": "google/gemini-2.5-pro",
+      "name": "Gemini 2.5 Pro",
+      "description": "Google's most capable model via OpenRouter"
+    },
+    {
+      "id": "google/gemini-2.5-flash",
+      "name": "Gemini 2.5 Flash",
+      "description": "Google's fast model via OpenRouter"
+    },
+    {
+      "id": "google/gemini-2-9b-it",
+      "name": "Gemini 2 9B IT",
+      "description": "Google's 9B instruction-tuned model via OpenRouter"
+    },
+    {
+      "id": "google/gemini-2-27b-it",
+      "name": "Gemini 2 27B IT",
+      "description": "Google's 27B instruction-tuned model via OpenRouter"
+    },
+    {
+      "id": "google/gemma-3n-e2b-it:free",
+      "name": "Gemma 3N E2B IT (Free)",
+      "description": "Free tier of Gemma 3N E2B via OpenRouter"
+    },
+    {
+      "id": "google/gemma-3n-e4b-it",
+      "name": "Gemma 3N E4B IT",
+      "description": "Gemma 3N E4B instruction-tuned via OpenRouter"
+    },
+    {
+      "id": "google/gemma-3n-e4b-it:free",
+      "name": "Gemma 3N E4B IT (Free)",
+      "description": "Free tier of Gemma 3N E4B via OpenRouter"
+    },
+    {
+      "id": "deepseek/deepseek-chat",
+      "name": "DeepSeek Chat",
+      "description": "DeepSeek's chat model via OpenRouter"
+    },
+    {
+      "id": "deepseek/deepseek-chat-v3-0324",
+      "name": "DeepSeek Chat V3 (0324)",
+      "description": "DeepSeek Chat V3 version via OpenRouter"
+    },
+    {
+      "id": "deepseek/deepseek-chat-v3.1",
+      "name": "DeepSeek Chat V3.1",
+      "description": "DeepSeek Chat V3.1 via OpenRouter"
+    },
+    {
+      "id": "deepseek/deepseek-v3.2",
+      "name": "DeepSeek V3.2",
+      "description": "DeepSeek V3.2 via OpenRouter"
+    },
+    {
+      "id": "deepseek/deepseek-v3.2-exp",
+      "name": "DeepSeek V3.2 Experimental",
+      "description": "Experimental DeepSeek V3.2 via OpenRouter"
+    },
+    {
+      "id": "deepseek/deepseek-v3.2-speciale",
+      "name": "DeepSeek V3.2 Speciale",
+      "description": "Special edition DeepSeek V3.2 via OpenRouter"
+    },
+    {
+      "id": "deepseek/deepseek-v3.1-terminus",
+      "name": "DeepSeek V3.1 Terminus",
+      "description": "DeepSeek V3.1 Terminus via OpenRouter"
+    },
+    {
+      "id": "deepseek/deepseek-v3.1-terminus:exacto",
+      "name": "DeepSeek V3.1 Terminus (Exacto)",
+      "description": "Exacto variant of DeepSeek V3.1 Terminus via OpenRouter"
+    },
+    {
+      "id": "deepseek/deepseek-r1",
+      "name": "DeepSeek R1",
+      "description": "DeepSeek's reasoning model via OpenRouter"
+    },
+    {
+      "id": "deepseek/deepseek-r1-0528",
+      "name": "DeepSeek R1 (0528)",
+      "description": "DeepSeek R1 version 0528 via OpenRouter"
+    },
+    {
+      "id": "deepseek/deepseek-r1-0528:free",
+      "name": "DeepSeek R1 (0528) Free",
+      "description": "Free tier of DeepSeek R1 0528 via OpenRouter"
+    },
+    {
+      "id": "deepseek/deepseek-r1-distill-llama-70b",
+      "name": "DeepSeek R1 Distill Llama 70B",
+      "description": "Distilled DeepSeek R1 on Llama 70B via OpenRouter"
+    },
+    {
+      "id": "deepseek/deepseek-r1-distill-qwen-32b",
+      "name": "DeepSeek R1 Distill Qwen 32B",
+      "description": "Distilled DeepSeek R1 on Qwen 32B via OpenRouter"
+    },
+    {
+      "id": "deepcogito/cogito-v2.1-671b",
+      "name": "Cogito V2.1 671B",
+      "description": "DeepCogito's large reasoning model via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-235b-a22b",
+      "name": "Qwen3 235B A22B",
+      "description": "Alibaba's large Qwen3 model via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-235b-a22b-2507",
+      "name": "Qwen3 235B A22B (2507)",
+      "description": "Qwen3 235B version 2507 via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-235b-a22b-thinking-2507",
+      "name": "Qwen3 235B A22B Thinking (2507)",
+      "description": "Thinking variant of Qwen3 235B via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-max",
+      "name": "Qwen3 Max",
+      "description": "Qwen3 Max model via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-max-thinking",
+      "name": "Qwen3 Max Thinking",
+      "description": "Thinking variant of Qwen3 Max via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-next-80b-a3b-instruct",
+      "name": "Qwen3 Next 80B A3B Instruct",
+      "description": "Qwen3 Next 80B instruction model via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-next-80b-a3b-instruct:free",
+      "name": "Qwen3 Next 80B A3B Instruct (Free)",
+      "description": "Free tier of Qwen3 Next 80B via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-next-80b-a3b-thinking",
+      "name": "Qwen3 Next 80B A3B Thinking",
+      "description": "Thinking variant of Qwen3 Next 80B via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-30b-a3b",
+      "name": "Qwen3 30B A3B",
+      "description": "Qwen3 30B model via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-30b-a3b-instruct-2507",
+      "name": "Qwen3 30B A3B Instruct (2507)",
+      "description": "Qwen3 30B instruction model via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-30b-a3b-thinking-2507",
+      "name": "Qwen3 30B A3B Thinking (2507)",
+      "description": "Thinking variant of Qwen3 30B via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-32b",
+      "name": "Qwen3 32B",
+      "description": "Qwen3 32B model via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-14b",
+      "name": "Qwen3 14B",
+      "description": "Qwen3 14B model via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-8b",
+      "name": "Qwen3 8B",
+      "description": "Qwen3 8B model via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-4b:free",
+      "name": "Qwen3 4B (Free)",
+      "description": "Free tier of Qwen3 4B via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-coder",
+      "name": "Qwen3 Coder",
+      "description": "Qwen3 coding model via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-coder:free",
+      "name": "Qwen3 Coder (Free)",
+      "description": "Free tier of Qwen3 Coder via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-coder:exacto",
+      "name": "Qwen3 Coder (Exacto)",
+      "description": "Exacto variant of Qwen3 Coder via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-coder-next",
+      "name": "Qwen3 Coder Next",
+      "description": "Next generation Qwen3 Coder via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-coder-plus",
+      "name": "Qwen3 Coder Plus",
+      "description": "Enhanced Qwen3 Coder via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-coder-flash",
+      "name": "Qwen3 Coder Flash",
+      "description": "Fast Qwen3 Coder via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen3-coder-30b-a3b-instruct",
+      "name": "Qwen3 Coder 30B A3B Instruct",
+      "description": "Qwen3 Coder 30B instruction model via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen2.5-coder-7b-instruct",
+      "name": "Qwen2.5 Coder 7B Instruct",
+      "description": "Qwen2.5 Coder 7B via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen-2.5-coder-32b-instruct",
+      "name": "Qwen 2.5 Coder 32B Instruct",
+      "description": "Qwen 2.5 Coder 32B via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen-2.5-7b-instruct",
+      "name": "Qwen 2.5 7B Instruct",
+      "description": "Qwen 2.5 7B instruction model via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen-2.5-72b-instruct",
+      "name": "Qwen 2.5 72B Instruct",
+      "description": "Qwen 2.5 72B instruction model via OpenRouter"
+    },
+    {
+      "id": "qwen/qwq-32b",
+      "name": "QwQ 32B",
+      "description": "Qwen's QwQ 32B model via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen-turbo",
+      "name": "Qwen Turbo",
+      "description": "Fast Qwen model via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen-plus",
+      "name": "Qwen Plus",
+      "description": "Enhanced Qwen model via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen-plus-2025-07-28",
+      "name": "Qwen Plus (2025-07-28)",
+      "description": "Qwen Plus version 2025-07-28 via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen-plus-2025-07-28:thinking",
+      "name": "Qwen Plus Thinking (2025-07-28)",
+      "description": "Thinking variant of Qwen Plus via OpenRouter"
+    },
+    {
+      "id": "qwen/qwen-max",
+      "name": "Qwen Max",
+      "description": "Maximum capability Qwen model via OpenRouter"
+    },
+    {
+      "id": "mistralai/mistral-large",
+      "name": "Mistral Large",
+      "description": "Mistral's flagship model via OpenRouter"
+    },
+    {
+      "id": "mistralai/mistral-large-2407",
+      "name": "Mistral Large (2407)",
+      "description": "Mistral Large version 2407 via OpenRouter"
+    },
+    {
+      "id": "mistralai/mistral-large-2411",
+      "name": "Mistral Large (2411)",
+      "description": "Mistral Large version 2411 via OpenRouter"
+    },
+    {
+      "id": "mistralai/mistral-saba",
+      "name": "Mistral Saba",
+      "description": "Mistral Saba model via OpenRouter"
+    },
+    {
+      "id": "mistralai/mistral-small-24b-instruct-2501",
+      "name": "Mistral Small 24B Instruct (2501)",
+      "description": "Mistral Small 24B instruction model via OpenRouter"
+    },
+    {
+      "id": "mistralai/mistral-small-creative",
+      "name": "Mistral Small Creative",
+      "description": "Creative variant of Mistral Small via OpenRouter"
+    },
+    {
+      "id": "mistralai/mistral-nemo",
+      "name": "Mistral Nemo",
+      "description": "Mistral Nemo model via OpenRouter"
+    },
+    {
+      "id": "mistralai/mistral-7b-instruct",
+      "name": "Mistral 7B Instruct",
+      "description": "Mistral 7B instruction model via OpenRouter"
+    },
+    {
+      "id": "mistralai/mistral-7b-instruct-v0.1",
+      "name": "Mistral 7B Instruct V0.1",
+      "description": "Mistral 7B V0.1 via OpenRouter"
+    },
+    {
+      "id": "mistralai/mistral-7b-instruct-v0.2",
+      "name": "Mistral 7B Instruct V0.2",
+      "description": "Mistral 7B V0.2 via OpenRouter"
+    },
+    {
+      "id": "mistralai/mistral-7b-instruct-v0.3",
+      "name": "Mistral 7B Instruct V0.3",
+      "description": "Mistral 7B V0.3 via OpenRouter"
+    },
+    {
+      "id": "mistralai/mixtral-8x7b-instruct",
+      "name": "Mixtral 8x7B Instruct",
+      "description": "Mistral's MoE 8x7B model via OpenRouter"
+    },
+    {
+      "id": "mistralai/mixtral-8x22b-instruct",
+      "name": "Mixtral 8x22B Instruct",
+      "description": "Mistral's MoE 8x22B model via OpenRouter"
+    },
+    {
+      "id": "mistralai/codestral-2508",
+      "name": "Codestral (2508)",
+      "description": "Mistral's coding model via OpenRouter"
+    },
+    {
+      "id": "mistralai/devstral-small",
+      "name": "Devstral Small",
+      "description": "Small development-focused Mistral via OpenRouter"
+    },
+    {
+      "id": "mistralai/devstral-medium",
+      "name": "Devstral Medium",
+      "description": "Medium development-focused Mistral via OpenRouter"
+    },
+    {
+      "id": "mistralai/devstral-2512",
+      "name": "Devstral (2512)",
+      "description": "Devstral version 2512 via OpenRouter"
+    },
+    {
+      "id": "meta-llama/llama-3.3-70b-instruct",
+      "name": "Llama 3.3 70B Instruct",
+      "description": "Meta's Llama 3.3 70B via OpenRouter"
+    },
+    {
+      "id": "meta-llama/llama-3.3-70b-instruct:free",
+      "name": "Llama 3.3 70B Instruct (Free)",
+      "description": "Free tier of Llama 3.3 70B via OpenRouter"
+    },
+    {
+      "id": "meta-llama/llama-3.2-1b-instruct",
+      "name": "Llama 3.2 1B Instruct",
+      "description": "Meta's Llama 3.2 1B via OpenRouter"
+    },
+    {
+      "id": "meta-llama/llama-3.2-3b-instruct",
+      "name": "Llama 3.2 3B Instruct",
+      "description": "Meta's Llama 3.2 3B via OpenRouter"
+    },
+    {
+      "id": "meta-llama/llama-3.2-3b-instruct:free",
+      "name": "Llama 3.2 3B Instruct (Free)",
+      "description": "Free tier of Llama 3.2 3B via OpenRouter"
+    },
+    {
+      "id": "meta-llama/llama-3.1-8b-instruct",
+      "name": "Llama 3.1 8B Instruct",
+      "description": "Meta's Llama 3.1 8B via OpenRouter"
+    },
+    {
+      "id": "meta-llama/llama-3.1-70b-instruct",
+      "name": "Llama 3.1 70B Instruct",
+      "description": "Meta's Llama 3.1 70B via OpenRouter"
+    },
+    {
+      "id": "meta-llama/llama-3.1-405b",
+      "name": "Llama 3.1 405B",
+      "description": "Meta's Llama 3.1 405B via OpenRouter"
+    },
+    {
+      "id": "meta-llama/llama-3.1-405b-instruct",
+      "name": "Llama 3.1 405B Instruct",
+      "description": "Meta's Llama 3.1 405B instruction model via OpenRouter"
+    },
+    {
+      "id": "meta-llama/llama-3-8b-instruct",
+      "name": "Llama 3 8B Instruct",
+      "description": "Meta's Llama 3 8B via OpenRouter"
+    },
+    {
+      "id": "meta-llama/llama-3-70b-instruct",
+      "name": "Llama 3 70B Instruct",
+      "description": "Meta's Llama 3 70B via OpenRouter"
+    },
+    {
+      "id": "meta-llama/llama-guard-2-8b",
+      "name": "Llama Guard 2 8B",
+      "description": "Meta's safety model via OpenRouter"
+    },
+    {
+      "id": "meta-llama/llama-guard-3-8b",
+      "name": "Llama Guard 3 8B",
+      "description": "Meta's safety model v3 via OpenRouter"
+    },
+    {
+      "id": "nvidia/llama-3.1-nemotron-70b-instruct",
+      "name": "Llama 3.1 Nemotron 70B Instruct",
+      "description": "NVIDIA's Nemotron 70B via OpenRouter"
+    },
+    {
+      "id": "nvidia/llama-3.1-nemotron-ultra-253b-v1",
+      "name": "Llama 3.1 Nemotron Ultra 253B V1",
+      "description": "NVIDIA's ultra-large Nemotron via OpenRouter"
+    },
+    {
+      "id": "nvidia/llama-3.3-nemotron-super-49b-v1.5",
+      "name": "Llama 3.3 Nemotron Super 49B V1.5",
+      "description": "NVIDIA's Nemotron Super 49B via OpenRouter"
+    },
+    {
+      "id": "nvidia/nemotron-nano-9b-v2",
+      "name": "Nemotron Nano 9B V2",
+      "description": "NVIDIA's compact Nemotron via OpenRouter"
+    },
+    {
+      "id": "nvidia/nemotron-nano-9b-v2:free",
+      "name": "Nemotron Nano 9B V2 (Free)",
+      "description": "Free tier of Nemotron Nano 9B via OpenRouter"
+    },
+    {
+      "id": "nvidia/nemotron-3-nano-30b-a3b",
+      "name": "Nemotron 3 Nano 30B A3B",
+      "description": "NVIDIA's Nemotron 3 Nano 30B via OpenRouter"
+    },
+    {
+      "id": "nvidia/nemotron-3-nano-30b-a3b:free",
+      "name": "Nemotron 3 Nano 30B A3B (Free)",
+      "description": "Free tier of Nemotron 3 Nano 30B via OpenRouter"
+    },
+    {
+      "id": "z-ai/glm-5",
+      "name": "GLM-5",
+      "description": "Zhipu AI's GLM-5 model via OpenRouter"
+    },
+    {
+      "id": "z-ai/glm-4.7",
+      "name": "GLM-4.7",
+      "description": "Zhipu AI's GLM-4.7 model via OpenRouter"
+    },
+    {
+      "id": "z-ai/glm-4.7-flash",
+      "name": "GLM-4.7 Flash",
+      "description": "Fast GLM-4.7 via OpenRouter"
+    },
+    {
+      "id": "z-ai/glm-4.6",
+      "name": "GLM-4.6",
+      "description": "Zhipu AI's GLM-4.6 model via OpenRouter"
+    },
+    {
+      "id": "z-ai/glm-4.6:exacto",
+      "name": "GLM-4.6 (Exacto)",
+      "description": "Exacto variant of GLM-4.6 via OpenRouter"
+    },
+    {
+      "id": "z-ai/glm-4.5",
+      "name": "GLM-4.5",
+      "description": "Zhipu AI's GLM-4.5 model via OpenRouter"
+    },
+    {
+      "id": "z-ai/glm-4.5-air",
+      "name": "GLM-4.5 Air",
+      "description": "Lightweight GLM-4.5 via OpenRouter"
+    },
+    {
+      "id": "z-ai/glm-4.5-air:free",
+      "name": "GLM-4.5 Air (Free)",
+      "description": "Free tier of GLM-4.5 Air via OpenRouter"
+    },
+    {
+      "id": "z-ai/glm-4-32b",
+      "name": "GLM-4 32B",
+      "description": "Zhipu AI's GLM-4 32B via OpenRouter"
+    },
+    {
+      "id": "minimax/minimax-m2.5",
+      "name": "MiniMax M2.5",
+      "description": "MiniMax's M2.5 model via OpenRouter"
+    },
+    {
+      "id": "minimax/minimax-m2.1",
+      "name": "MiniMax M2.1",
+      "description": "MiniMax's M2.1 model via OpenRouter"
+    },
+    {
+      "id": "minimax/minimax-m2",
+      "name": "MiniMax M2",
+      "description": "MiniMax's M2 model via OpenRouter"
+    },
+    {
+      "id": "minimax/minimax-m2-her",
+      "name": "MiniMax M2 HER",
+      "description": "MiniMax M2 HER variant via OpenRouter"
+    },
+    {
+      "id": "minimax/minimax-m1",
+      "name": "MiniMax M1",
+      "description": "MiniMax's M1 model via OpenRouter"
+    },
+    {
+      "id": "stepfun/step-3.5-flash",
+      "name": "Step 3.5 Flash",
+      "description": "StepFun's Step 3.5 Flash via OpenRouter"
+    },
+    {
+      "id": "stepfun/step-3.5-flash:free",
+      "name": "Step 3.5 Flash (Free)",
+      "description": "Free tier of Step 3.5 Flash via OpenRouter"
+    },
+    {
+      "id": "liquid/lfm-2.5-1.2b-thinking:free",
+      "name": "LFM 2.5 1.2B Thinking (Free)",
+      "description": "Free thinking variant of Liquid LFM 2.5 via OpenRouter"
+    },
+    {
+      "id": "liquid/lfm-2.5-1.2b-instruct:free",
+      "name": "LFM 2.5 1.2B Instruct (Free)",
+      "description": "Free instruction variant of Liquid LFM 2.5 via OpenRouter"
+    },
+    {
+      "id": "liquid/lfm-2.2-6b",
+      "name": "LFM 2.2 6B",
+      "description": "Liquid's LFM 2.2 6B via OpenRouter"
+    },
+    {
+      "id": "liquid/lfm2-8b-a1b",
+      "name": "LFM2 8B A1B",
+      "description": "Liquid's LFM2 8B via OpenRouter"
+    },
+    {
+      "id": "moonshotai/kimi-k2",
+      "name": "Kimi K2",
+      "description": "Moonshot AI's Kimi K2 via OpenRouter"
+    },
+    {
+      "id": "moonshotai/kimi-k2-0905",
+      "name": "Kimi K2 (0905)",
+      "description": "Kimi K2 version 0905 via OpenRouter"
+    },
+    {
+      "id": "moonshotai/kimi-k2-0905:exacto",
+      "name": "Kimi K2 (0905) Exacto",
+      "description": "Exacto variant of Kimi K2 0905 via OpenRouter"
+    },
+    {
+      "id": "moonshotai/kimi-k2-thinking",
+      "name": "Kimi K2 Thinking",
+      "description": "Thinking variant of Kimi K2 via OpenRouter"
+    },
+    {
+      "id": "x-ai/grok-3",
+      "name": "Grok 3",
+      "description": "xAI's Grok 3 model via OpenRouter"
+    },
+    {
+      "id": "x-ai/grok-3-beta",
+      "name": "Grok 3 Beta",
+      "description": "Beta version of Grok 3 via OpenRouter"
+    },
+    {
+      "id": "x-ai/grok-3-mini",
+      "name": "Grok 3 Mini",
+      "description": "Compact Grok 3 via OpenRouter"
+    },
+    {
+      "id": "x-ai/grok-3-mini-beta",
+      "name": "Grok 3 Mini Beta",
+      "description": "Beta version of Grok 3 Mini via OpenRouter"
+    },
+    {
+      "id": "x-ai/grok-code-fast-1",
+      "name": "Grok Code Fast 1",
+      "description": "Fast coding-focused Grok via OpenRouter"
+    },
+    {
+      "id": "cohere/command-a",
+      "name": "Command A",
+      "description": "Cohere's Command A model via OpenRouter"
+    },
+    {
+      "id": "cohere/command-r7b-12-2024",
+      "name": "Command R7B (12-2024)",
+      "description": "Cohere's Command R7B via OpenRouter"
+    },
+    {
+      "id": "cohere/command-r-08-2024",
+      "name": "Command R (08-2024)",
+      "description": "Cohere's Command R via OpenRouter"
+    },
+    {
+      "id": "cohere/command-r-plus-08-2024",
+      "name": "Command R Plus (08-2024)",
+      "description": "Enhanced Command R via OpenRouter"
+    },
+    {
+      "id": "amazon/nova-micro-v1",
+      "name": "Nova Micro V1",
+      "description": "Amazon's Nova Micro via OpenRouter"
+    },
+    {
+      "id": "microsoft/phi-4",
+      "name": "Phi-4",
+      "description": "Microsoft's Phi-4 model via OpenRouter"
+    },
+    {
+      "id": "microsoft/wizardlm-2-8x22b",
+      "name": "WizardLM 2 8x22B",
+      "description": "Microsoft's WizardLM 2 via OpenRouter"
+    },
+    {
+      "id": "baidu/ernie-4.5-21b-a3b",
+      "name": "ERNIE 4.5 21B A3B",
+      "description": "Baidu's ERNIE 4.5 21B via OpenRouter"
+    },
+    {
+      "id": "baidu/ernie-4.5-21b-a3b-thinking",
+      "name": "ERNIE 4.5 21B A3B Thinking",
+      "description": "Thinking variant of ERNIE 4.5 via OpenRouter"
+    },
+    {
+      "id": "baidu/ernie-4.5-300b-a47b",
+      "name": "ERNIE 4.5 300B A47B",
+      "description": "Baidu's large ERNIE 4.5 via OpenRouter"
+    },
+    {
+      "id": "alibaba/tongyi-deepresearch-30b-a3b",
+      "name": "Tongyi DeepResearch 30B A3B",
+      "description": "Alibaba's research-focused model via OpenRouter"
+    },
+    {
+      "id": "meituan/longcat-flash-chat",
+      "name": "LongCat Flash Chat",
+      "description": "Meituan's LongCat Flash via OpenRouter"
+    },
+    {
+      "id": "tencent/hunyuan-a13b-instruct",
+      "name": "Hunyuan A13B Instruct",
+      "description": "Tencent's Hunyuan A13B via OpenRouter"
+    },
+    {
+      "id": "allenai/olmo-3.1-32b-instruct",
+      "name": "OLMo 3.1 32B Instruct",
+      "description": "Allen AI's OLMo 3.1 32B via OpenRouter"
+    },
+    {
+      "id": "allenai/olmo-3.1-32b-think",
+      "name": "OLMo 3.1 32B Think",
+      "description": "Thinking variant of OLMo 3.1 32B via OpenRouter"
+    },
+    {
+      "id": "allenai/olmo-3-32b-think",
+      "name": "OLMo 3 32B Think",
+      "description": "Thinking variant of OLMo 3 32B via OpenRouter"
+    },
+    {
+      "id": "allenai/olmo-3-7b-instruct",
+      "name": "OLMo 3 7B Instruct",
+      "description": "Allen AI's OLMo 3 7B via OpenRouter"
+    },
+    {
+      "id": "allenai/olmo-3-7b-think",
+      "name": "OLMo 3 7B Think",
+      "description": "Thinking variant of OLMo 3 7B via OpenRouter"
+    },
+    {
+      "id": "allenai/olmo-2-0325-32b-instruct",
+      "name": "OLMo 2 (0325) 32B Instruct",
+      "description": "Allen AI's OLMo 2 32B via OpenRouter"
+    },
+    {
+      "id": "xiaomi/mimo-v2-flash",
+      "name": "Mimo V2 Flash",
+      "description": "Xiaomi's Mimo V2 Flash via OpenRouter"
+    },
+    {
+      "id": "writer/palmyra-x5",
+      "name": "Palmyra X5",
+      "description": "Writer's Palmyra X5 via OpenRouter"
+    },
+    {
+      "id": "upstage/solar-pro-3:free",
+      "name": "Solar Pro 3 (Free)",
+      "description": "Free tier of Upstage Solar Pro 3 via OpenRouter"
+    },
+    {
+      "id": "arcee-ai/trinity-large-preview:free",
+      "name": "Trinity Large Preview (Free)",
+      "description": "Free preview of Arcee Trinity Large via OpenRouter"
+    },
+    {
+      "id": "arcee-ai/trinity-mini",
+      "name": "Trinity Mini",
+      "description": "Arcee's Trinity Mini via OpenRouter"
+    },
+    {
+      "id": "arcee-ai/trinity-mini:free",
+      "name": "Trinity Mini (Free)",
+      "description": "Free tier of Trinity Mini via OpenRouter"
+    },
+    {
+      "id": "arcee-ai/maestro-reasoning",
+      "name": "Maestro Reasoning",
+      "description": "Arcee's reasoning model via OpenRouter"
+    },
+    {
+      "id": "arcee-ai/virtuoso-large",
+      "name": "Virtuoso Large",
+      "description": "Arcee's Virtuoso Large via OpenRouter"
+    },
+    {
+      "id": "arcee-ai/coder-large",
+      "name": "Coder Large",
+      "description": "Arcee's coding model via OpenRouter"
+    },
+    {
+      "id": "nousresearch/hermes-4-405b",
+      "name": "Hermes 4 405B",
+      "description": "Nous Research's Hermes 4 405B via OpenRouter"
+    },
+    {
+      "id": "nousresearch/hermes-4-70b",
+      "name": "Hermes 4 70B",
+      "description": "Nous Research's Hermes 4 70B via OpenRouter"
+    },
+    {
+      "id": "nousresearch/hermes-3-llama-3.1-405b",
+      "name": "Hermes 3 Llama 3.1 405B",
+      "description": "Hermes 3 on Llama 3.1 405B via OpenRouter"
+    },
+    {
+      "id": "nousresearch/hermes-3-llama-3.1-405b:free",
+      "name": "Hermes 3 Llama 3.1 405B (Free)",
+      "description": "Free tier of Hermes 3 405B via OpenRouter"
+    },
+    {
+      "id": "nousresearch/hermes-3-llama-3.1-70b",
+      "name": "Hermes 3 Llama 3.1 70B",
+      "description": "Hermes 3 on Llama 3.1 70B via OpenRouter"
+    },
+    {
+      "id": "nousresearch/hermes-2-pro-llama-3-8b",
+      "name": "Hermes 2 Pro Llama 3 8B",
+      "description": "Hermes 2 Pro on Llama 3 8B via OpenRouter"
+    },
+    {
+      "id": "ai21/jamba-large-1.7",
+      "name": "Jamba Large 1.7",
+      "description": "AI21's Jamba Large 1.7 via OpenRouter"
+    },
+    {
+      "id": "ibm-granite/granite-4.0-h-micro",
+      "name": "Granite 4.0 H Micro",
+      "description": "IBM's Granite 4.0 H Micro via OpenRouter"
+    },
+    {
+      "id": "prime-intellect/intellect-3",
+      "name": "Intellect 3",
+      "description": "Prime Intellect's Intellect 3 via OpenRouter"
+    },
+    {
+      "id": "kwaipilot/kat-coder-pro",
+      "name": "KAT Coder Pro",
+      "description": "Kwai's KAT Coder Pro via OpenRouter"
+    },
+    {
+      "id": "inception/mercury",
+      "name": "Mercury",
+      "description": "Inception's Mercury model via OpenRouter"
+    },
+    {
+      "id": "inception/mercury-coder",
+      "name": "Mercury Coder",
+      "description": "Inception's coding model via OpenRouter"
+    },
+    {
+      "id": "morph/morph-v3-large",
+      "name": "Morph V3 Large",
+      "description": "Morph's V3 Large model via OpenRouter"
+    },
+    {
+      "id": "morph/morph-v3-fast",
+      "name": "Morph V3 Fast",
+      "description": "Fast variant of Morph V3 via OpenRouter"
+    },
+    {
+      "id": "aion-labs/aion-1.0",
+      "name": "Aion 1.0",
+      "description": "Aion Labs' Aion 1.0 via OpenRouter"
+    },
+    {
+      "id": "aion-labs/aion-1.0-mini",
+      "name": "Aion 1.0 Mini",
+      "description": "Compact Aion 1.0 via OpenRouter"
+    },
+    {
+      "id": "aion-labs/aion-rp-llama-3.1-8b",
+      "name": "Aion RP Llama 3.1 8B",
+      "description": "Aion RP on Llama 3.1 8B via OpenRouter"
+    },
+    {
+      "id": "perplexity/sonar-deep-research",
+      "name": "Sonar Deep Research",
+      "description": "Perplexity's deep research model via OpenRouter"
+    },
+    {
+      "id": "inflection/inflection-3-pi",
+      "name": "Inflection 3 Pi",
+      "description": "Inflection's Pi model via OpenRouter"
+    },
+    {
+      "id": "inflection/inflection-3-productivity",
+      "name": "Inflection 3 Productivity",
+      "description": "Productivity-focused Inflection 3 via OpenRouter"
+    },
+    {
+      "id": "essentialai/rnj-1-instruct",
+      "name": "RNJ-1 Instruct",
+      "description": "Essential AI's RNJ-1 via OpenRouter"
+    },
+    {
+      "id": "nex-agi/deepseek-v3.1-nex-n1",
+      "name": "DeepSeek V3.1 Nex N1",
+      "description": "Nex AGI's DeepSeek variant via OpenRouter"
+    },
+    {
+      "id": "relace/relace-search",
+      "name": "Relace Search",
+      "description": "Relace's search model via OpenRouter"
+    },
+    {
+      "id": "relace/relace-apply-3",
+      "name": "Relace Apply 3",
+      "description": "Relace's Apply 3 model via OpenRouter"
+    },
+    {
+      "id": "openrouter/bodybuilder",
+      "name": "Bodybuilder",
+      "description": "OpenRouter's Bodybuilder model"
+    },
+    {
+      "id": "switchpoint/router",
+      "name": "Switchpoint Router",
+      "description": "Switchpoint's routing model via OpenRouter"
+    },
+    {
+      "id": "thedrummer/cydonia-24b-v4.1",
+      "name": "Cydonia 24B V4.1",
+      "description": "TheDrummer's Cydonia 24B via OpenRouter"
+    },
+    {
+      "id": "thedrummer/skyfall-36b-v2",
+      "name": "Skyfall 36B V2",
+      "description": "TheDrummer's Skyfall 36B via OpenRouter"
+    },
+    {
+      "id": "thedrummer/rocinante-12b",
+      "name": "Rocinante 12B",
+      "description": "TheDrummer's Rocinante 12B via OpenRouter"
+    },
+    {
+      "id": "thedrummer/unslopnemo-12b",
+      "name": "UnslopNemo 12B",
+      "description": "TheDrummer's UnslopNemo 12B via OpenRouter"
+    },
+    {
+      "id": "sao10k/l3.3-euryale-70b",
+      "name": "L3.3 Euryale 70B",
+      "description": "Sao10k's Euryale 70B on Llama 3.3 via OpenRouter"
+    },
+    {
+      "id": "sao10k/l3.1-70b-hanami-x1",
+      "name": "L3.1 Hanami X1 70B",
+      "description": "Sao10k's Hanami X1 70B via OpenRouter"
+    },
+    {
+      "id": "sao10k/l3.1-euryale-70b",
+      "name": "L3.1 Euryale 70B",
+      "description": "Sao10k's Euryale 70B on Llama 3.1 via OpenRouter"
+    },
+    {
+      "id": "sao10k/l3-euryale-70b",
+      "name": "L3 Euryale 70B",
+      "description": "Sao10k's Euryale 70B on Llama 3 via OpenRouter"
+    },
+    {
+      "id": "sao10k/l3-lunaris-8b",
+      "name": "L3 Lunaris 8B",
+      "description": "Sao10k's Lunaris 8B via OpenRouter"
+    },
+    {
+      "id": "neversleep/llama-3.1-lumimaid-8b",
+      "name": "Llama 3.1 Lumimaid 8B",
+      "description": "Neversleep's Lumimaid 8B via OpenRouter"
+    },
+    {
+      "id": "neversleep/noromaid-20b",
+      "name": "Noromaid 20B",
+      "description": "Neversleep's Noromaid 20B via OpenRouter"
+    },
+    {
+      "id": "raifle/sorcererlm-8x22b",
+      "name": "SorcererLM 8x22B",
+      "description": "Raifle's SorcererLM 8x22B via OpenRouter"
+    },
+    {
+      "id": "anthracite-org/magnum-v4-72b",
+      "name": "Magnum V4 72B",
+      "description": "Anthracite's Magnum V4 72B via OpenRouter"
+    },
+    {
+      "id": "alpindale/goliath-120b",
+      "name": "Goliath 120B",
+      "description": "Alpindale's Goliath 120B via OpenRouter"
+    },
+    {
+      "id": "gryphe/mythomax-l2-13b",
+      "name": "MythoMax L2 13B",
+      "description": "Gryphe's MythoMax L2 13B via OpenRouter"
+    },
+    {
+      "id": "undi95/remm-slerp-l2-13b",
+      "name": "ReMM SLERP L2 13B",
+      "description": "Undi95's ReMM SLERP L2 13B via OpenRouter"
+    },
+    {
+      "id": "mancer/weaver",
+      "name": "Weaver",
+      "description": "Mancer's Weaver model via OpenRouter"
+    },
+    {
+      "id": "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
+      "name": "Dolphin Mistral 24B Venice (Free)",
+      "description": "Free Dolphin Mistral 24B via OpenRouter"
+    },
+    {
+      "id": "tngtech/deepseek-r1t2-chimera",
+      "name": "DeepSeek R1T2 Chimera",
+      "description": "TNG Tech's DeepSeek R1T2 Chimera via OpenRouter"
+    },
+    {
+      "id": "eleutherai/llemma_7b",
+      "name": "Llemma 7B",
+      "description": "EleutherAI's Llemma 7B via OpenRouter"
+    },
+    {
+      "id": "alfredpros/codellama-7b-instruct-solidity",
+      "name": "CodeLlama 7B Instruct Solidity",
+      "description": "Solidity-tuned CodeLlama 7B via OpenRouter"
+    }
+  ]
+}

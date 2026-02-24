@@ -5,7 +5,7 @@ import makeWASocket, { useMultiFileAuthState } from "@whiskeysockets/baileys";
 import chalk from "chalk";
 import inquirer from "inquirer";
 import qrcode from "qrcode-terminal";
-import modelsCatalog from "../../data/models-catalog.json";
+import { loadModelsCatalog } from "../../utils/models-catalog-loader";
 import { setApiKey, setBotToken, isKeychainAvailable } from "../../utils/keychain";
 
 const CONFIG_DIR = path.join(os.homedir(), ".txtcode");
@@ -220,10 +220,13 @@ export async function authCommand() {
 
   const selectedProviders = new Set<string>();
 
+  // Load models catalog
+  const modelsCatalog = loadModelsCatalog();
+
   // Helper function to get all available providers dynamically from catalog
   function getAllProviders() {
     return Object.keys(modelsCatalog.providers).map(providerId => {
-      const providerData = modelsCatalog.providers[providerId as keyof typeof modelsCatalog.providers];
+      const providerData = modelsCatalog.providers[providerId];
       return {
         name: `${providerData.name} (${providerId})`,
         value: providerId,
@@ -286,8 +289,7 @@ export async function authCommand() {
     selectedProviders.add(providerAnswers.provider);
 
     // Load models from catalog
-    const providerModels =
-      modelsCatalog.providers[providerAnswers.provider as keyof typeof modelsCatalog.providers];
+    const providerModels = modelsCatalog.providers[providerAnswers.provider];
     const modelChoices = providerModels.models.map((model: any) => ({
       name: model.recommended
         ? `${model.name} - Recommended`
