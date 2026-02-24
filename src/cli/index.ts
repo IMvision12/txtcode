@@ -4,7 +4,6 @@ import { Command } from "commander";
 import { showBanner } from "../shared/banner";
 import { authCommand } from "./commands/auth";
 import { configCommand } from "./commands/config";
-import { listModelsCommand } from "./commands/list-models";
 import { logsCommand } from "./commands/logs";
 import { resetCommand, logoutCommand, hardResetCommand } from "./commands/reset";
 import { startCommand } from "./commands/start";
@@ -53,7 +52,5 @@ program
   .option("-n, --lines <count>", "Number of lines to show (default: 50)")
   .option("--clear", "Delete all session log files")
   .action(logsCommand);
-
-program.command("list-models").description("List available AI models").action(listModelsCommand);
 
 program.parse();
