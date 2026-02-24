@@ -442,6 +442,7 @@ export async function authCommand() {
       message: "Select coding adapter:",
       choices: [
         { name: "Claude Code (Anthropic)", value: "claude-code" },
+        { name: "Cursor CLI (Headless)", value: "cursor" },
         { name: "OpenAI Codex (OpenAI)", value: "codex" },
         { name: "Gemini CLI (Google)", value: "gemini-code" },
         { name: "Kiro CLI (AWS)", value: "kiro" },

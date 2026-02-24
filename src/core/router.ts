@@ -1,4 +1,5 @@
 import { ClaudeCodeAdapter } from "../adapters/claude-code";
+import { CursorAdapter } from "../adapters/cursor-cli";
 import { GeminiCodeAdapter } from "../adapters/gemini-cli";
 import { KiroAdapter } from "../adapters/kiro-cli";
 import { OllamaClaudeCodeAdapter } from "../adapters/ollama-claude-code";
@@ -19,6 +20,7 @@ import { ContextManager } from "./context-manager";
 
 export const AVAILABLE_ADAPTERS = [
   { id: "claude-code", label: "Claude Code (Anthropic API)" },
+  { id: "cursor", label: "Cursor CLI (Headless)" },
   { id: "gemini-code", label: "Gemini Code (Google AI API)" },
   { id: "codex", label: "OpenAI Codex (OpenAI API)" },
   { id: "ollama-claude-code", label: "Claude Code via Ollama (Local)" },
@@ -57,6 +59,8 @@ export class Router {
     switch (ideType) {
       case "claude-code":
         return new ClaudeCodeAdapter();
+      case "cursor":
+        return new CursorAdapter();
       case "gemini-code":
         return new GeminiCodeAdapter();
       case "codex":
