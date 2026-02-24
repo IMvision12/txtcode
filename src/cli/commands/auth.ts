@@ -209,18 +209,23 @@ export async function authCommand() {
 
   const selectedProviders = new Set<string>();
 
+  // Helper function to get all available providers dynamically from catalog
+  function getAllProviders() {
+    return Object.keys(modelsCatalog.providers).map(providerId => {
+      const providerData = modelsCatalog.providers[providerId as keyof typeof modelsCatalog.providers];
+      return {
+        name: `${providerData.name} (${providerId})`,
+        value: providerId,
+      };
+    });
+  }
+
   // Helper function to configure a provider
   async function configureProvider(label: string, existingProvider?: string) {
     console.log(chalk.cyan(`\n${label}\n`));
     
-    // Get available providers (excluding already selected ones in this session)
-    const allProviders = [
-      { name: "Anthropic (Claude)", value: "anthropic" },
-      { name: "OpenAI (GPT)", value: "openai" },
-      { name: "Google (Gemini)", value: "gemini" },
-      { name: "OpenRouter (any model)", value: "openrouter" },
-    ];
-    
+    // Get available providers dynamically (excluding already selected ones)
+    const allProviders = getAllProviders();
     const availableProviders = allProviders.filter(p => !selectedProviders.has(p.value));
     
     if (availableProviders.length === 0) {
@@ -279,27 +284,55 @@ export async function authCommand() {
   // Step 1: Configure Primary AI Provider
   const primaryProvider = await configureProvider("Primary AI Provider");
 
-  // Step 2: Configure Secondary Provider 1
-  const secondaryProvider1 = await configureProvider("Secondary AI Provider #1");
+  // Collect all configured providers
+  const configuredProviders: Array<{provider: string; apiKey: string; model: string}> = [primaryProvider];
 
-  // Step 3: Configure Secondary Provider 2
-  const secondaryProvider2 = await configureProvider("Secondary AI Provider #2");
+  // Step 2: Keep asking if user wants to add more providers (unlimited)
+  let continueAdding = true;
+  let providerCount = 1;
+
+  while (continueAdding) {
+    // Check if there are more providers available (dynamic)
+    const allProviders = getAllProviders();
+    const remainingProviders = allProviders.filter(p => !selectedProviders.has(p.value));
+    
+    if (remainingProviders.length === 0) {
+      console.log(chalk.yellow(`\n✓ All available providers configured (${providerCount} total)\n`));
+      break;
+    }
+
+    const { addMore } = await inquirer.prompt([
+      {
+        type: "confirm",
+        name: "addMore",
+        message: `Add another provider for hot-switching? (${providerCount} configured, ${remainingProviders.length} available)`,
+        default: providerCount === 1, // Default to yes for first secondary provider
+      },
+    ]);
+
+    if (!addMore) {
+      continueAdding = false;
+      break;
+    }
+
+    providerCount++;
+    const secondaryProvider = await configureProvider(`Secondary AI Provider #${providerCount - 1}`);
+    configuredProviders.push(secondaryProvider);
+  }
 
   // Validate all providers are unique (safety check)
-  const allConfiguredProviders = [
-    primaryProvider.provider,
-    secondaryProvider1.provider,
-    secondaryProvider2.provider,
-  ];
-  const uniqueProviders = new Set(allConfiguredProviders);
+  const allProviderNames = configuredProviders.map(p => p.provider);
+  const uniqueProviders = new Set(allProviderNames);
   
-  if (uniqueProviders.size !== allConfiguredProviders.length) {
+  if (uniqueProviders.size !== allProviderNames.length) {
     console.log(chalk.red("\n[ERROR] Duplicate providers detected. Each provider must be unique.\n"));
     console.log(chalk.yellow("Please run 'txtcode auth' again and select different providers.\n"));
     process.exit(1);
   }
 
-  // Step 4: Messaging Platform
+  console.log(chalk.green(`\n✅ Configured ${configuredProviders.length} provider(s)\n`));
+
+  // Step 3: Messaging Platform
   const platformAnswers = await inquirer.prompt([
     {
       type: "list",
@@ -386,11 +419,11 @@ export async function authCommand() {
     fs.mkdirSync(CONFIG_DIR, { recursive: true });
   }
 
-  // Store API keys in keychain
+  // Store API keys in keychain for all configured providers
   try {
-    await setApiKey(primaryProvider.provider, primaryProvider.apiKey);
-    await setApiKey(secondaryProvider1.provider, secondaryProvider1.apiKey);
-    await setApiKey(secondaryProvider2.provider, secondaryProvider2.apiKey);
+    for (const provider of configuredProviders) {
+      await setApiKey(provider.provider, provider.apiKey);
+    }
     
     // Store bot tokens in keychain
     if (telegramToken) {
@@ -405,24 +438,22 @@ export async function authCommand() {
     // Continue with file storage as fallback
   }
 
+  // Build providers object dynamically
+  const providersConfig: { [key: string]: { model: string } } = {};
+  for (const provider of configuredProviders) {
+    providersConfig[provider.provider] = {
+      model: provider.model,
+    };
+  }
+
   // Save configuration WITHOUT API keys (stored in keychain)
   const config = {
     // Primary provider (active)
     aiProvider: primaryProvider.provider,
     aiModel: primaryProvider.model,
     
-    // Secondary providers (models only, keys in keychain)
-    providers: {
-      [primaryProvider.provider]: {
-        model: primaryProvider.model,
-      },
-      [secondaryProvider1.provider]: {
-        model: secondaryProvider1.model,
-      },
-      [secondaryProvider2.provider]: {
-        model: secondaryProvider2.model,
-      },
-    },
+    // All providers (models only, keys in keychain)
+    providers: providersConfig,
     
     platform: platformAnswers.platform,
     ideType: ideAnswers.ideType,
@@ -444,9 +475,13 @@ export async function authCommand() {
   console.log(chalk.green("\nAuthentication successful!"));
   console.log(chalk.gray(`\nConfiguration saved to: ${CONFIG_FILE}`));
   console.log(chalk.cyan("\nConfigured Providers:"));
-  console.log(chalk.white(`  Primary: ${primaryProvider.provider} (${primaryProvider.model})`));
-  console.log(chalk.white(`  Secondary 1: ${secondaryProvider1.provider} (${secondaryProvider1.model})`));
-  console.log(chalk.white(`  Secondary 2: ${secondaryProvider2.provider} (${secondaryProvider2.model})`));
+  
+  // Show all configured providers
+  configuredProviders.forEach((provider, index) => {
+    const label = index === 0 ? "Primary" : `Secondary ${index}`;
+    console.log(chalk.white(`  ${label}: ${provider.provider} (${provider.model})`));
+  });
+  
   console.log(chalk.cyan("\nNext steps:"));
   console.log(chalk.white("  1. Run: " + chalk.bold("txtcode start")));
 
@@ -459,7 +494,12 @@ export async function authCommand() {
   }
 
   console.log(chalk.white("  3. Start coding from your phone!\n"));
-  console.log(chalk.gray("  Use /switch to change between your configured providers\n"));
+  
+  if (configuredProviders.length > 1) {
+    console.log(chalk.gray("  Use /switch to change between your configured providers\n"));
+  } else {
+    console.log(chalk.gray("  Tip: Run 'txtcode auth' again to add more providers for /switch\n"));
+  }
 
   // Force exit to ensure terminal closes (WhatsApp socket may have lingering listeners)
   setTimeout(() => {
