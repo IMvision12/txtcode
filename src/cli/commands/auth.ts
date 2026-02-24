@@ -180,13 +180,40 @@ export async function authCommand() {
   console.log(chalk.blue.bold("\nTxtCode Authentication\n"));
   console.log(chalk.gray("Configure your TxtCode CLI for remote IDE control\n"));
 
+  // Check for existing configuration
+  const existingConfig = loadConfig();
+  if (existingConfig && existingConfig.providers) {
+    console.log(chalk.yellow("⚠️  Existing configuration detected!\n"));
+    console.log(chalk.gray("Currently configured providers:"));
+    Object.keys(existingConfig.providers).forEach(provider => {
+      const providerConfig = existingConfig.providers[provider];
+      console.log(chalk.white(`  • ${provider} (${providerConfig.model})`));
+    });
+    console.log();
+
+    const { shouldOverwrite } = await inquirer.prompt([
+      {
+        type: "confirm",
+        name: "shouldOverwrite",
+        message: "Do you want to reconfigure? This will overwrite existing providers.",
+        default: false,
+      },
+    ]);
+
+    if (!shouldOverwrite) {
+      console.log(chalk.gray("\nAuthentication cancelled. Use 'txtcode config' to modify individual settings.\n"));
+      return;
+    }
+    console.log(chalk.yellow("\nReconfiguring all providers...\n"));
+  }
+
   const selectedProviders = new Set<string>();
 
   // Helper function to configure a provider
-  async function configureProvider(label: string) {
+  async function configureProvider(label: string, existingProvider?: string) {
     console.log(chalk.cyan(`\n${label}\n`));
     
-    // Get available providers (excluding already selected ones)
+    // Get available providers (excluding already selected ones in this session)
     const allProviders = [
       { name: "Anthropic (Claude)", value: "anthropic" },
       { name: "OpenAI (GPT)", value: "openai" },
@@ -257,6 +284,20 @@ export async function authCommand() {
 
   // Step 3: Configure Secondary Provider 2
   const secondaryProvider2 = await configureProvider("Secondary AI Provider #2");
+
+  // Validate all providers are unique (safety check)
+  const allConfiguredProviders = [
+    primaryProvider.provider,
+    secondaryProvider1.provider,
+    secondaryProvider2.provider,
+  ];
+  const uniqueProviders = new Set(allConfiguredProviders);
+  
+  if (uniqueProviders.size !== allConfiguredProviders.length) {
+    console.log(chalk.red("\n[ERROR] Duplicate providers detected. Each provider must be unique.\n"));
+    console.log(chalk.yellow("Please run 'txtcode auth' again and select different providers.\n"));
+    process.exit(1);
+  }
 
   // Step 4: Messaging Platform
   const platformAnswers = await inquirer.prompt([
