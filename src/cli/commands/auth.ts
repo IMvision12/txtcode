@@ -12,6 +12,17 @@ const CONFIG_DIR = path.join(os.homedir(), ".txtcode");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 const WA_AUTH_DIR = path.join(CONFIG_DIR, ".wacli_auth");
 
+// Validate API key
+function validateApiKeyFormat(apiKey: string): { valid: boolean; error?: string } {
+  const trimmed = apiKey.trim();
+  
+  if (!trimmed) {
+    return { valid: false, error: "API key is required" };
+  }
+  
+  return { valid: true };
+}
+
 async function authenticateWhatsApp(): Promise<void> {
   return new Promise(async (resolve, reject) => {
     let sock: any = null;
@@ -247,6 +258,29 @@ export async function authCommand() {
         validate: (input) => input.length > 0 || "API key is required",
       },
     ]);
+
+    // Validate API key (just check it's not empty)
+    const validation = validateApiKeyFormat(providerAnswers.apiKey);
+    
+    if (!validation.valid) {
+      console.log(chalk.red(`\n[ERROR] ${validation.error}\n`));
+      
+      const { retry } = await inquirer.prompt([
+        {
+          type: "confirm",
+          name: "retry",
+          message: "Would you like to enter a different API key?",
+          default: true,
+        },
+      ]);
+      
+      if (retry) {
+        // Retry with same provider
+        return await configureProvider(label, existingProvider);
+      } else {
+        throw new Error("API key validation failed. Please run 'txtcode auth' again with a valid key.");
+      }
+    }
 
     // Mark this provider as selected
     selectedProviders.add(providerAnswers.provider);

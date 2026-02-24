@@ -36,7 +36,13 @@ export class AgentCore {
         return null;
       }
       const configData = fs.readFileSync(this.configPath, "utf-8");
-      return JSON.parse(configData);
+      const config = JSON.parse(configData);
+      
+      // Note: If user manually edits config with duplicate provider keys,
+      // JSON.parse automatically deduplicates (last key wins).
+      // This is safe JavaScript behavior.
+      
+      return config;
     } catch (error) {
       logger.error("Failed to load config file", error);
       return null;
