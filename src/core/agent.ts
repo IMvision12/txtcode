@@ -1,7 +1,7 @@
 import { logger } from "../shared/logger";
 import { Message } from "../shared/types";
-import { Router, AVAILABLE_ADAPTERS } from "./router";
 import { getApiKey } from "../utils/keychain";
+import { Router, AVAILABLE_ADAPTERS } from "./router";
 
 export class AgentCore {
   private router: Router;
@@ -37,11 +37,11 @@ export class AgentCore {
       }
       const configData = fs.readFileSync(this.configPath, "utf-8");
       const config = JSON.parse(configData);
-      
+
       // Note: If user manually edits config with duplicate provider keys,
       // JSON.parse automatically deduplicates (last key wins).
       // This is safe JavaScript behavior.
-      
+
       return config;
     } catch (error) {
       logger.error("Failed to load config file", error);
@@ -60,14 +60,14 @@ export class AgentCore {
   private saveAuthorizedUser(userId: string) {
     try {
       const config = this.loadConfigSafely();
-      
+
       if (!config) {
         logger.error("Failed to load config file to save authorized user");
         return;
       }
 
       config.authorizedUser = userId;
-      
+
       const fs = require("fs");
       fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2));
       this.authorizedUser = userId;
@@ -175,7 +175,7 @@ Reply with 1 or 2:`;
 
   private showProviderList(userId: string): string {
     const config = this.loadConfigSafely();
-    
+
     if (!config) {
       return `[ERROR] Failed to load configuration. Config file may be corrupted.\n\nPlease run 'txtcode auth' to reconfigure.`;
     }
@@ -188,7 +188,7 @@ Reply with 1 or 2:`;
     const allProviders = Object.keys(configuredProviders);
 
     // Filter out providers with invalid configurations
-    const validProviders = allProviders.filter(provider => {
+    const validProviders = allProviders.filter((provider) => {
       const providerConfig = configuredProviders[provider];
       return providerConfig && providerConfig.model;
     });
@@ -206,7 +206,7 @@ Reply with 1 or 2:`;
     this.pendingSwitch.set(userId, "provider");
 
     let response = `🤖 Switch Primary LLM\n\nCurrent: ${currentProvider} (${currentModel})\n\nConfigured Providers:\n`;
-    
+
     validProviders.forEach((provider, index) => {
       const providerConfig = configuredProviders[provider];
       const isCurrent = provider === currentProvider;
@@ -215,7 +215,7 @@ Reply with 1 or 2:`;
     });
 
     response += `\nReply with a number (1-${validProviders.length}) to switch:`;
-    
+
     return response;
   }
 
@@ -268,9 +268,9 @@ Reply with 1 or 2:`;
 
   private async handleProviderSelection(userId: string, text: string): Promise<string> {
     this.pendingSwitch.delete(userId);
-    
+
     const config = this.loadConfigSafely();
-    
+
     if (!config) {
       return `[ERROR] Failed to load configuration. Config file may be corrupted.\n\nPlease run 'txtcode auth' to reconfigure.`;
     }
@@ -279,7 +279,7 @@ Reply with 1 or 2:`;
     const allProviders = Object.keys(configuredProviders);
 
     // Filter out providers with invalid configurations (same as showProviderList)
-    const validProviders = allProviders.filter(provider => {
+    const validProviders = allProviders.filter((provider) => {
       const providerConfig = configuredProviders[provider];
       return providerConfig && providerConfig.model;
     });

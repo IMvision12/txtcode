@@ -74,7 +74,7 @@ const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
 function inferMetaFromModelId(id: string): { name: string; description: string } {
   const base = id.split("/").pop() ?? id;
   const name = base.replace(/-/g, " ").replace(/\b(\w)/g, (c) => c.toUpperCase());
-  
+
   let description = "HuggingFace model";
   if (/r1|reasoning|thinking/i.test(id)) {
     description = "Reasoning model";
@@ -85,7 +85,7 @@ function inferMetaFromModelId(id: string): { name: string; description: string }
   } else if (/turbo|fast/i.test(id)) {
     description = "Optimized for speed";
   }
-  
+
   return { name, description };
 }
 
@@ -94,32 +94,32 @@ function displayNameFromApiEntry(entry: HFModelEntry, inferredName: string): str
     (typeof entry.name === "string" && entry.name.trim()) ||
     (typeof entry.title === "string" && entry.title.trim()) ||
     (typeof entry.display_name === "string" && entry.display_name.trim());
-  
+
   if (fromApi) {
     return fromApi;
   }
-  
+
   if (typeof entry.owned_by === "string" && entry.owned_by.trim()) {
     const base = entry.id.split("/").pop() ?? entry.id;
     return `${entry.owned_by.trim()}/${base}`;
   }
-  
+
   return inferredName;
 }
 
 // OpenRouter Helper Functions
 function formatOpenRouterDescription(model: OpenRouterModelMeta): string {
   const parts: string[] = [];
-  
+
   if (model.description) {
     parts.push(model.description);
   }
-  
+
   // Add pricing info if free
   if (model.pricing?.prompt === "0" && model.pricing?.completion === "0") {
     parts.push("Free");
   }
-  
+
   // Add context length if available
   if (model.context_length) {
     const contextK = Math.floor(model.context_length / 1000);
@@ -127,7 +127,7 @@ function formatOpenRouterDescription(model: OpenRouterModelMeta): string {
       parts.push(`${contextK}K context`);
     }
   }
-  
+
   return parts.length > 0 ? parts.join(" • ") : "OpenRouter model";
 }
 
@@ -136,7 +136,7 @@ function formatOpenRouterDescription(model: OpenRouterModelMeta): string {
  */
 export async function discoverHuggingFaceModels(apiKey: string): Promise<DiscoveredModel[]> {
   const trimmedKey = apiKey?.trim();
-  
+
   if (!trimmedKey) {
     throw new Error("HuggingFace API key is required to discover models");
   }
@@ -196,11 +196,13 @@ export async function discoverHuggingFaceModels(apiKey: string): Promise<Discove
     return models;
   } catch (error) {
     clearTimeout(timeoutId);
-    
+
     if ((error as Error).name === "AbortError") {
-      throw new Error("HuggingFace API request timed out. Please check your connection and try again.");
+      throw new Error(
+        "HuggingFace API request timed out. Please check your connection and try again.",
+      );
     }
-    
+
     throw error;
   }
 }
@@ -270,11 +272,13 @@ export async function discoverOpenRouterModels(apiKey?: string): Promise<Discove
     return models;
   } catch (error) {
     clearTimeout(timeoutId);
-    
+
     if ((error as Error).name === "AbortError") {
-      throw new Error("OpenRouter API request timed out. Please check your connection and try again.");
+      throw new Error(
+        "OpenRouter API request timed out. Please check your connection and try again.",
+      );
     }
-    
+
     throw error;
   }
 }

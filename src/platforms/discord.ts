@@ -1,9 +1,9 @@
 import { Client, GatewayIntentBits, Message, Partials } from "discord.js";
 import { AgentCore } from "../core/agent";
-import { logger } from "../shared/logger";
 import { BlockReplyPipeline } from "../shared/block-reply-pipeline";
-import { DiscordTypingSignaler } from "../shared/typing-signaler";
+import { logger } from "../shared/logger";
 import type { StreamChunk } from "../shared/streaming-types";
+import { DiscordTypingSignaler } from "../shared/typing-signaler";
 
 export class DiscordBot {
   private client: Client;
@@ -107,9 +107,7 @@ export class DiscordBot {
           try {
             const prefix = chunk.isComplete ? "✅" : "⏳ Progress...";
             if (progressMessage) {
-              await (progressMessage as Message).edit(
-                `${prefix}\n\`\`\`\n${chunk.text}\n\`\`\``,
-              );
+              await (progressMessage as Message).edit(`${prefix}\n\`\`\`\n${chunk.text}\n\`\`\``);
             }
             logger.debug(`[PIPELINE] Sent chunk: ${chunk.text.length} chars`);
           } catch (error) {

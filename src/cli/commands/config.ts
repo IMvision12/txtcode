@@ -3,8 +3,8 @@ import os from "os";
 import path from "path";
 import chalk from "chalk";
 import inquirer from "inquirer";
-import { loadConfig } from "./auth";
 import { setApiKey, getApiKey, setBotToken, getBotToken } from "../../utils/keychain";
+import { loadConfig } from "./auth";
 
 const CONFIG_DIR = path.join(os.homedir(), ".txtcode");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
@@ -182,7 +182,7 @@ async function configureAI(config: any) {
   }
 
   // Show configured providers
-  const providerChoices = providerList.map(providerId => ({
+  const providerChoices = providerList.map((providerId) => ({
     name: `${providerId} (${configuredProviders[providerId].model})`,
     value: providerId,
   }));

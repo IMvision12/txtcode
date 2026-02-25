@@ -1,9 +1,9 @@
 import { Telegraf } from "telegraf";
 import { AgentCore } from "../core/agent";
-import { logger } from "../shared/logger";
 import { BlockReplyPipeline } from "../shared/block-reply-pipeline";
-import { TelegramTypingSignaler } from "../shared/typing-signaler";
+import { logger } from "../shared/logger";
 import type { StreamChunk } from "../shared/streaming-types";
+import { TelegramTypingSignaler } from "../shared/typing-signaler";
 
 export class TelegramBot {
   private bot: Telegraf;
@@ -183,5 +183,4 @@ export class TelegramBot {
     process.once("SIGINT", () => this.bot.stop("SIGINT"));
     process.once("SIGTERM", () => this.bot.stop("SIGTERM"));
   }
-
 }

@@ -9,10 +9,10 @@ import makeWASocket, {
   proto,
 } from "@whiskeysockets/baileys";
 import { AgentCore } from "../core/agent";
-import { logger } from "../shared/logger";
 import { BlockReplyPipeline } from "../shared/block-reply-pipeline";
-import { WhatsAppTypingSignaler } from "../shared/typing-signaler";
+import { logger } from "../shared/logger";
 import type { StreamChunk } from "../shared/streaming-types";
+import { WhatsAppTypingSignaler } from "../shared/typing-signaler";
 
 const WA_AUTH_DIR = path.join(os.homedir(), ".txtcode", ".wacli_auth");
 

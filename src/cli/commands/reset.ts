@@ -27,7 +27,7 @@ export function resetCommand() {
     }
 
     config.authorizedUser = "";
-    
+
     try {
       fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
       console.log(chalk.green("\n✅ Authorized user reset!"));

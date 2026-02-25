@@ -4,8 +4,8 @@ import { DiscordBot } from "../../platforms/discord";
 import { TelegramBot } from "../../platforms/telegram";
 import { WhatsAppBot } from "../../platforms/whatsapp";
 import { logger } from "../../shared/logger";
-import { loadConfig } from "./auth";
 import { getApiKey, getBotToken } from "../../utils/keychain";
+import { loadConfig } from "./auth";
 
 export async function startCommand(options: { daemon?: boolean }) {
   const config = loadConfig();
@@ -33,7 +33,7 @@ export async function startCommand(options: { daemon?: boolean }) {
   // Retrieve bot tokens from keychain if needed
   let telegramToken = "";
   let discordToken = "";
-  
+
   if (config.platform === "telegram") {
     telegramToken = (await getBotToken("telegram")) || "";
     if (!telegramToken) {

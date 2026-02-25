@@ -35,7 +35,7 @@ export function loadModelsCatalog(): ModelsCatalog {
   try {
     // Load all provider JSON files from the data directory
     const files = fs.readdirSync(dataDir);
-    
+
     for (const file of files) {
       if (file.endsWith("_models.json")) {
         const providerId = file.replace("_models.json", "");
@@ -61,7 +61,7 @@ export function loadModelsCatalog(): ModelsCatalog {
     return catalog;
   } catch (error) {
     throw new Error(
-      `Failed to load models catalog: ${error instanceof Error ? error.message : "Unknown error"}`
+      `Failed to load models catalog: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
 }

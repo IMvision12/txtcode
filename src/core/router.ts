@@ -127,7 +127,12 @@ export class Router {
       case "minimax":
         return await processWithMiniMax(instruction, this.apiKey, this.model, this.toolRegistry);
       case "huggingface":
-        return await processWithHuggingFace(instruction, this.apiKey, this.model, this.toolRegistry);
+        return await processWithHuggingFace(
+          instruction,
+          this.apiKey,
+          this.model,
+          this.toolRegistry,
+        );
       case "mistral":
         return await processWithMistral(instruction, this.apiKey, this.model, this.toolRegistry);
       case "xai":
@@ -209,12 +214,12 @@ export class Router {
     this.provider = provider;
     this.apiKey = apiKey;
     this.model = model;
-    
+
     // Update environment variables for consistency
     process.env.AI_PROVIDER = provider;
     process.env.AI_API_KEY = apiKey;
     process.env.AI_MODEL = model;
-    
+
     logger.debug(`Provider updated: ${provider} with model ${model}`);
   }
 

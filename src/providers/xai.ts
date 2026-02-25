@@ -64,9 +64,8 @@ export async function processWithXAI(
 
     return "Reached maximum tool iterations.";
   } catch (error) {
-    throw new Error(
-      `xAI API error: ${error instanceof Error ? error.message : "Unknown error"}`,
-      { cause: error },
-    );
+    throw new Error(`xAI API error: ${error instanceof Error ? error.message : "Unknown error"}`, {
+      cause: error,
+    });
   }
 }

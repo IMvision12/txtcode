@@ -5,9 +5,12 @@ import makeWASocket, { useMultiFileAuthState } from "@whiskeysockets/baileys";
 import chalk from "chalk";
 import inquirer from "inquirer";
 import qrcode from "qrcode-terminal";
-import { discoverHuggingFaceModels, discoverOpenRouterModels } from "../../utils/model-discovery-util";
-import { loadModelsCatalog } from "../../utils/models-catalog-loader";
 import { setApiKey, setBotToken, isKeychainAvailable } from "../../utils/keychain";
+import {
+  discoverHuggingFaceModels,
+  discoverOpenRouterModels,
+} from "../../utils/model-discovery-util";
+import { loadModelsCatalog } from "../../utils/models-catalog-loader";
 
 const CONFIG_DIR = path.join(os.homedir(), ".txtcode");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
@@ -16,11 +19,11 @@ const WA_AUTH_DIR = path.join(CONFIG_DIR, ".wacli_auth");
 // Validate API key
 function validateApiKeyFormat(apiKey: string): { valid: boolean; error?: string } {
   const trimmed = apiKey.trim();
-  
+
   if (!trimmed) {
     return { valid: false, error: "API key is required" };
   }
-  
+
   return { valid: true };
 }
 
@@ -197,7 +200,7 @@ export async function authCommand() {
   if (existingConfig && existingConfig.providers) {
     console.log(chalk.yellow("⚠️  Existing configuration detected!\n"));
     console.log(chalk.gray("Currently configured providers:"));
-    Object.keys(existingConfig.providers).forEach(provider => {
+    Object.keys(existingConfig.providers).forEach((provider) => {
       const providerConfig = existingConfig.providers[provider];
       console.log(chalk.white(`  • ${provider} (${providerConfig.model})`));
     });
@@ -213,7 +216,11 @@ export async function authCommand() {
     ]);
 
     if (!shouldOverwrite) {
-      console.log(chalk.gray("\nAuthentication cancelled. Use 'txtcode config' to modify individual settings.\n"));
+      console.log(
+        chalk.gray(
+          "\nAuthentication cancelled. Use 'txtcode config' to modify individual settings.\n",
+        ),
+      );
       return;
     }
     console.log(chalk.yellow("\nReconfiguring all providers...\n"));
@@ -226,7 +233,7 @@ export async function authCommand() {
 
   // Helper function to get all available providers dynamically from catalog
   function getAllProviders() {
-    return Object.keys(modelsCatalog.providers).map(providerId => {
+    return Object.keys(modelsCatalog.providers).map((providerId) => {
       const providerData = modelsCatalog.providers[providerId];
       return {
         name: providerData.name,
@@ -236,22 +243,26 @@ export async function authCommand() {
   }
 
   // Helper function to configure a provider
-  async function configureProvider(label: string, existingProvider?: string): Promise<{provider: string; apiKey: string; model: string} | null> {
+  async function configureProvider(
+    label: string,
+    existingProvider?: string,
+  ): Promise<{ provider: string; apiKey: string; model: string } | null> {
     console.log(chalk.cyan(`\n${label}\n`));
-    
+
     // Get available providers dynamically (excluding already selected ones)
     const allProviders = getAllProviders();
-    const availableProviders = allProviders.filter(p => !selectedProviders.has(p.value));
-    
+    const availableProviders = allProviders.filter((p) => !selectedProviders.has(p.value));
+
     if (availableProviders.length === 0) {
       throw new Error("No more providers available to configure");
     }
-    
+
     // Add "Back" option if this is not the primary provider
-    const providerChoices = label === "Primary AI Provider" 
-      ? availableProviders 
-      : [...availableProviders, { name: "← Back", value: "__BACK__" }];
-    
+    const providerChoices =
+      label === "Primary AI Provider"
+        ? availableProviders
+        : [...availableProviders, { name: "← Back", value: "__BACK__" }];
+
     const providerAnswers = await inquirer.prompt([
       {
         type: "list",
@@ -261,12 +272,12 @@ export async function authCommand() {
         pageSize: 20,
       },
     ]);
-    
+
     // Handle back navigation
     if (providerAnswers.provider === "__BACK__") {
       return null;
     }
-    
+
     const apiKeyAnswer = await inquirer.prompt([
       {
         type: "password",
@@ -276,15 +287,15 @@ export async function authCommand() {
         validate: (input) => input.length > 0 || "API key is required",
       },
     ]);
-    
+
     providerAnswers.apiKey = apiKeyAnswer.apiKey;
 
     // Validate API key (just check it's not empty)
     const validation = validateApiKeyFormat(providerAnswers.apiKey);
-    
+
     if (!validation.valid) {
       console.log(chalk.red(`\n[ERROR] ${validation.error}\n`));
-      
+
       const { retry } = await inquirer.prompt([
         {
           type: "confirm",
@@ -293,12 +304,14 @@ export async function authCommand() {
           default: true,
         },
       ]);
-      
+
       if (retry) {
         // Retry with same provider
         return await configureProvider(label, existingProvider);
       } else {
-        throw new Error("API key validation failed. Please run 'txtcode auth' again with a valid key.");
+        throw new Error(
+          "API key validation failed. Please run 'txtcode auth' again with a valid key.",
+        );
       }
     }
 
@@ -307,7 +320,7 @@ export async function authCommand() {
 
     // Load models - use dynamic discovery for HuggingFace and OpenRouter, static catalog for others
     let modelChoices: Array<{ name: string; value: string }>;
-    
+
     if (providerAnswers.provider === "huggingface") {
       console.log(chalk.gray("Discovering available models from HuggingFace..."));
       try {
@@ -318,9 +331,13 @@ export async function authCommand() {
         }));
         console.log(chalk.green(`Found ${discoveredModels.length} models\n`));
       } catch (error) {
-        console.log(chalk.red(`\n[ERROR] Failed to discover HuggingFace models: ${error instanceof Error ? error.message : "Unknown error"}\n`));
+        console.log(
+          chalk.red(
+            `\n[ERROR] Failed to discover HuggingFace models: ${error instanceof Error ? error.message : "Unknown error"}\n`,
+          ),
+        );
         console.log(chalk.yellow("Please check your API key and try again.\n"));
-        
+
         const { retry } = await inquirer.prompt([
           {
             type: "confirm",
@@ -329,11 +346,13 @@ export async function authCommand() {
             default: true,
           },
         ]);
-        
+
         if (retry) {
           return await configureProvider(label, existingProvider);
         } else {
-          throw new Error("HuggingFace model discovery failed. Please run 'txtcode auth' again with a valid API key.");
+          throw new Error(
+            "HuggingFace model discovery failed. Please run 'txtcode auth' again with a valid API key.",
+          );
         }
       }
     } else if (providerAnswers.provider === "openrouter") {
@@ -346,9 +365,13 @@ export async function authCommand() {
         }));
         console.log(chalk.green(`Found ${discoveredModels.length} models\n`));
       } catch (error) {
-        console.log(chalk.red(`\n[ERROR] Failed to discover OpenRouter models: ${error instanceof Error ? error.message : "Unknown error"}\n`));
+        console.log(
+          chalk.red(
+            `\n[ERROR] Failed to discover OpenRouter models: ${error instanceof Error ? error.message : "Unknown error"}\n`,
+          ),
+        );
         console.log(chalk.yellow("Please check your API key and try again.\n"));
-        
+
         const { retry } = await inquirer.prompt([
           {
             type: "confirm",
@@ -357,19 +380,19 @@ export async function authCommand() {
             default: true,
           },
         ]);
-        
+
         if (retry) {
           return await configureProvider(label, existingProvider);
         } else {
-          throw new Error("OpenRouter model discovery failed. Please run 'txtcode auth' again with a valid API key.");
+          throw new Error(
+            "OpenRouter model discovery failed. Please run 'txtcode auth' again with a valid API key.",
+          );
         }
       }
     } else {
       const providerModels = modelsCatalog.providers[providerAnswers.provider];
       modelChoices = providerModels.models.map((model: any) => ({
-        name: model.recommended
-          ? `${model.name} - Recommended`
-          : model.name,
+        name: model.recommended ? `${model.name} - Recommended` : model.name,
         value: model.id,
       }));
     }
@@ -407,7 +430,9 @@ export async function authCommand() {
       console.log(chalk.gray(`Using custom model: ${selectedModel}\n`));
     }
 
-    console.log(chalk.green(`\n${label} configured: ${providerAnswers.provider} (${selectedModel})\n`));
+    console.log(
+      chalk.green(`\n${label} configured: ${providerAnswers.provider} (${selectedModel})\n`),
+    );
 
     return {
       provider: providerAnswers.provider,
@@ -418,7 +443,7 @@ export async function authCommand() {
 
   // Step 1: Configure Primary AI Provider (cannot go back from primary)
   let primaryProvider = await configureProvider("Primary AI Provider");
-  
+
   // Primary provider should never be null, but handle it just in case
   while (primaryProvider === null) {
     console.log(chalk.yellow("\nPrimary provider is required. Please select a provider.\n"));
@@ -426,7 +451,9 @@ export async function authCommand() {
   }
 
   // Collect all configured providers
-  const configuredProviders: Array<{provider: string; apiKey: string; model: string}> = [primaryProvider];
+  const configuredProviders: Array<{ provider: string; apiKey: string; model: string }> = [
+    primaryProvider,
+  ];
 
   // Step 2: Keep asking if user wants to add more providers (unlimited)
   let continueAdding = true;
@@ -435,10 +462,12 @@ export async function authCommand() {
   while (continueAdding) {
     // Check if there are more providers available (dynamic)
     const allProviders = getAllProviders();
-    const remainingProviders = allProviders.filter(p => !selectedProviders.has(p.value));
-    
+    const remainingProviders = allProviders.filter((p) => !selectedProviders.has(p.value));
+
     if (remainingProviders.length === 0) {
-      console.log(chalk.yellow(`\n✓ All available providers configured (${providerCount} total)\n`));
+      console.log(
+        chalk.yellow(`\n✓ All available providers configured (${providerCount} total)\n`),
+      );
       break;
     }
 
@@ -457,23 +486,27 @@ export async function authCommand() {
     }
 
     providerCount++;
-    const secondaryProvider = await configureProvider(`Secondary AI Provider #${providerCount - 1}`);
-    
+    const secondaryProvider = await configureProvider(
+      `Secondary AI Provider #${providerCount - 1}`,
+    );
+
     // Handle back navigation
     if (secondaryProvider === null) {
       providerCount--;
       continue;
     }
-    
+
     configuredProviders.push(secondaryProvider);
   }
 
   // Validate all providers are unique (safety check)
-  const allProviderNames = configuredProviders.map(p => p.provider);
+  const allProviderNames = configuredProviders.map((p) => p.provider);
   const uniqueProviders = new Set(allProviderNames);
-  
+
   if (uniqueProviders.size !== allProviderNames.length) {
-    console.log(chalk.red("\n[ERROR] Duplicate providers detected. Each provider must be unique.\n"));
+    console.log(
+      chalk.red("\n[ERROR] Duplicate providers detected. Each provider must be unique.\n"),
+    );
     console.log(chalk.yellow("Please run 'txtcode auth' again and select different providers.\n"));
     process.exit(1);
   }
@@ -573,7 +606,7 @@ export async function authCommand() {
     for (const provider of configuredProviders) {
       await setApiKey(provider.provider, provider.apiKey);
     }
-    
+
     // Store bot tokens in keychain
     if (telegramToken) {
       await setBotToken("telegram", telegramToken);
@@ -600,10 +633,10 @@ export async function authCommand() {
     // Primary provider (active)
     aiProvider: primaryProvider.provider,
     aiModel: primaryProvider.model,
-    
+
     // All providers (models only, keys in keychain)
     providers: providersConfig,
-    
+
     platform: platformAnswers.platform,
     ideType: ideAnswers.ideType,
     idePort: 3000,
@@ -612,7 +645,7 @@ export async function authCommand() {
   };
 
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
-  
+
   // Set strict file permissions
   try {
     fs.chmodSync(CONFIG_DIR, 0o700);
@@ -624,13 +657,13 @@ export async function authCommand() {
   console.log(chalk.green("\nAuthentication successful!"));
   console.log(chalk.gray(`\nConfiguration saved to: ${CONFIG_FILE}`));
   console.log(chalk.cyan("\nConfigured Providers:"));
-  
+
   // Show all configured providers
   configuredProviders.forEach((provider, index) => {
     const label = index === 0 ? "Primary" : `Secondary ${index}`;
     console.log(chalk.white(`  ${label}: ${provider.provider} (${provider.model})`));
   });
-  
+
   console.log(chalk.cyan("\nNext steps:"));
   console.log(chalk.white("  1. Run: " + chalk.bold("txtcode start")));
 
@@ -643,7 +676,7 @@ export async function authCommand() {
   }
 
   console.log(chalk.white("  3. Start coding from your phone!\n"));
-  
+
   if (configuredProviders.length > 1) {
     console.log(chalk.gray("  Use /switch to change between your configured providers\n"));
   } else {
