@@ -252,7 +252,7 @@ export async function interactiveMode(): Promise<void> {
             "   ╚═╝   ╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝",
           ];
           
-          const exitSubtitle = "Remote coding via WhatsApp, Telegram, Discord & iMessage";
+          const exitSubtitle = "Remote coding via WhatsApp, Telegram & Discord";
           
           console.log();
           exitLogoLines.forEach(line => {
