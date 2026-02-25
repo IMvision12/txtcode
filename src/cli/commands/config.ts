@@ -2,7 +2,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import chalk from "chalk";
-import { setApiKey, getApiKey, setBotToken, getBotToken } from "../../utils/keychain";
+import { setBotToken } from "../../utils/keychain";
 import { loadConfig } from "./auth";
 import { centerLog, showCenteredList, showCenteredInput } from "../tui";
 
@@ -32,12 +32,12 @@ export async function configCommand() {
   const configType = await showCenteredList({
     message: "Select what to configure: (Use arrow keys)",
     choices: [
-      { name: "� Change Messaging Platform", value: "platform" },
-      { name: "🤖 Change IDE Type", value: "ide" },
-      { name: "🧠 Change AI Provider", value: "ai" },
-      { name: "📁 Change Project Path", value: "project" },
-      { name: "📊 View Current Config", value: "view" },
-      { name: "🔙 Cancel", value: "cancel" },
+      { name: "Change Messaging Platform", value: "platform" },
+      { name: "Change IDE Type", value: "ide" },
+      { name: "Change AI Provider", value: "ai" },
+      { name: "Change Project Path", value: "project" },
+      { name: "View Current Config", value: "view" },
+      { name: "Cancel", value: "cancel" },
     ],
   });
 
