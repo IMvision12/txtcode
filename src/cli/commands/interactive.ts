@@ -68,36 +68,36 @@ export async function interactiveMode(): Promise<void> {
 
     if (!isConfigured) {
       choices.push({
-        name: chalk.cyan("Setup & Authentication") + chalk.gray(" - Configure TxtCode for first use"),
+        name: "Setup & Authentication" + chalk.gray(" - Configure TxtCode for first use"),
         value: "auth",
       });
     } else {
       choices.push({
-        name: chalk.green("Start Agent") + chalk.gray(" - Start the TxtCode agent"),
+        name: "Start Agent" + chalk.gray(" - Start the TxtCode agent"),
         value: "start",
       });
       choices.push({
-        name: chalk.blue("Settings") + chalk.gray(" - Modify configuration"),
+        name: "Settings" + chalk.gray(" - Modify configuration"),
         value: "config",
       });
       choices.push({
-        name: chalk.cyan("Re-authenticate") + chalk.gray(" - Reconfigure authentication"),
+        name: "Re-authenticate" + chalk.gray(" - Reconfigure authentication"),
         value: "auth",
       });
       choices.push({
-        name: chalk.magenta("View Logs") + chalk.gray(" - View session logs"),
+        name: "View Logs" + chalk.gray(" - View session logs"),
         value: "logs",
       });
       choices.push({
-        name: chalk.yellow("Reset") + chalk.gray(" - Reset authorized user"),
+        name: "Reset" + chalk.gray(" - Reset authorized user"),
         value: "reset",
       });
       choices.push({
-        name: chalk.red("Logout") + chalk.gray(" - Logout from messaging platform"),
+        name: "Logout" + chalk.gray(" - Logout from messaging platform"),
         value: "logout",
       });
       choices.push({
-        name: chalk.red("Hard Reset") + chalk.gray(" - Delete all data"),
+        name: "Hard Reset" + chalk.gray(" - Delete all data"),
         value: "hard-reset",
       });
     }
