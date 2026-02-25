@@ -111,10 +111,6 @@ function displayNameFromApiEntry(entry: HFModelEntry, inferredName: string): str
 function formatOpenRouterDescription(model: OpenRouterModelMeta): string {
   const parts: string[] = [];
 
-  if (model.description) {
-    parts.push(model.description);
-  }
-
   // Add pricing info if free
   if (model.pricing?.prompt === "0" && model.pricing?.completion === "0") {
     parts.push("Free");
@@ -128,7 +124,7 @@ function formatOpenRouterDescription(model: OpenRouterModelMeta): string {
     }
   }
 
-  return parts.length > 0 ? parts.join(" • ") : "OpenRouter model";
+  return parts.length > 0 ? parts.join(" • ") : "";
 }
 
 /**

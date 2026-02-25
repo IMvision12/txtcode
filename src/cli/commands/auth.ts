@@ -494,9 +494,13 @@ export async function authCommand() {
 
     console.log(); // Add spacing before model selection
 
+    // Use pagination for OpenRouter and HuggingFace (10 items per page)
+    const usePagination = providerValue === "openrouter" || providerValue === "huggingface";
+    
     const selectedModel = await showCenteredList({
       message: "Select model: (Use arrow keys)",
       choices: modelChoicesWithCustom,
+      pageSize: usePagination ? 10 : undefined,
     });
 
     let finalModel = selectedModel;
