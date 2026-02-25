@@ -1,0 +1,5 @@
+{
+  "name": "HuggingFace (Inference Providers)",
+  "apiKeyEnv": "HUGGINGFACE_API_KEY",
+  "models": []
+}

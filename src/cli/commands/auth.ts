@@ -5,6 +5,7 @@ import makeWASocket, { useMultiFileAuthState } from "@whiskeysockets/baileys";
 import chalk from "chalk";
 import inquirer from "inquirer";
 import qrcode from "qrcode-terminal";
+import { discoverHuggingFaceModels } from "../../utils/huggingface-discovery";
 import { loadModelsCatalog } from "../../utils/models-catalog-loader";
 import { setApiKey, setBotToken, isKeychainAvailable } from "../../utils/keychain";
 
@@ -289,14 +290,46 @@ export async function authCommand() {
     // Mark this provider as selected
     selectedProviders.add(providerAnswers.provider);
 
-    // Load models from catalog
-    const providerModels = modelsCatalog.providers[providerAnswers.provider];
-    const modelChoices = providerModels.models.map((model: any) => ({
-      name: model.recommended
-        ? `${model.name} - Recommended`
-        : model.name,
-      value: model.id,
-    }));
+    // Load models - use dynamic discovery for HuggingFace, static catalog for others
+    let modelChoices: Array<{ name: string; value: string }>;
+    
+    if (providerAnswers.provider === "huggingface") {
+      console.log(chalk.gray("Discovering available models from HuggingFace..."));
+      try {
+        const discoveredModels = await discoverHuggingFaceModels(providerAnswers.apiKey);
+        modelChoices = discoveredModels.map((model) => ({
+          name: model.description ? `${model.name} - ${model.description}` : model.name,
+          value: model.id,
+        }));
+        console.log(chalk.green(`Found ${discoveredModels.length} models\n`));
+      } catch (error) {
+        console.log(chalk.red(`\n[ERROR] Failed to discover HuggingFace models: ${error instanceof Error ? error.message : "Unknown error"}\n`));
+        console.log(chalk.yellow("Please check your API key and try again.\n"));
+        
+        const { retry } = await inquirer.prompt([
+          {
+            type: "confirm",
+            name: "retry",
+            message: "Would you like to enter a different API key?",
+            default: true,
+          },
+        ]);
+        
+        if (retry) {
+          return await configureProvider(label, existingProvider);
+        } else {
+          throw new Error("HuggingFace model discovery failed. Please run 'txtcode auth' again with a valid API key.");
+        }
+      }
+    } else {
+      const providerModels = modelsCatalog.providers[providerAnswers.provider];
+      modelChoices = providerModels.models.map((model: any) => ({
+        name: model.recommended
+          ? `${model.name} - Recommended`
+          : model.name,
+        value: model.id,
+      }));
+    }
 
     const modelAnswer = await inquirer.prompt([
       {

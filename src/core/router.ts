@@ -6,6 +6,7 @@ import { OllamaClaudeCodeAdapter } from "../adapters/ollama-claude-code";
 import { CodexAdapter } from "../adapters/openai-codex";
 import { processWithAnthropic } from "../providers/anthropic";
 import { processWithGemini } from "../providers/gemini";
+import { processWithHuggingFace } from "../providers/huggingface";
 import { processWithMiniMax } from "../providers/minimax";
 import { processWithMistral } from "../providers/mistral";
 import { processWithMoonshot } from "../providers/moonshot";
@@ -125,6 +126,8 @@ export class Router {
         return await processWithMoonshot(instruction, this.apiKey, this.model, this.toolRegistry);
       case "minimax":
         return await processWithMiniMax(instruction, this.apiKey, this.model, this.toolRegistry);
+      case "huggingface":
+        return await processWithHuggingFace(instruction, this.apiKey, this.model, this.toolRegistry);
       case "mistral":
         return await processWithMistral(instruction, this.apiKey, this.model, this.toolRegistry);
       case "xai":
