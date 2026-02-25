@@ -2,7 +2,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import chalk from "chalk";
-import { centerLog, showCenteredConfirm, showCenteredInput } from "../tui";
+import { centerLog, showCenteredConfirm } from "../tui";
 
 const CONFIG_DIR = path.join(os.homedir(), ".txtcode");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");

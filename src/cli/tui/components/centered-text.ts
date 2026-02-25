@@ -25,24 +25,3 @@ export function calculateVerticalPadding(contentHeight: number): number {
   const terminalHeight = getTerminalHeight();
   return Math.max(0, Math.floor((terminalHeight - contentHeight) / 2));
 }
-
-/**
- * Calculate left padding for consistent left-aligned content
- * This creates a fixed-width content area that's centered in the terminal
- * @param contentWidth - The fixed width for content (default: 60)
- * @returns The number of spaces to pad from the left
- */
-export function getLeftPadding(contentWidth: number = 60): number {
-  const terminalWidth = getTerminalWidth();
-  return Math.max(0, Math.floor((terminalWidth - contentWidth) / 2));
-}
-
-/**
- * Log text with consistent left alignment (for headings, messages, etc.)
- * @param text - The text to log
- * @param contentWidth - The fixed width for content (default: 60)
- */
-export function leftAlignLog(text: string, contentWidth: number = 60): void {
-  const padding = getLeftPadding(contentWidth);
-  console.log(" ".repeat(padding) + text);
-}
