@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/logo.jpg" alt="txtcode" width="200" />
+  <img src="assets/logo.jpg" alt="txtcode" width="450" />
 </div>
 
 <br>
@@ -13,6 +13,10 @@
 <br />
 
 **Control your IDE from your phone.** Use WhatsApp, Telegram, or Discord to send natural-language instructions to AI coding assistants and run commands on your machine.
+
+<div align="center">
+  <img src="assets/terminal.png" alt="txtcode terminal interface" width="800" />
+</div>
 
 ---
 
