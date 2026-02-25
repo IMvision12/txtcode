@@ -10,7 +10,7 @@ const LOGO_LINES = [
   "   ╚═╝   ╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝",
 ];
 
-const SUBTITLE = "Remote coding via WhatsApp, Telegram, Discord & iMessage";
+const SUBTITLE = "Remote coding via WhatsApp, Telegram & Discord";
 
 export function renderBanner(options?: { showSubtitle?: boolean }): void {
   const terminalWidth = getTerminalWidth();
