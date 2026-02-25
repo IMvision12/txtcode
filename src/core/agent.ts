@@ -24,7 +24,7 @@ export class AgentCore {
         const config = JSON.parse(fs.readFileSync(this.configPath, "utf-8"));
         this.authorizedUser = config.authorizedUser || null;
       }
-    } catch (error) {
+    } catch {
       // Config not found or invalid
     }
   }

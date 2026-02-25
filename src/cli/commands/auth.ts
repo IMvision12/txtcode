@@ -361,7 +361,6 @@ export async function authCommand() {
   // Helper function to configure a provider
   async function configureProvider(
     label: string,
-    existingProvider?: string,
   ): Promise<{ provider: string; apiKey: string; model: string } | null> {
     console.log();
 
@@ -414,7 +413,7 @@ export async function authCommand() {
 
       if (retry) {
         // Retry with same provider
-        return await configureProvider(label, existingProvider);
+        return await configureProvider(label);
       } else {
         throw new Error(
           "API key validation failed. Please run 'txtcode auth' again with a valid key.",
@@ -453,7 +452,7 @@ export async function authCommand() {
         });
 
         if (retry) {
-          return await configureProvider(label, existingProvider);
+          return await configureProvider(label);
         } else {
           throw new Error(
             "HuggingFace model discovery failed. Please run 'txtcode auth' again with a valid API key.",
@@ -485,7 +484,7 @@ export async function authCommand() {
         });
 
         if (retry) {
-          return await configureProvider(label, existingProvider);
+          return await configureProvider(label);
         } else {
           throw new Error(
             "OpenRouter model discovery failed. Please run 'txtcode auth' again with a valid API key.",
