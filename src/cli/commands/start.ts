@@ -5,8 +5,8 @@ import { TelegramBot } from "../../platforms/telegram";
 import { WhatsAppBot } from "../../platforms/whatsapp";
 import { logger } from "../../shared/logger";
 import { getApiKey, getBotToken } from "../../utils/keychain";
-import { loadConfig } from "./auth";
 import { centerLog } from "../tui";
+import { loadConfig } from "./auth";
 
 export async function startCommand(options: { daemon?: boolean }) {
   const config = loadConfig();

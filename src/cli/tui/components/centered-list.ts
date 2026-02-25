@@ -1,5 +1,5 @@
-import chalk from "chalk";
 import * as readline from "readline";
+import chalk from "chalk";
 
 export interface ListItem {
   name: string;
@@ -53,7 +53,11 @@ export async function showCenteredList(options: CenteredListOptions): Promise<st
         process.stdout.write("\x1b[2K");
         console.log();
         process.stdout.write("\x1b[2K");
-        console.log(chalk.gray(`Page ${currentPage + 1}/${totalPages} • Use ← → to navigate pages • ${options.choices.length} total items`));
+        console.log(
+          chalk.gray(
+            `Page ${currentPage + 1}/${totalPages} • Use ← → to navigate pages • ${options.choices.length} total items`,
+          ),
+        );
       }
     };
 
@@ -112,10 +116,14 @@ export async function showCenteredList(options: CenteredListOptions): Promise<st
         // Previous page
         if (currentPage > 0) {
           currentPage--;
-          selectedIndex = getGlobalIndex(Math.min(localSelectedIndex, getCurrentPageItems().length - 1));
+          selectedIndex = getGlobalIndex(
+            Math.min(localSelectedIndex, getCurrentPageItems().length - 1),
+          );
         } else {
           currentPage = totalPages - 1;
-          selectedIndex = getGlobalIndex(Math.min(localSelectedIndex, getCurrentPageItems().length - 1));
+          selectedIndex = getGlobalIndex(
+            Math.min(localSelectedIndex, getCurrentPageItems().length - 1),
+          );
         }
         process.stdout.write(`\x1b[${linesToClear}A`);
         renderList();
@@ -123,10 +131,14 @@ export async function showCenteredList(options: CenteredListOptions): Promise<st
         // Next page
         if (currentPage < totalPages - 1) {
           currentPage++;
-          selectedIndex = getGlobalIndex(Math.min(localSelectedIndex, getCurrentPageItems().length - 1));
+          selectedIndex = getGlobalIndex(
+            Math.min(localSelectedIndex, getCurrentPageItems().length - 1),
+          );
         } else {
           currentPage = 0;
-          selectedIndex = getGlobalIndex(Math.min(localSelectedIndex, getCurrentPageItems().length - 1));
+          selectedIndex = getGlobalIndex(
+            Math.min(localSelectedIndex, getCurrentPageItems().length - 1),
+          );
         }
         process.stdout.write(`\x1b[${linesToClear}A`);
         renderList();

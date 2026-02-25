@@ -1,5 +1,5 @@
-import chalk from "chalk";
 import * as readline from "readline";
+import chalk from "chalk";
 
 export interface CenteredInputOptions {
   message: string;
@@ -13,7 +13,7 @@ export async function showCenteredInput(options: CenteredInputOptions): Promise<
 
     // Create the full prompt line: "Enter API Key: " (left-aligned)
     const promptLine = options.message + " ";
-    
+
     // Write the left-aligned prompt
     process.stdout.write(chalk.cyan(promptLine));
 
@@ -37,7 +37,7 @@ export async function showCenteredInput(options: CenteredInputOptions): Promise<
             const errorMsg = typeof validation === "string" ? validation : "Invalid input";
             console.log(chalk.red(errorMsg));
             console.log();
-            
+
             // Re-prompt on same line (left-aligned)
             process.stdout.write(chalk.cyan(promptLine));
             input = "";

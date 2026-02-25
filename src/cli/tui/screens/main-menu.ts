@@ -1,9 +1,14 @@
+import fs from "fs";
+import path from "path";
 import chalk from "chalk";
 import { renderBanner, getBannerHeight } from "../components/banner";
+import {
+  centerText,
+  centerLog,
+  getTerminalWidth,
+  calculateVerticalPadding,
+} from "../components/centered-text";
 import { showMenu, MenuItem } from "../components/menu";
-import { centerText, centerLog, getTerminalWidth, calculateVerticalPadding } from "../components/centered-text";
-import path from "path";
-import fs from "fs";
 
 // Get version from package.json
 function getVersion(): string {
@@ -118,25 +123,25 @@ export async function showMainMenu(options: MainMenuOptions): Promise<string> {
       const termHeight = getTerminalHeight();
       const currentLine = topPadding + contentHeight + 2; // +2 for title and spacing
       const linesToBottom = Math.max(0, termHeight - currentLine - 1);
-      
+
       // Move to bottom
       for (let i = 0; i < linesToBottom; i++) {
         console.log();
       }
-      
+
       // Show directory on left and version on right at the absolute bottom
       const version = getVersion();
       const directory = getCurrentDirectory();
       const termWidth = getTerminalWidth();
-      
+
       const leftText = chalk.gray(directory);
       const rightText = chalk.gray(`v${version}`);
-      
+
       // Calculate spacing to position text at edges
       const leftTextLength = directory.length;
       const rightTextLength = version.length + 1; // +1 for 'v'
       const spacing = Math.max(0, termWidth - leftTextLength - rightTextLength - 2);
-      
+
       console.log(leftText + " ".repeat(spacing) + rightText);
     },
   });

@@ -3,8 +3,8 @@ import os from "os";
 import path from "path";
 import chalk from "chalk";
 import { setBotToken } from "../../utils/keychain";
-import { loadConfig } from "./auth";
 import { centerLog, showCenteredList, showCenteredInput } from "../tui";
+import { loadConfig } from "./auth";
 
 const CONFIG_DIR = path.join(os.homedir(), ".txtcode");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
@@ -192,7 +192,9 @@ async function configureAI(config: any) {
   console.log();
   centerLog(chalk.white(`Active: ${selectedProvider} (${config.aiModel})`));
   console.log();
-  centerLog(chalk.gray("Note: To change API key or add/remove providers, run authentication again."));
+  centerLog(
+    chalk.gray("Note: To change API key or add/remove providers, run authentication again."),
+  );
   console.log();
 }
 
@@ -242,8 +244,7 @@ function viewConfig(config: any) {
   }
 
   centerLog(
-    chalk.white("Configured At: ") +
-      chalk.yellow(new Date(config.configuredAt).toLocaleString()),
+    chalk.white("Configured At: ") + chalk.yellow(new Date(config.configuredAt).toLocaleString()),
   );
   console.log();
   centerLog(chalk.gray(`Config file: ${CONFIG_FILE}`));

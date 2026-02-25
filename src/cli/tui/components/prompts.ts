@@ -1,5 +1,5 @@
-import inquirer from "inquirer";
 import chalk from "chalk";
+import inquirer from "inquirer";
 import { centerLog } from "./centered-text";
 
 /**
@@ -21,9 +21,12 @@ export async function centeredPrompt(
 /**
  * Show a centered message
  */
-export function showMessage(message: string, type: "info" | "success" | "warning" | "error" = "info"): void {
+export function showMessage(
+  message: string,
+  type: "info" | "success" | "warning" | "error" = "info",
+): void {
   console.log();
-  
+
   switch (type) {
     case "success":
       centerLog(chalk.green(message));
@@ -37,7 +40,7 @@ export function showMessage(message: string, type: "info" | "success" | "warning
     default:
       centerLog(chalk.gray(message));
   }
-  
+
   console.log();
 }
 

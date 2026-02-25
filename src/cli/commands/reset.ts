@@ -84,7 +84,7 @@ export async function hardResetCommand() {
   console.log();
 
   const confirmed = await showCenteredConfirm({
-    message: 'Are you sure? This cannot be undone!',
+    message: "Are you sure? This cannot be undone!",
     default: false,
   });
 

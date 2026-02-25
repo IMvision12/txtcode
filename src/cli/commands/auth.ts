@@ -1,11 +1,11 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import makeWASocket, { 
+import makeWASocket, {
   useMultiFileAuthState,
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
-  DisconnectReason
+  DisconnectReason,
 } from "@whiskeysockets/baileys";
 import chalk from "chalk";
 import qrcode from "qrcode-terminal";
@@ -15,11 +15,7 @@ import {
   discoverOpenRouterModels,
 } from "../../utils/model-discovery-util";
 import { loadModelsCatalog } from "../../utils/models-catalog-loader";
-import { 
-  showCenteredList, 
-  showCenteredInput, 
-  showCenteredConfirm 
-} from "../tui";
+import { showCenteredList, showCenteredInput, showCenteredConfirm } from "../tui";
 
 const CONFIG_DIR = path.join(os.homedir(), ".txtcode");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
@@ -51,7 +47,7 @@ async function authenticateWhatsApp(): Promise<void> {
           console.log(chalk.yellow("Existing WhatsApp session found."));
           console.log(chalk.gray("Clearing old session to start fresh..."));
           console.log();
-          
+
           // Clear old session files to avoid 405 errors
           try {
             fs.rmSync(WA_AUTH_DIR, { recursive: true, force: true });
@@ -67,9 +63,9 @@ async function authenticateWhatsApp(): Promise<void> {
 
       console.log(chalk.gray("Initializing WhatsApp connection..."));
       console.log();
-      
+
       const { state, saveCreds } = await useMultiFileAuthState(WA_AUTH_DIR);
-      
+
       // Fetch latest Baileys version (like openclaw does)
       const { version } = await fetchLatestBaileysVersion();
 
@@ -82,13 +78,17 @@ async function authenticateWhatsApp(): Promise<void> {
             // Ignore
           }
           if (!connectionAttempted) {
-            reject(new Error("Connection timeout - No response from WhatsApp servers. Please check your internet connection."));
+            reject(
+              new Error(
+                "Connection timeout - No response from WhatsApp servers. Please check your internet connection.",
+              ),
+            );
           } else {
             reject(new Error("QR code generation timeout - Please try again."));
           }
         }
       }, 60000);
-      
+
       sock = makeWASocket({
         auth: {
           creds: state.creds,
@@ -154,7 +154,7 @@ async function authenticateWhatsApp(): Promise<void> {
           console.log();
           console.log(chalk.gray("Open WhatsApp → Settings → Linked Devices → Link a Device"));
           console.log();
-          
+
           // Set new timeout for QR scanning (2 minutes)
           connectionTimeout = setTimeout(() => {
             if (!pairingComplete) {
@@ -196,12 +196,20 @@ async function authenticateWhatsApp(): Promise<void> {
             } catch (e) {
               // Ignore
             }
-            
+
             // Special handling for 405 errors
             if (statusCode === 405) {
-              reject(new Error(`WhatsApp connection failed (Error 405). This usually means:\n  • WhatsApp updated their protocol and the library needs updating\n  • Try updating: npm install @whiskeysockets/baileys@latest\n  • Or use Telegram/Discord instead (more reliable)`));
+              reject(
+                new Error(
+                  `WhatsApp connection failed (Error 405). This usually means:\n  • WhatsApp updated their protocol and the library needs updating\n  • Try updating: npm install @whiskeysockets/baileys@latest\n  • Or use Telegram/Discord instead (more reliable)`,
+                ),
+              );
             } else {
-              reject(new Error(`Failed to connect to WhatsApp servers (${statusCode || 'no status'}). ${errorMessage}. Please check your internet connection and try again.`));
+              reject(
+                new Error(
+                  `Failed to connect to WhatsApp servers (${statusCode || "no status"}). ${errorMessage}. Please check your internet connection and try again.`,
+                ),
+              );
             }
             return;
           }
@@ -298,7 +306,7 @@ async function authenticateWhatsApp(): Promise<void> {
 export async function authCommand() {
   console.clear();
   console.log();
-  
+
   console.log(chalk.blue.bold("TxtCode Authentication"));
   console.log();
   console.log(chalk.gray("Configure your TxtCode CLI for remote IDE control"));
@@ -323,7 +331,9 @@ export async function authCommand() {
 
     if (!shouldOverwrite) {
       console.log();
-      console.log(chalk.gray("Authentication cancelled. Use 'txtcode config' to modify individual settings."));
+      console.log(
+        chalk.gray("Authentication cancelled. Use 'txtcode config' to modify individual settings."),
+      );
       console.log();
       return;
     }
@@ -354,7 +364,7 @@ export async function authCommand() {
     existingProvider?: string,
   ): Promise<{ provider: string; apiKey: string; model: string } | null> {
     console.log();
-    
+
     console.log(chalk.cyan(label));
     console.log();
 
@@ -429,9 +439,11 @@ export async function authCommand() {
         console.log(chalk.green(`Found ${discoveredModels.length} models\n`));
       } catch (error) {
         console.log();
-        console.log(chalk.red(
-          `[ERROR] Failed to discover HuggingFace models: ${error instanceof Error ? error.message : "Unknown error"}`,
-        ));
+        console.log(
+          chalk.red(
+            `[ERROR] Failed to discover HuggingFace models: ${error instanceof Error ? error.message : "Unknown error"}`,
+          ),
+        );
         console.log(chalk.yellow("Please check your API key and try again."));
         console.log();
 
@@ -459,9 +471,11 @@ export async function authCommand() {
         console.log(chalk.green(`Found ${discoveredModels.length} models\n`));
       } catch (error) {
         console.log();
-        console.log(chalk.red(
-          `[ERROR] Failed to discover OpenRouter models: ${error instanceof Error ? error.message : "Unknown error"}`,
-        ));
+        console.log(
+          chalk.red(
+            `[ERROR] Failed to discover OpenRouter models: ${error instanceof Error ? error.message : "Unknown error"}`,
+          ),
+        );
         console.log(chalk.yellow("Please check your API key and try again."));
         console.log();
 
@@ -496,7 +510,7 @@ export async function authCommand() {
 
     // Use pagination for OpenRouter and HuggingFace (10 items per page)
     const usePagination = providerValue === "openrouter" || providerValue === "huggingface";
-    
+
     const selectedModel = await showCenteredList({
       message: "Select model: (Use arrow keys)",
       choices: modelChoicesWithCustom,
@@ -656,11 +670,11 @@ export async function authCommand() {
     if (process.stdin.isTTY) {
       process.stdin.setRawMode(false);
     }
-    process.stdin.removeAllListeners('keypress');
+    process.stdin.removeAllListeners("keypress");
     process.stdin.pause();
-    
+
     // Give stdin time to settle
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise((resolve) => setTimeout(resolve, 200));
 
     // Authenticate WhatsApp immediately
     try {
@@ -671,7 +685,7 @@ export async function authCommand() {
     } catch (error) {
       console.log();
       const errorMsg = error instanceof Error ? error.message : "Unknown error";
-      
+
       // Check if it's a 405 error
       if (errorMsg.includes("405")) {
         console.log(chalk.red(`[ERROR] WhatsApp authentication failed (Error 405)`));

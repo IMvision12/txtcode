@@ -1,5 +1,5 @@
-import chalk from "chalk";
 import * as readline from "readline";
+import chalk from "chalk";
 import { centerText, getTerminalWidth } from "./centered-text";
 
 export interface MenuItem {

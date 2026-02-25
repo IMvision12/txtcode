@@ -1,10 +1,10 @@
 import chalk from "chalk";
+import { showMainMenu, showGoodbyeScreen, pressAnyKey } from "../tui";
 import { authCommand, loadConfig } from "./auth";
-import { startCommand } from "./start";
 import { configCommand } from "./config";
 import { logsCommand } from "./logs";
 import { resetCommand, logoutCommand, hardResetCommand } from "./reset";
-import { showMainMenu, showGoodbyeScreen, pressAnyKey } from "../tui";
+import { startCommand } from "./start";
 
 export async function interactiveMode(): Promise<void> {
   let running = true;
@@ -68,7 +68,9 @@ export async function interactiveMode(): Promise<void> {
           await pressAnyKey();
       }
     } catch (error) {
-      console.log(chalk.red(`\nError: ${error instanceof Error ? error.message : String(error)}\n`));
+      console.log(
+        chalk.red(`\nError: ${error instanceof Error ? error.message : String(error)}\n`),
+      );
       await pressAnyKey();
     }
   }
