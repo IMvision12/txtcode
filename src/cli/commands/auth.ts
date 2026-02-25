@@ -236,7 +236,7 @@ export async function authCommand() {
   }
 
   // Helper function to configure a provider
-  async function configureProvider(label: string, existingProvider?: string) {
+  async function configureProvider(label: string, existingProvider?: string): Promise<{provider: string; apiKey: string; model: string} | null> {
     console.log(chalk.cyan(`\n${label}\n`));
     
     // Get available providers dynamically (excluding already selected ones)
@@ -247,14 +247,27 @@ export async function authCommand() {
       throw new Error("No more providers available to configure");
     }
     
+    // Add "Back" option if this is not the primary provider
+    const providerChoices = label === "Primary AI Provider" 
+      ? availableProviders 
+      : [...availableProviders, { name: "← Back", value: "__BACK__" }];
+    
     const providerAnswers = await inquirer.prompt([
       {
         type: "list",
         name: "provider",
         message: `Select ${label.toLowerCase()}:`,
-        choices: availableProviders,
+        choices: providerChoices,
         pageSize: 20,
       },
+    ]);
+    
+    // Handle back navigation
+    if (providerAnswers.provider === "__BACK__") {
+      return null;
+    }
+    
+    const apiKeyAnswer = await inquirer.prompt([
       {
         type: "password",
         name: "apiKey",
@@ -263,6 +276,8 @@ export async function authCommand() {
         validate: (input) => input.length > 0 || "API key is required",
       },
     ]);
+    
+    providerAnswers.apiKey = apiKeyAnswer.apiKey;
 
     // Validate API key (just check it's not empty)
     const validation = validateApiKeyFormat(providerAnswers.apiKey);
@@ -331,28 +346,56 @@ export async function authCommand() {
       }));
     }
 
+    // Add "Enter custom model name" option at the top
+    const modelChoicesWithCustom = [
+      { name: "✏️  Enter custom model name", value: "__CUSTOM__" },
+      ...modelChoices,
+    ];
+
     const modelAnswer = await inquirer.prompt([
       {
         type: "list",
         name: "model",
         message: "Select model:",
-        choices: modelChoices,
-        default: modelChoices[0]?.value,
+        choices: modelChoicesWithCustom,
+        default: modelChoicesWithCustom[1]?.value, // Default to first real model, not custom
         pageSize: 20,
       },
     ]);
 
-    console.log(chalk.green(`\n${label} configured: ${providerAnswers.provider} (${modelAnswer.model})\n`));
+    let selectedModel = modelAnswer.model;
+
+    // Handle custom model entry
+    if (selectedModel === "__CUSTOM__") {
+      const customModelAnswer = await inquirer.prompt([
+        {
+          type: "input",
+          name: "customModel",
+          message: "Enter model name/ID:",
+          validate: (input) => input.trim().length > 0 || "Model name is required",
+        },
+      ]);
+      selectedModel = customModelAnswer.customModel.trim();
+      console.log(chalk.gray(`Using custom model: ${selectedModel}\n`));
+    }
+
+    console.log(chalk.green(`\n${label} configured: ${providerAnswers.provider} (${selectedModel})\n`));
 
     return {
       provider: providerAnswers.provider,
       apiKey: providerAnswers.apiKey,
-      model: modelAnswer.model,
+      model: selectedModel,
     };
   }
 
-  // Step 1: Configure Primary AI Provider
-  const primaryProvider = await configureProvider("Primary AI Provider");
+  // Step 1: Configure Primary AI Provider (cannot go back from primary)
+  let primaryProvider = await configureProvider("Primary AI Provider");
+  
+  // Primary provider should never be null, but handle it just in case
+  while (primaryProvider === null) {
+    console.log(chalk.yellow("\nPrimary provider is required. Please select a provider.\n"));
+    primaryProvider = await configureProvider("Primary AI Provider");
+  }
 
   // Collect all configured providers
   const configuredProviders: Array<{provider: string; apiKey: string; model: string}> = [primaryProvider];
@@ -387,6 +430,13 @@ export async function authCommand() {
 
     providerCount++;
     const secondaryProvider = await configureProvider(`Secondary AI Provider #${providerCount - 1}`);
+    
+    // Handle back navigation
+    if (secondaryProvider === null) {
+      providerCount--;
+      continue;
+    }
+    
     configuredProviders.push(secondaryProvider);
   }
 
