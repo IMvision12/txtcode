@@ -228,7 +228,7 @@ export async function authCommand() {
     return Object.keys(modelsCatalog.providers).map(providerId => {
       const providerData = modelsCatalog.providers[providerId];
       return {
-        name: `${providerData.name} (${providerId})`,
+        name: providerData.name,
         value: providerId,
       };
     });
@@ -252,6 +252,7 @@ export async function authCommand() {
         name: "provider",
         message: `Select ${label.toLowerCase()}:`,
         choices: availableProviders,
+        pageSize: 20,
       },
       {
         type: "password",
@@ -304,7 +305,7 @@ export async function authCommand() {
         message: "Select model:",
         choices: modelChoices,
         default: modelChoices[0]?.value,
-        pageSize: 10,
+        pageSize: 20,
       },
     ]);
 

@@ -1,5 +1,5 @@
 {
-  "name": "Google Gemini",
+  "name": "Google (Gemini)",
   "apiKeyEnv": "GEMINI_API_KEY",
   "models": [
     {

@@ -1,5 +1,5 @@
 {
-  "name": "xAI",
+  "name": "xAI (Grok)",
   "apiKeyEnv": "XAI_API_KEY",
   "models": [
     {

@@ -1,5 +1,5 @@
 {
-  "name": "OpenRouter",
+  "name": "OpenRouter (openrouter)",
   "apiKeyEnv": "OPENROUTER_API_KEY",
   "models": [
     {

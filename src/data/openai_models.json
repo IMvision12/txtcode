@@ -1,5 +1,5 @@
 {
-  "name": "OpenAI",
+  "name": "OpenAI (GPT)",
   "apiKeyEnv": "OPENAI_API_KEY",
   "models": [
     {

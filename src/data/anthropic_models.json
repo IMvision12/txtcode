@@ -1,5 +1,5 @@
 {
-  "name": "Anthropic",
+  "name": "Anthropic (Claude)",
   "apiKeyEnv": "ANTHROPIC_API_KEY",
   "models": [
     {

@@ -1,0 +1,32 @@
+{
+  "name": "MiniMax (MiniMax 2.5)",
+  "apiKeyEnv": "MINIMAX_API_KEY",
+  "models": [
+    {
+      "id": "MiniMax-M2.5",
+      "name": "MiniMax M2.5",
+      "description": "Latest MiniMax model with enhanced capabilities",
+      "recommended": true
+    },
+    {
+      "id": "MiniMax-M2.5-highspeed",
+      "name": "MiniMax M2.5 High Speed",
+      "description": "High-speed variant of M2.5 for faster responses"
+    },
+    {
+      "id": "MiniMax-M2.1",
+      "name": "MiniMax M2.1",
+      "description": "Previous generation MiniMax model"
+    },
+    {
+      "id": "MiniMax-M2.1-highspeed",
+      "name": "MiniMax M2.1 High Speed",
+      "description": "High-speed variant of M2.1 for faster responses"
+    },
+    {
+      "id": "MiniMax-M2",
+      "name": "MiniMax M2",
+      "description": "Base MiniMax M2 model"
+    }
+  ]
+}
