@@ -177,7 +177,7 @@ async function configureAI(config: any) {
   }));
 
   const selectedProvider = await showCenteredList({
-    message: "Select primary provider: (Use arrow keys)",
+    message: "Select Primary Provider: (Use arrow keys)",
     choices: providerChoices,
   });
 

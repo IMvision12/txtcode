@@ -273,7 +273,7 @@ export async function authCommand() {
         : [...availableProviders, { name: "← Back", value: "__BACK__" }];
 
     const providerValue = await showCenteredList({
-      message: `Select ${label.toLowerCase()}: (Use arrow keys)`,
+      message: `Select ${label}: (Use arrow keys)`,
       choices: providerChoices,
     });
 
