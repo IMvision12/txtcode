@@ -36,7 +36,6 @@ export class OpenCodeAdapter implements IDEAdapter {
           "  curl -fsSL https://raw.githubusercontent.com/opencode-ai/opencode/refs/heads/main/install | bash\n" +
           "Or using Homebrew:\n" +
           "  brew install opencode-ai/tap/opencode\n\n" +
-          "Note: OpenCode has been archived and moved to 'Crush'. Consider using Crush instead.\n" +
           "Visit: https://github.com/opencode-ai/opencode",
         { cause: error },
       );
@@ -263,7 +262,6 @@ export class OpenCodeAdapter implements IDEAdapter {
                 "  curl -fsSL https://raw.githubusercontent.com/opencode-ai/opencode/refs/heads/main/install | bash\n" +
                 "Or using Homebrew:\n" +
                 "  brew install opencode-ai/tap/opencode\n\n" +
-                "Note: OpenCode has been archived. Consider using Crush instead.\n" +
                 "Visit: https://github.com/opencode-ai/opencode",
             ),
           );
@@ -284,7 +282,6 @@ export class OpenCodeAdapter implements IDEAdapter {
 Project: ${path.basename(this.projectPath)}
 Backend: Configured AI provider (OpenAI, Anthropic, Gemini, etc.)
 Session: ${this.sessionId || "None"}
-Note: OpenCode has been archived and moved to 'Crush'
 
 Features:
 - Multiple AI provider support
