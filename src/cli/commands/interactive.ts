@@ -5,6 +5,7 @@ import { startCommand } from "./start";
 import { configCommand } from "./config";
 import { logsCommand } from "./logs";
 import { resetCommand, logoutCommand, hardResetCommand } from "./reset";
+import * as readline from "readline";
 
 interface MainMenuChoice {
   name: string;
@@ -23,45 +24,107 @@ function getTerminalWidth(): number {
   return process.stdout.columns || 80; // Default to 80 if not available
 }
 
+async function showCenteredMenu(choices: MainMenuChoice[], terminalWidth: number): Promise<string> {
+  return new Promise((resolve) => {
+    let selectedIndex = 0;
+    
+    const renderMenu = () => {
+      console.clear();
+      
+      // Re-render banner
+      const logoLines = [
+        "████████╗██╗  ██╗████████╗ ██████╗ ██████╗ ██████╗ ███████╗",
+        "╚══██╔══╝╚██╗██╔╝╚══██╔══╝██╔════╝██╔═══██╗██╔══██╗██╔════╝",
+        "   ██║    ╚███╔╝    ██║   ██║     ██║   ██║██║  ██║█████╗  ",
+        "   ██║    ██╔██╗    ██║   ██║     ██║   ██║██║  ██║██╔══╝  ",
+        "   ██║   ██╔╝ ██╗   ██║   ╚██████╗╚██████╔╝██████╔╝███████╗",
+        "   ╚═╝   ╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝",
+      ];
+      
+      const subtitle = "Remote coding via WhatsApp, Telegram, Discord & iMessage";
+      
+      console.log();
+      logoLines.forEach(line => {
+        console.log(centerText(chalk.white(line), terminalWidth));
+      });
+      console.log();
+      console.log(centerText(chalk.gray(subtitle), terminalWidth));
+      console.log();
+      
+      const config = loadConfig();
+      const isConfigured = config !== null;
+      
+      if (!isConfigured) {
+        console.log(centerText(chalk.yellow("⚠ Not configured yet"), terminalWidth));
+        console.log();
+      } else {
+        console.log();
+      }
+      
+      console.log(centerText(chalk.cyan("What would you like to do? (Use arrow keys)"), terminalWidth));
+      console.log();
+      
+      // Find the longest choice text to determine menu width
+      const longestChoice = Math.max(...choices.map(choice => {
+        const plainText = choice.name.replace(/\x1b\[[0-9;]*m/g, "");
+        return plainText.length;
+      }));
+      
+      const menuWidth = longestChoice + 4; // Add space for prefix "> "
+      const leftPadding = Math.max(0, Math.floor((terminalWidth - menuWidth) / 2));
+      
+      choices.forEach((choice, index) => {
+        const isSelected = index === selectedIndex;
+        const bullet = isSelected ? chalk.green("● ") : chalk.gray("○ ");
+        const arrow = isSelected ? chalk.cyan("→ ") : "  ";
+        const text = isSelected ? chalk.cyan(choice.name) : choice.name;
+        console.log(" ".repeat(leftPadding) + arrow + bullet + text);
+      });
+    };
+    
+    renderMenu();
+    
+    readline.emitKeypressEvents(process.stdin);
+    if (process.stdin.isTTY) {
+      process.stdin.setRawMode(true);
+    }
+    
+    const onKeypress = (str: string, key: any) => {
+      if (key.name === "up") {
+        selectedIndex = selectedIndex > 0 ? selectedIndex - 1 : choices.length - 1;
+        renderMenu();
+      } else if (key.name === "down") {
+        selectedIndex = selectedIndex < choices.length - 1 ? selectedIndex + 1 : 0;
+        renderMenu();
+      } else if (key.name === "return") {
+        if (process.stdin.isTTY) {
+          process.stdin.setRawMode(false);
+        }
+        process.stdin.removeListener("keypress", onKeypress);
+        process.stdin.pause();
+        resolve(choices[selectedIndex].value);
+      } else if (key.ctrl && key.name === "c") {
+        if (process.stdin.isTTY) {
+          process.stdin.setRawMode(false);
+        }
+        process.exit(0);
+      }
+    };
+    
+    process.stdin.on("keypress", onKeypress);
+    process.stdin.resume();
+  });
+}
+
 export async function interactiveMode(): Promise<void> {
   let running = true;
 
   while (running) {
-    console.clear();
-    
     const terminalWidth = getTerminalWidth();
     
-    // ASCII logo lines
-    const logoLines = [
-      "████████╗██╗  ██╗████████╗ ██████╗ ██████╗ ██████╗ ███████╗",
-      "╚══██╔══╝╚██╗██╔╝╚══██╔══╝██╔════╝██╔═══██╗██╔══██╗██╔════╝",
-      "   ██║    ╚███╔╝    ██║   ██║     ██║   ██║██║  ██║█████╗  ",
-      "   ██║    ██╔██╗    ██║   ██║     ██║   ██║██║  ██║██╔══╝  ",
-      "   ██║   ██╔╝ ██╗   ██║   ╚██████╗╚██████╔╝██████╔╝███████╗",
-      "   ╚═╝   ╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝",
-    ];
-    
-    const subtitle = "Remote coding via WhatsApp, Telegram, Discord & iMessage";
-    
-    // Show banner - dynamically centered
-    console.log(); // Top spacing
-    logoLines.forEach(line => {
-      console.log(centerText(chalk.white(line), terminalWidth));
-    });
-    console.log(); // Spacing after logo
-    console.log(centerText(chalk.gray(subtitle), terminalWidth));
-    console.log(); // Spacing after subtitle
-
     // Check configuration status
     const config = loadConfig();
     const isConfigured = config !== null;
-
-    // Only show "Not configured yet" warning if not configured
-    if (!isConfigured) {
-      console.log(chalk.yellow("⚠ Not configured yet\n"));
-    } else {
-      console.log(); // Just add spacing if configured
-    }
 
     // Build menu choices based on configuration status
     const choices: MainMenuChoice[] = [];
@@ -107,15 +170,7 @@ export async function interactiveMode(): Promise<void> {
       value: "exit",
     });
 
-    const { action } = await inquirer.prompt([
-      {
-        type: "list",
-        name: "action",
-        message: "What would you like to do?",
-        choices,
-        pageSize: 15,
-      },
-    ]);
+    const action = await showCenteredMenu(choices, terminalWidth);
 
     console.log(); // Add spacing
 
@@ -159,7 +214,33 @@ export async function interactiveMode(): Promise<void> {
           break;
 
         case "exit":
-          console.log(chalk.gray("\nGoodbye!\n"));
+          console.clear();
+          
+          const exitTerminalWidth = getTerminalWidth();
+          
+          // Show banner on exit
+          const exitLogoLines = [
+            "████████╗██╗  ██╗████████╗ ██████╗ ██████╗ ██████╗ ███████╗",
+            "╚══██╔══╝╚██╗██╔╝╚══██╔══╝██╔════╝██╔═══██╗██╔══██╗██╔════╝",
+            "   ██║    ╚███╔╝    ██║   ██║     ██║   ██║██║  ██║█████╗  ",
+            "   ██║    ██╔██╗    ██║   ██║     ██║   ██║██║  ██║██╔══╝  ",
+            "   ██║   ██╔╝ ██╗   ██║   ╚██████╗╚██████╔╝██████╔╝███████╗",
+            "   ╚═╝   ╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝",
+          ];
+          
+          const exitSubtitle = "Remote coding via WhatsApp, Telegram, Discord & iMessage";
+          
+          console.log();
+          exitLogoLines.forEach(line => {
+            console.log(centerText(chalk.white(line), exitTerminalWidth));
+          });
+          console.log();
+          console.log(centerText(chalk.gray(exitSubtitle), exitTerminalWidth));
+          console.log();
+          console.log();
+          console.log(centerText(chalk.gray("👋 Goodbye!"), exitTerminalWidth));
+          console.log();
+          
           running = false;
           process.exit(0);
           break;
