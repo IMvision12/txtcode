@@ -591,6 +591,7 @@ export async function authCommand() {
         { name: "OpenAI Codex (OpenAI)", value: "codex" },
         { name: "Gemini CLI (Google)", value: "gemini-code" },
         { name: "Kiro CLI (AWS)", value: "kiro" },
+        { name: "OpenCode (Open Source, Multi-Provider)", value: "opencode" },
         { name: "Ollama Claude Code (Local, Free)", value: "ollama-claude-code" },
       ],
     },

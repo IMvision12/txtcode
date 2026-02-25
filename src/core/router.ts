@@ -3,6 +3,7 @@ import { CursorAdapter } from "../adapters/cursor-cli";
 import { GeminiCodeAdapter } from "../adapters/gemini-cli";
 import { KiroAdapter } from "../adapters/kiro-cli";
 import { OllamaClaudeCodeAdapter } from "../adapters/ollama-claude-code";
+import { OpenCodeAdapter } from "../adapters/opencode";
 import { CodexAdapter } from "../adapters/openai-codex";
 import { processWithAnthropic } from "../providers/anthropic";
 import { processWithGemini } from "../providers/gemini";
@@ -71,6 +72,8 @@ export class Router {
         return new OllamaClaudeCodeAdapter();
       case "kiro":
         return new KiroAdapter();
+      case "opencode":
+        return new OpenCodeAdapter();
       default:
         throw new Error(
           `No coding adapter configured (IDE_TYPE="${ideType}"). Run: txtcode config`,
