@@ -6,15 +6,17 @@ import { WhatsAppBot } from "../../platforms/whatsapp";
 import { logger } from "../../shared/logger";
 import { getApiKey, getBotToken } from "../../utils/keychain";
 import { loadConfig } from "./auth";
+import { centerLog } from "../tui";
 
 export async function startCommand(options: { daemon?: boolean }) {
   const config = loadConfig();
 
   if (!config) {
-    console.log(chalk.yellow("\n⚠️  TxtCode is not configured yet.\n"));
-    console.log(
-      chalk.white("Please run: " + chalk.bold.cyan("txtcode auth") + " to get started.\n"),
-    );
+    console.log();
+    centerLog(chalk.yellow("⚠️  TxtCode is not configured yet."));
+    console.log();
+    centerLog(chalk.white("Please run authentication to get started."));
+    console.log();
     process.exit(1);
   }
 
@@ -25,8 +27,11 @@ export async function startCommand(options: { daemon?: boolean }) {
   // Retrieve API key from keychain
   const apiKey = await getApiKey(config.aiProvider);
   if (!apiKey) {
-    console.log(chalk.red("\n[ERROR] Failed to retrieve API key from keychain"));
-    console.log(chalk.yellow("Please run: txtcode auth\n"));
+    console.log();
+    centerLog(chalk.red("[ERROR] Failed to retrieve API key from keychain"));
+    console.log();
+    centerLog(chalk.yellow("Please run authentication"));
+    console.log();
     process.exit(1);
   }
 
@@ -37,15 +42,21 @@ export async function startCommand(options: { daemon?: boolean }) {
   if (config.platform === "telegram") {
     telegramToken = (await getBotToken("telegram")) || "";
     if (!telegramToken) {
-      console.log(chalk.red("\n[ERROR] Failed to retrieve Telegram token from keychain"));
-      console.log(chalk.yellow("Please run: txtcode auth\n"));
+      console.log();
+      centerLog(chalk.red("[ERROR] Failed to retrieve Telegram token from keychain"));
+      console.log();
+      centerLog(chalk.yellow("Please run authentication"));
+      console.log();
       process.exit(1);
     }
   } else if (config.platform === "discord") {
     discordToken = (await getBotToken("discord")) || "";
     if (!discordToken) {
-      console.log(chalk.red("\n[ERROR] Failed to retrieve Discord token from keychain"));
-      console.log(chalk.yellow("Please run: txtcode auth\n"));
+      console.log();
+      centerLog(chalk.red("[ERROR] Failed to retrieve Discord token from keychain"));
+      console.log();
+      centerLog(chalk.yellow("Please run authentication"));
+      console.log();
       process.exit(1);
     }
   }

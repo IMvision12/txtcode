@@ -3,14 +3,18 @@ import os from "os";
 import path from "path";
 import makeWASocket, { useMultiFileAuthState } from "@whiskeysockets/baileys";
 import chalk from "chalk";
-import inquirer from "inquirer";
 import qrcode from "qrcode-terminal";
-import { setApiKey, setBotToken, isKeychainAvailable } from "../../utils/keychain";
+import { setApiKey, setBotToken } from "../../utils/keychain";
 import {
   discoverHuggingFaceModels,
   discoverOpenRouterModels,
 } from "../../utils/model-discovery-util";
 import { loadModelsCatalog } from "../../utils/models-catalog-loader";
+import { 
+  showCenteredList, 
+  showCenteredInput, 
+  showCenteredConfirm 
+} from "../tui";
 
 const CONFIG_DIR = path.join(os.homedir(), ".txtcode");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
@@ -192,38 +196,40 @@ async function authenticateWhatsApp(): Promise<void> {
 }
 
 export async function authCommand() {
-  console.log(chalk.blue.bold("\nTxtCode Authentication\n"));
-  console.log(chalk.gray("Configure your TxtCode CLI for remote IDE control\n"));
+  console.clear();
+  console.log();
+  
+  console.log(chalk.blue.bold("TxtCode Authentication"));
+  console.log();
+  console.log(chalk.gray("Configure your TxtCode CLI for remote IDE control"));
+  console.log();
 
   // Check for existing configuration
   const existingConfig = loadConfig();
   if (existingConfig && existingConfig.providers) {
-    console.log(chalk.yellow("⚠️  Existing configuration detected!\n"));
+    console.log(chalk.yellow("⚠️  Existing configuration detected!"));
+    console.log();
     console.log(chalk.gray("Currently configured providers:"));
     Object.keys(existingConfig.providers).forEach((provider) => {
       const providerConfig = existingConfig.providers[provider];
-      console.log(chalk.white(`  • ${provider} (${providerConfig.model})`));
+      console.log(chalk.white(`• ${provider} (${providerConfig.model})`));
     });
     console.log();
 
-    const { shouldOverwrite } = await inquirer.prompt([
-      {
-        type: "confirm",
-        name: "shouldOverwrite",
-        message: "Do you want to reconfigure? This will overwrite existing providers.",
-        default: false,
-      },
-    ]);
+    const shouldOverwrite = await showCenteredConfirm({
+      message: "Do you want to reconfigure? This will overwrite existing providers.",
+      default: false,
+    });
 
     if (!shouldOverwrite) {
-      console.log(
-        chalk.gray(
-          "\nAuthentication cancelled. Use 'txtcode config' to modify individual settings.\n",
-        ),
-      );
+      console.log();
+      console.log(chalk.gray("Authentication cancelled. Use 'txtcode config' to modify individual settings."));
+      console.log();
       return;
     }
-    console.log(chalk.yellow("\nReconfiguring all providers...\n"));
+    console.log();
+    console.log(chalk.yellow("Reconfiguring all providers..."));
+    console.log();
   }
 
   const selectedProviders = new Set<string>();
@@ -247,11 +253,14 @@ export async function authCommand() {
     label: string,
     existingProvider?: string,
   ): Promise<{ provider: string; apiKey: string; model: string } | null> {
-    console.log(chalk.cyan(`\n${label}\n`));
+    console.log();
+    
+    console.log(chalk.cyan(label));
+    console.log();
 
     // Get available providers dynamically (excluding already selected ones)
-    const allProviders = getAllProviders();
-    const availableProviders = allProviders.filter((p) => !selectedProviders.has(p.value));
+    const providers = getAllProviders();
+    const availableProviders = providers.filter((p) => !selectedProviders.has(p.value));
 
     if (availableProviders.length === 0) {
       throw new Error("No more providers available to configure");
@@ -263,47 +272,35 @@ export async function authCommand() {
         ? availableProviders
         : [...availableProviders, { name: "← Back", value: "__BACK__" }];
 
-    const providerAnswers = await inquirer.prompt([
-      {
-        type: "list",
-        name: "provider",
-        message: `Select ${label.toLowerCase()}:`,
-        choices: providerChoices,
-        pageSize: 20,
-      },
-    ]);
+    const providerValue = await showCenteredList({
+      message: `Select ${label.toLowerCase()}: (Use arrow keys)`,
+      choices: providerChoices,
+    });
 
     // Handle back navigation
-    if (providerAnswers.provider === "__BACK__") {
+    if (providerValue === "__BACK__") {
       return null;
     }
 
-    const apiKeyAnswer = await inquirer.prompt([
-      {
-        type: "password",
-        name: "apiKey",
-        message: "Enter API Key:",
-        mask: "*",
-        validate: (input) => input.length > 0 || "API key is required",
-      },
-    ]);
+    const apiKey = await showCenteredInput({
+      message: "Enter API Key:",
+      validate: (input) => input.length > 0 || "API key is required",
+    });
 
-    providerAnswers.apiKey = apiKeyAnswer.apiKey;
+    console.log(); // Add spacing after API key input
 
     // Validate API key (just check it's not empty)
-    const validation = validateApiKeyFormat(providerAnswers.apiKey);
+    const validation = validateApiKeyFormat(apiKey);
 
     if (!validation.valid) {
-      console.log(chalk.red(`\n[ERROR] ${validation.error}\n`));
+      console.log();
+      console.log(chalk.red(`[ERROR] ${validation.error}`));
+      console.log();
 
-      const { retry } = await inquirer.prompt([
-        {
-          type: "confirm",
-          name: "retry",
-          message: "Would you like to enter a different API key?",
-          default: true,
-        },
-      ]);
+      const retry = await showCenteredConfirm({
+        message: "Would you like to enter a different API key?",
+        default: true,
+      });
 
       if (retry) {
         // Retry with same provider
@@ -316,36 +313,32 @@ export async function authCommand() {
     }
 
     // Mark this provider as selected
-    selectedProviders.add(providerAnswers.provider);
+    selectedProviders.add(providerValue);
 
     // Load models - use dynamic discovery for HuggingFace and OpenRouter, static catalog for others
     let modelChoices: Array<{ name: string; value: string }>;
 
-    if (providerAnswers.provider === "huggingface") {
+    if (providerValue === "huggingface") {
       console.log(chalk.gray("Discovering available models from HuggingFace..."));
       try {
-        const discoveredModels = await discoverHuggingFaceModels(providerAnswers.apiKey);
+        const discoveredModels = await discoverHuggingFaceModels(apiKey);
         modelChoices = discoveredModels.map((model) => ({
           name: model.description ? `${model.name} - ${model.description}` : model.name,
           value: model.id,
         }));
         console.log(chalk.green(`Found ${discoveredModels.length} models\n`));
       } catch (error) {
-        console.log(
-          chalk.red(
-            `\n[ERROR] Failed to discover HuggingFace models: ${error instanceof Error ? error.message : "Unknown error"}\n`,
-          ),
-        );
-        console.log(chalk.yellow("Please check your API key and try again.\n"));
+        console.log();
+        console.log(chalk.red(
+          `[ERROR] Failed to discover HuggingFace models: ${error instanceof Error ? error.message : "Unknown error"}`,
+        ));
+        console.log(chalk.yellow("Please check your API key and try again."));
+        console.log();
 
-        const { retry } = await inquirer.prompt([
-          {
-            type: "confirm",
-            name: "retry",
-            message: "Would you like to enter a different API key?",
-            default: true,
-          },
-        ]);
+        const retry = await showCenteredConfirm({
+          message: "Would you like to enter a different API key?",
+          default: true,
+        });
 
         if (retry) {
           return await configureProvider(label, existingProvider);
@@ -355,31 +348,27 @@ export async function authCommand() {
           );
         }
       }
-    } else if (providerAnswers.provider === "openrouter") {
+    } else if (providerValue === "openrouter") {
       console.log(chalk.gray("Discovering available models from OpenRouter..."));
       try {
-        const discoveredModels = await discoverOpenRouterModels(providerAnswers.apiKey);
+        const discoveredModels = await discoverOpenRouterModels(apiKey);
         modelChoices = discoveredModels.map((model) => ({
           name: model.description ? `${model.name} - ${model.description}` : model.name,
           value: model.id,
         }));
         console.log(chalk.green(`Found ${discoveredModels.length} models\n`));
       } catch (error) {
-        console.log(
-          chalk.red(
-            `\n[ERROR] Failed to discover OpenRouter models: ${error instanceof Error ? error.message : "Unknown error"}\n`,
-          ),
-        );
-        console.log(chalk.yellow("Please check your API key and try again.\n"));
+        console.log();
+        console.log(chalk.red(
+          `[ERROR] Failed to discover OpenRouter models: ${error instanceof Error ? error.message : "Unknown error"}`,
+        ));
+        console.log(chalk.yellow("Please check your API key and try again."));
+        console.log();
 
-        const { retry } = await inquirer.prompt([
-          {
-            type: "confirm",
-            name: "retry",
-            message: "Would you like to enter a different API key?",
-            default: true,
-          },
-        ]);
+        const retry = await showCenteredConfirm({
+          message: "Would you like to enter a different API key?",
+          default: true,
+        });
 
         if (retry) {
           return await configureProvider(label, existingProvider);
@@ -390,7 +379,7 @@ export async function authCommand() {
         }
       }
     } else {
-      const providerModels = modelsCatalog.providers[providerAnswers.provider];
+      const providerModels = modelsCatalog.providers[providerValue];
       modelChoices = providerModels.models.map((model: any) => ({
         name: model.recommended ? `${model.name} - Recommended` : model.name,
         value: model.id,
@@ -399,45 +388,38 @@ export async function authCommand() {
 
     // Add "Enter custom model name" option at the top
     const modelChoicesWithCustom = [
-      { name: "✏️  Enter custom model name", value: "__CUSTOM__" },
+      { name: "Enter custom model name", value: "__CUSTOM__" },
       ...modelChoices,
     ];
 
-    const modelAnswer = await inquirer.prompt([
-      {
-        type: "list",
-        name: "model",
-        message: "Select model:",
-        choices: modelChoicesWithCustom,
-        default: modelChoicesWithCustom[1]?.value, // Default to first real model, not custom
-        pageSize: 20,
-      },
-    ]);
+    console.log(); // Add spacing before model selection
 
-    let selectedModel = modelAnswer.model;
+    const selectedModel = await showCenteredList({
+      message: "Select model: (Use arrow keys)",
+      choices: modelChoicesWithCustom,
+    });
+
+    let finalModel = selectedModel;
 
     // Handle custom model entry
     if (selectedModel === "__CUSTOM__") {
-      const customModelAnswer = await inquirer.prompt([
-        {
-          type: "input",
-          name: "customModel",
-          message: "Enter model name/ID:",
-          validate: (input) => input.trim().length > 0 || "Model name is required",
-        },
-      ]);
-      selectedModel = customModelAnswer.customModel.trim();
-      console.log(chalk.gray(`Using custom model: ${selectedModel}\n`));
+      finalModel = await showCenteredInput({
+        message: "Enter model name/ID:",
+        validate: (input) => input.trim().length > 0 || "Model name is required",
+      });
+      console.log();
+      console.log(chalk.gray(`Using custom model: ${finalModel}`));
+      console.log();
     }
 
-    console.log(
-      chalk.green(`\n${label} configured: ${providerAnswers.provider} (${selectedModel})\n`),
-    );
+    console.log();
+    console.log(chalk.green(`${label} configured: ${providerValue} (${finalModel})`));
+    console.log();
 
     return {
-      provider: providerAnswers.provider,
-      apiKey: providerAnswers.apiKey,
-      model: selectedModel,
+      provider: providerValue,
+      apiKey: apiKey,
+      model: finalModel,
     };
   }
 
@@ -471,14 +453,10 @@ export async function authCommand() {
       break;
     }
 
-    const { addMore } = await inquirer.prompt([
-      {
-        type: "confirm",
-        name: "addMore",
-        message: `Add another provider for hot-switching? (${providerCount} configured, ${remainingProviders.length} available)`,
-        default: providerCount === 1, // Default to yes for first secondary provider
-      },
-    ]);
+    const addMore = await showCenteredConfirm({
+      message: `Add another provider for hot-switching? (${providerCount} configured, ${remainingProviders.length} available)`,
+      default: providerCount === 1,
+    });
 
     if (!addMore) {
       continueAdding = false;
@@ -511,91 +489,87 @@ export async function authCommand() {
     process.exit(1);
   }
 
-  console.log(chalk.green(`\n✅ Configured ${configuredProviders.length} provider(s)\n`));
+  console.log();
+  console.log(chalk.green(`✅ Configured ${configuredProviders.length} provider(s)`));
+  console.log();
 
   // Step 3: Messaging Platform
-  const platformAnswers = await inquirer.prompt([
-    {
-      type: "list",
-      name: "platform",
-      message: "Select messaging platform:",
-      choices: [
-        { name: "WhatsApp", value: "whatsapp" },
-        { name: "Telegram", value: "telegram" },
-        { name: "Discord", value: "discord" },
-      ],
-      default: "whatsapp",
-    },
-  ]);
+  const platform = await showCenteredList({
+    message: "Select messaging platform: (Use arrow keys)",
+    choices: [
+      { name: "WhatsApp", value: "whatsapp" },
+      { name: "Telegram", value: "telegram" },
+      { name: "Discord", value: "discord" },
+    ],
+  });
 
   let telegramToken = "";
   let discordToken = "";
 
   // Complete messaging platform auth immediately
-  if (platformAnswers.platform === "telegram") {
-    console.log(chalk.cyan("\nTelegram Bot Setup\n"));
+  if (platform === "telegram") {
+    console.log();
+    console.log(chalk.cyan("Telegram Bot Setup"));
+    console.log();
     console.log(chalk.gray("1. Open Telegram and search for @BotFather"));
     console.log(chalk.gray("2. Send /newbot and follow the instructions"));
-    console.log(chalk.gray("3. Copy the bot token you receive\n"));
+    console.log(chalk.gray("3. Copy the bot token you receive"));
+    console.log();
 
-    const telegramAnswers = await inquirer.prompt([
-      {
-        type: "password",
-        name: "token",
-        message: "Enter Telegram Bot Token:",
-        mask: "*",
-        validate: (input) => input.length > 0 || "Token is required",
-      },
-    ]);
-
-    telegramToken = telegramAnswers.token;
-    console.log(chalk.green("\nTelegram bot configured\n"));
-  } else if (platformAnswers.platform === "discord") {
-    console.log(chalk.cyan("\nDiscord Bot Setup\n"));
+    telegramToken = await showCenteredInput({
+      message: "Enter Telegram Bot Token:",
+      password: true,
+      validate: (input) => input.length > 0 || "Token is required",
+    });
+    console.log();
+    console.log(chalk.green("Telegram bot configured"));
+    console.log();
+  } else if (platform === "discord") {
+    console.log();
+    console.log(chalk.cyan("Discord Bot Setup"));
+    console.log();
     console.log(chalk.gray("1. Go to https://discord.com/developers/applications"));
     console.log(chalk.gray("2. Create a New Application"));
     console.log(chalk.gray("3. Go to Bot → Add Bot"));
     console.log(chalk.gray("4. Copy the bot token"));
-    console.log(chalk.gray("5. Enable MESSAGE CONTENT INTENT\n"));
+    console.log(chalk.gray("5. Enable MESSAGE CONTENT INTENT"));
+    console.log();
 
-    const discordAnswers = await inquirer.prompt([
-      {
-        type: "password",
-        name: "token",
-        message: "Enter Discord Bot Token:",
-        mask: "*",
-        validate: (input) => input.length > 0 || "Token is required",
-      },
-    ]);
-
-    discordToken = discordAnswers.token;
-    console.log(chalk.green("\nDiscord bot configured\n"));
+    discordToken = await showCenteredInput({
+      message: "Enter Discord Bot Token:",
+      password: true,
+      validate: (input) => input.length > 0 || "Token is required",
+    });
+    console.log();
+    console.log(chalk.green("Discord bot configured"));
+    console.log();
   } else {
-    console.log(chalk.cyan("\nWhatsApp Setup\n"));
+    console.log();
+    console.log(chalk.cyan("WhatsApp Setup"));
+    console.log();
 
     // Authenticate WhatsApp immediately
-    console.log(chalk.cyan("Authenticating WhatsApp...\n"));
+    console.log(chalk.cyan("Authenticating WhatsApp..."));
+    console.log();
     await authenticateWhatsApp();
-    console.log(chalk.green("\nWhatsApp authenticated successfully!\n"));
+    console.log();
+    console.log(chalk.green("WhatsApp authenticated successfully!"));
+    console.log();
   }
 
   // Step 5: Coding Adapter Selection
-  const ideAnswers = await inquirer.prompt([
-    {
-      type: "list",
-      name: "ideType",
-      message: "Select coding adapter:",
-      choices: [
-        { name: "Claude Code (Anthropic)", value: "claude-code" },
-        { name: "Cursor CLI (Headless)", value: "cursor" },
-        { name: "OpenAI Codex (OpenAI)", value: "codex" },
-        { name: "Gemini CLI (Google)", value: "gemini-code" },
-        { name: "Kiro CLI (AWS)", value: "kiro" },
-        { name: "OpenCode (Open Source, Multi-Provider)", value: "opencode" },
-        { name: "Ollama Claude Code (Local, Free)", value: "ollama-claude-code" },
-      ],
-    },
-  ]);
+  const ideType = await showCenteredList({
+    message: "Select coding adapter: (Use arrow keys)",
+    choices: [
+      { name: "Claude Code (Anthropic)", value: "claude-code" },
+      { name: "Cursor CLI (Headless)", value: "cursor" },
+      { name: "OpenAI Codex (OpenAI)", value: "codex" },
+      { name: "Gemini CLI (Google)", value: "gemini-code" },
+      { name: "Kiro CLI (AWS)", value: "kiro" },
+      { name: "OpenCode (Open Source, Multi-Provider)", value: "opencode" },
+      { name: "Ollama Claude Code (Local, Free)", value: "ollama-claude-code" },
+    ],
+  });
 
   // Create config directory
   if (!fs.existsSync(CONFIG_DIR)) {
@@ -638,8 +612,8 @@ export async function authCommand() {
     // All providers (models only, keys in keychain)
     providers: providersConfig,
 
-    platform: platformAnswers.platform,
-    ideType: ideAnswers.ideType,
+    platform: platform,
+    ideType: ideType,
     idePort: 3000,
     authorizedUser: "", // Will be set on first message
     configuredAt: new Date().toISOString(),
@@ -668,11 +642,11 @@ export async function authCommand() {
   console.log(chalk.cyan("\nNext steps:"));
   console.log(chalk.white("  1. Run: " + chalk.bold("txtcode start")));
 
-  if (platformAnswers.platform === "telegram") {
+  if (platform === "telegram") {
     console.log(chalk.white("  2. Message your Telegram bot"));
-  } else if (platformAnswers.platform === "discord") {
+  } else if (platform === "discord") {
     console.log(chalk.white("  2. Invite bot to your server and mention it"));
-  } else if (platformAnswers.platform === "whatsapp") {
+  } else if (platform === "whatsapp") {
     console.log(chalk.white("  2. Send a message from your authorized number"));
   }
 

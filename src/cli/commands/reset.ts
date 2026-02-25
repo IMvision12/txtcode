@@ -1,18 +1,21 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import readline from "readline";
 import chalk from "chalk";
+import { centerLog, showCenteredConfirm, showCenteredInput } from "../tui";
 
 const CONFIG_DIR = path.join(os.homedir(), ".txtcode");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 const WA_AUTH_DIR = path.join(CONFIG_DIR, ".wacli_auth");
 
-export function resetCommand() {
+export async function resetCommand() {
   try {
     if (!fs.existsSync(CONFIG_FILE)) {
-      console.log(chalk.red("\n❌ Config file not found.\n"));
-      console.log(chalk.yellow('Run "txtcode auth" to set up first.\n'));
+      console.log();
+      centerLog(chalk.red("❌ Config file not found."));
+      console.log();
+      centerLog(chalk.yellow("Run authentication to set up first."));
+      console.log();
       return;
     }
 
@@ -21,8 +24,11 @@ export function resetCommand() {
       const configData = fs.readFileSync(CONFIG_FILE, "utf-8");
       config = JSON.parse(configData);
     } catch (parseError) {
-      console.log(chalk.red("\n❌ Config file is corrupted.\n"));
-      console.log(chalk.yellow('Run "txtcode auth" to reconfigure.\n'));
+      console.log();
+      centerLog(chalk.red("❌ Config file is corrupted."));
+      console.log();
+      centerLog(chalk.yellow("Run authentication to reconfigure."));
+      console.log();
       return;
     }
 
@@ -30,65 +36,87 @@ export function resetCommand() {
 
     try {
       fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
-      console.log(chalk.green("\n✅ Authorized user reset!"));
-      console.log(chalk.cyan("The next person to message will become the authorized user.\n"));
+      console.log();
+      centerLog(chalk.green("✅ Authorized user reset!"));
+      console.log();
+      centerLog(chalk.cyan("The next person to message will become the authorized user."));
+      console.log();
     } catch (writeError) {
-      console.log(chalk.red("\n❌ Failed to save config file.\n"));
+      console.log();
+      centerLog(chalk.red("❌ Failed to save config file."));
+      console.log();
     }
   } catch (error) {
-    console.log(chalk.red("\n❌ Failed to reset. Unexpected error.\n"));
+    console.log();
+    centerLog(chalk.red("❌ Failed to reset. Unexpected error."));
+    console.log();
   }
 }
 
-export function logoutCommand() {
+export async function logoutCommand() {
   try {
     if (fs.existsSync(WA_AUTH_DIR)) {
       fs.rmSync(WA_AUTH_DIR, { recursive: true, force: true });
-      console.log(chalk.green("\n✅ WhatsApp session deleted!"));
-      console.log(chalk.cyan('Run "txtcode start" to scan QR code again.\n'));
+      console.log();
+      centerLog(chalk.green("✅ WhatsApp session deleted!"));
+      console.log();
+      centerLog(chalk.cyan("Run start to scan QR code again."));
+      console.log();
     } else {
-      console.log(chalk.yellow("\n⚠️ No WhatsApp session found.\n"));
+      console.log();
+      centerLog(chalk.yellow("⚠️ No WhatsApp session found."));
+      console.log();
     }
   } catch (error) {
-    console.log(chalk.red("\n❌ Failed to delete session.\n"));
+    console.log();
+    centerLog(chalk.red("❌ Failed to delete session."));
+    console.log();
   }
 }
 
-export function hardResetCommand() {
-  console.log(chalk.yellow("\n⚠️  HARD RESET - This will delete ALL TxtCode data:\n"));
-  console.log(chalk.gray("  • Configuration file (~/.txtcode/config.json)"));
-  console.log(chalk.gray("  • WhatsApp authentication (~/.txtcode/.wacli_auth)"));
-  console.log(chalk.gray("  • All settings and authorized users\n"));
+export async function hardResetCommand() {
+  console.log();
+  centerLog(chalk.yellow("⚠️  HARD RESET - This will delete ALL TxtCode data:"));
+  console.log();
+  centerLog(chalk.gray("• Configuration file (~/.txtcode/config.json)"));
+  centerLog(chalk.gray("• WhatsApp authentication (~/.txtcode/.wacli_auth)"));
+  centerLog(chalk.gray("• All settings and authorized users"));
+  console.log();
 
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
+  const confirmed = await showCenteredConfirm({
+    message: 'Are you sure? This cannot be undone!',
+    default: false,
   });
 
-  rl.question(chalk.red('Are you sure? Type "yes" to confirm: '), (answer: string) => {
-    rl.close();
+  if (confirmed) {
+    let deletedItems = 0;
 
-    if (answer.toLowerCase() === "yes") {
-      let deletedItems = 0;
-
-      try {
-        if (fs.existsSync(CONFIG_DIR)) {
-          fs.rmSync(CONFIG_DIR, { recursive: true, force: true });
-          console.log(chalk.green("✓ Deleted configuration directory"));
-          deletedItems++;
-        }
-      } catch (error) {
-        console.log(chalk.red("✗ Failed to delete configuration directory"));
+    try {
+      if (fs.existsSync(CONFIG_DIR)) {
+        fs.rmSync(CONFIG_DIR, { recursive: true, force: true });
+        console.log();
+        centerLog(chalk.green("✓ Deleted configuration directory"));
+        deletedItems++;
       }
-
-      if (deletedItems > 0) {
-        console.log(chalk.green(`\n✅ Hard reset complete! Deleted ${deletedItems} item(s).`));
-        console.log(chalk.cyan('\nRun "txtcode auth" to set up again.\n'));
-      } else {
-        console.log(chalk.yellow("\n⚠️ No data found to delete.\n"));
-      }
-    } else {
-      console.log(chalk.yellow("\n❌ Hard reset cancelled.\n"));
+    } catch (error) {
+      console.log();
+      centerLog(chalk.red("✗ Failed to delete configuration directory"));
     }
-  });
+
+    if (deletedItems > 0) {
+      console.log();
+      centerLog(chalk.green(`✅ Hard reset complete! Deleted ${deletedItems} item(s).`));
+      console.log();
+      centerLog(chalk.cyan("Run authentication to set up again."));
+      console.log();
+    } else {
+      console.log();
+      centerLog(chalk.yellow("⚠️ No data found to delete."));
+      console.log();
+    }
+  } else {
+    console.log();
+    centerLog(chalk.yellow("❌ Hard reset cancelled."));
+    console.log();
+  }
 }

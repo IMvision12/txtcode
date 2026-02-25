@@ -26,7 +26,8 @@
   },
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run copy-data",
+    "copy-data": "node -e \"require('fs').cpSync('src/data', 'dist/data', {recursive: true})\"",
     "dev": "tsc --watch",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
@@ -40,11 +41,9 @@
     "@google/generative-ai": "^0.24.1",
     "@whiskeysockets/baileys": "^7.0.0-rc.9",
     "chalk": "^4.1.2",
-    "commander": "^11.1.0",
     "discord.js": "^14.25.1",
     "dotenv": "^16.3.1",
     "gradient-string": "^3.0.0",
-    "inquirer": "^8.2.5",
     "keytar": "^7.9.0",
     "link-preview-js": "^3.2.0",
     "openai": "^6.19.0",
@@ -52,8 +51,6 @@
     "telegraf": "^4.15.0"
   },
   "devDependencies": {
-    "@types/inquirer": "^8.2.10",
-    "@types/keytar": "^4.4.0",
     "@types/node": "^20.10.0",
     "@types/qrcode-terminal": "^0.12.2",
     "oxfmt": "^0.34.0",
