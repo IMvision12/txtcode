@@ -1,7 +1,12 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import makeWASocket, { useMultiFileAuthState } from "@whiskeysockets/baileys";
+import makeWASocket, { 
+  useMultiFileAuthState,
+  fetchLatestBaileysVersion,
+  makeCacheableSignalKeyStore,
+  DisconnectReason
+} from "@whiskeysockets/baileys";
 import chalk from "chalk";
 import qrcode from "qrcode-terminal";
 import { setApiKey, setBotToken } from "../../utils/keychain";
@@ -35,13 +40,82 @@ async function authenticateWhatsApp(): Promise<void> {
   return new Promise(async (resolve, reject) => {
     let sock: any = null;
     let pairingComplete = false;
+    let connectionTimeout: NodeJS.Timeout;
+    let connectionAttempted = false;
 
     try {
-      const { state, saveCreds } = await useMultiFileAuthState(WA_AUTH_DIR);
+      // Check if already authenticated and offer to clear
+      if (fs.existsSync(WA_AUTH_DIR)) {
+        const files = fs.readdirSync(WA_AUTH_DIR);
+        if (files.length > 0) {
+          console.log(chalk.yellow("Existing WhatsApp session found."));
+          console.log(chalk.gray("Clearing old session to start fresh..."));
+          console.log();
+          
+          // Clear old session files to avoid 405 errors
+          try {
+            fs.rmSync(WA_AUTH_DIR, { recursive: true, force: true });
+            fs.mkdirSync(WA_AUTH_DIR, { recursive: true });
+          } catch (e) {
+            console.log(chalk.yellow("Warning: Could not clear old session"));
+          }
+        }
+      } else {
+        // Create directory if it doesn't exist
+        fs.mkdirSync(WA_AUTH_DIR, { recursive: true });
+      }
 
+      console.log(chalk.gray("Initializing WhatsApp connection..."));
+      console.log();
+      
+      const { state, saveCreds } = await useMultiFileAuthState(WA_AUTH_DIR);
+      
+      // Fetch latest Baileys version (like openclaw does)
+      const { version } = await fetchLatestBaileysVersion();
+
+      // Set a longer timeout for initial connection (60 seconds)
+      connectionTimeout = setTimeout(() => {
+        if (!pairingComplete && sock) {
+          try {
+            sock.ws?.close();
+          } catch (e) {
+            // Ignore
+          }
+          if (!connectionAttempted) {
+            reject(new Error("Connection timeout - No response from WhatsApp servers. Please check your internet connection."));
+          } else {
+            reject(new Error("QR code generation timeout - Please try again."));
+          }
+        }
+      }, 60000);
+      
       sock = makeWASocket({
-        auth: state,
+        auth: {
+          creds: state.creds,
+          keys: makeCacheableSignalKeyStore(state.keys, {
+            level: "silent",
+            fatal: () => {},
+            error: () => {},
+            warn: () => {},
+            info: () => {},
+            debug: () => {},
+            trace: () => {},
+            child: () => ({
+              level: "silent",
+              fatal: () => {},
+              error: () => {},
+              warn: () => {},
+              info: () => {},
+              debug: () => {},
+              trace: () => {},
+            }),
+          } as any),
+        },
+        version,
         printQRInTerminal: false,
+        browser: ["TxtCode", "CLI", "1.0.0"],
+        syncFullHistory: false,
+        markOnlineOnConnect: false,
         logger: {
           level: "silent",
           fatal: () => {},
@@ -67,16 +141,35 @@ async function authenticateWhatsApp(): Promise<void> {
       sock.ev.on("creds.update", saveCreds);
 
       sock.ev.on("connection.update", async (update: any) => {
+        connectionAttempted = true;
         const { connection, qr, lastDisconnect } = update;
 
         if (qr && !hasShownQR) {
+          clearTimeout(connectionTimeout);
           hasShownQR = true;
-          console.log(chalk.yellow("\n[QR] Scan this QR code with WhatsApp:\n"));
+          console.log();
+          console.log(chalk.yellow("[QR] Scan this QR code with WhatsApp:"));
+          console.log();
           qrcode.generate(qr, { small: true });
-          console.log(chalk.gray("\nOpen WhatsApp → Settings → Linked Devices → Link a Device\n"));
+          console.log();
+          console.log(chalk.gray("Open WhatsApp → Settings → Linked Devices → Link a Device"));
+          console.log();
+          
+          // Set new timeout for QR scanning (2 minutes)
+          connectionTimeout = setTimeout(() => {
+            if (!pairingComplete) {
+              try {
+                sock.ws?.close();
+              } catch (e) {
+                // Ignore
+              }
+              reject(new Error("QR code scan timeout - Please try again"));
+            }
+          }, 120000);
         }
 
         if (connection === "open" && !pairingComplete) {
+          clearTimeout(connectionTimeout);
           pairingComplete = true;
           console.log(chalk.green("\n[OK] WhatsApp authenticated successfully!"));
 
@@ -92,7 +185,26 @@ async function authenticateWhatsApp(): Promise<void> {
         }
 
         if (connection === "close" && !pairingComplete) {
+          clearTimeout(connectionTimeout);
           const statusCode = lastDisconnect?.error?.output?.statusCode;
+          const errorMessage = lastDisconnect?.error?.message || "Unknown error";
+
+          // If connection closed before showing QR, it's a connection failure
+          if (!hasShownQR) {
+            try {
+              sock.ws?.close();
+            } catch (e) {
+              // Ignore
+            }
+            
+            // Special handling for 405 errors
+            if (statusCode === 405) {
+              reject(new Error(`WhatsApp connection failed (Error 405). This usually means:\n  • WhatsApp updated their protocol and the library needs updating\n  • Try updating: npm install @whiskeysockets/baileys@latest\n  • Or use Telegram/Discord instead (more reliable)`));
+            } else {
+              reject(new Error(`Failed to connect to WhatsApp servers (${statusCode || 'no status'}). ${errorMessage}. Please check your internet connection and try again.`));
+            }
+            return;
+          }
 
           // 515 means pairing successful but needs restart - OpenClaw pattern
           if (statusCode === 515 && hasShownQR) {
@@ -170,18 +282,6 @@ async function authenticateWhatsApp(): Promise<void> {
           }
         }
       });
-
-      // Timeout after 2 minutes
-      setTimeout(() => {
-        if (!pairingComplete) {
-          try {
-            sock.ws?.close();
-          } catch (e) {
-            // Ignore
-          }
-          reject(new Error("WhatsApp authentication timeout"));
-        }
-      }, 120000);
     } catch (error) {
       if (sock) {
         try {
@@ -548,13 +648,46 @@ export async function authCommand() {
     console.log(chalk.cyan("WhatsApp Setup"));
     console.log();
 
+    // Ensure stdin is fully reset after TUI interactions
+    if (process.stdin.isTTY) {
+      process.stdin.setRawMode(false);
+    }
+    process.stdin.removeAllListeners('keypress');
+    process.stdin.pause();
+    
+    // Give stdin time to settle
+    await new Promise(resolve => setTimeout(resolve, 200));
+
     // Authenticate WhatsApp immediately
-    console.log(chalk.cyan("Authenticating WhatsApp..."));
-    console.log();
-    await authenticateWhatsApp();
-    console.log();
-    console.log(chalk.green("WhatsApp authenticated successfully!"));
-    console.log();
+    try {
+      await authenticateWhatsApp();
+      console.log();
+      console.log(chalk.green("WhatsApp authenticated successfully!"));
+      console.log();
+    } catch (error) {
+      console.log();
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      
+      // Check if it's a 405 error
+      if (errorMsg.includes("405")) {
+        console.log(chalk.red(`[ERROR] WhatsApp authentication failed (Error 405)`));
+        console.log();
+        console.log(chalk.yellow("This is a known issue with WhatsApp's protocol changes."));
+        console.log(chalk.yellow("The WhatsApp library needs to be updated by the maintainers."));
+        console.log();
+        console.log(chalk.cyan("Recommended alternatives:"));
+        console.log(chalk.white("  • Telegram - More stable and reliable"));
+        console.log(chalk.white("  • Discord - Also very stable"));
+        console.log();
+        console.log(chalk.gray("Would you like to restart and choose a different platform?"));
+      } else {
+        console.log(chalk.red(`[ERROR] WhatsApp authentication failed: ${errorMsg}`));
+        console.log();
+        console.log(chalk.yellow("Please try running authentication again."));
+      }
+      console.log();
+      process.exit(1);
+    }
   }
 
   // Step 5: Coding Adapter Selection
