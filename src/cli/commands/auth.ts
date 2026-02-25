@@ -5,7 +5,7 @@ import makeWASocket, { useMultiFileAuthState } from "@whiskeysockets/baileys";
 import chalk from "chalk";
 import inquirer from "inquirer";
 import qrcode from "qrcode-terminal";
-import { discoverHuggingFaceModels } from "../../utils/huggingface-discovery";
+import { discoverHuggingFaceModels, discoverOpenRouterModels } from "../../utils/model-discovery-util";
 import { loadModelsCatalog } from "../../utils/models-catalog-loader";
 import { setApiKey, setBotToken, isKeychainAvailable } from "../../utils/keychain";
 
@@ -305,7 +305,7 @@ export async function authCommand() {
     // Mark this provider as selected
     selectedProviders.add(providerAnswers.provider);
 
-    // Load models - use dynamic discovery for HuggingFace, static catalog for others
+    // Load models - use dynamic discovery for HuggingFace and OpenRouter, static catalog for others
     let modelChoices: Array<{ name: string; value: string }>;
     
     if (providerAnswers.provider === "huggingface") {
@@ -334,6 +334,34 @@ export async function authCommand() {
           return await configureProvider(label, existingProvider);
         } else {
           throw new Error("HuggingFace model discovery failed. Please run 'txtcode auth' again with a valid API key.");
+        }
+      }
+    } else if (providerAnswers.provider === "openrouter") {
+      console.log(chalk.gray("Discovering available models from OpenRouter..."));
+      try {
+        const discoveredModels = await discoverOpenRouterModels(providerAnswers.apiKey);
+        modelChoices = discoveredModels.map((model) => ({
+          name: model.description ? `${model.name} - ${model.description}` : model.name,
+          value: model.id,
+        }));
+        console.log(chalk.green(`Found ${discoveredModels.length} models\n`));
+      } catch (error) {
+        console.log(chalk.red(`\n[ERROR] Failed to discover OpenRouter models: ${error instanceof Error ? error.message : "Unknown error"}\n`));
+        console.log(chalk.yellow("Please check your API key and try again.\n"));
+        
+        const { retry } = await inquirer.prompt([
+          {
+            type: "confirm",
+            name: "retry",
+            message: "Would you like to enter a different API key?",
+            default: true,
+          },
+        ]);
+        
+        if (retry) {
+          return await configureProvider(label, existingProvider);
+        } else {
+          throw new Error("OpenRouter model discovery failed. Please run 'txtcode auth' again with a valid API key.");
         }
       }
     } else {
