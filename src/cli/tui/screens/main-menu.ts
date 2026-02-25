@@ -2,6 +2,29 @@ import chalk from "chalk";
 import { renderBanner, getBannerHeight } from "../components/banner";
 import { showMenu, MenuItem } from "../components/menu";
 import { centerText, centerLog, getTerminalWidth, calculateVerticalPadding } from "../components/centered-text";
+import path from "path";
+import fs from "fs";
+
+// Get version from package.json
+function getVersion(): string {
+  try {
+    const packageJsonPath = path.join(__dirname, "../../../package.json");
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
+    return packageJson.version || "0.1.0";
+  } catch {
+    return "0.1.0";
+  }
+}
+
+// Get current working directory
+function getCurrentDirectory(): string {
+  return process.cwd();
+}
+
+// Get terminal height
+function getTerminalHeight(): number {
+  return process.stdout.rows || 24;
+}
 
 export interface MainMenuOptions {
   isConfigured: boolean;
@@ -90,7 +113,36 @@ export async function showMainMenu(options: MainMenuOptions): Promise<string> {
         console.log();
       }
     },
+    onRenderFooter: () => {
+      // Calculate how many lines to move down to reach the bottom
+      const termHeight = getTerminalHeight();
+      const currentLine = topPadding + contentHeight + 2; // +2 for title and spacing
+      const linesToBottom = Math.max(0, termHeight - currentLine - 1);
+      
+      // Move to bottom
+      for (let i = 0; i < linesToBottom; i++) {
+        console.log();
+      }
+      
+      // Show directory on left and version on right at the absolute bottom
+      const version = getVersion();
+      const directory = getCurrentDirectory();
+      const termWidth = getTerminalWidth();
+      
+      const leftText = chalk.gray(directory);
+      const rightText = chalk.gray(`v${version}`);
+      
+      // Calculate spacing to position text at edges
+      const leftTextLength = directory.length;
+      const rightTextLength = version.length + 1; // +1 for 'v'
+      const spacing = Math.max(0, termWidth - leftTextLength - rightTextLength - 2);
+      
+      console.log(leftText + " ".repeat(spacing) + rightText);
+    },
   });
+
+  // After menu selection, show footer before returning
+  // (This won't be visible as the menu clears, so we need a different approach)
 
   return action;
 }

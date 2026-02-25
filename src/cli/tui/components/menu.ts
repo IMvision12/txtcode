@@ -12,6 +12,7 @@ export interface MenuOptions {
   title?: string;
   items: MenuItem[];
   onRender?: () => void;
+  onRenderFooter?: () => void;
 }
 
 export async function showMenu(options: MenuOptions): Promise<string> {
@@ -54,6 +55,11 @@ export async function showMenu(options: MenuOptions): Promise<string> {
       }
 
       renderMenuItems();
+
+      if (options.onRenderFooter) {
+        console.log();
+        options.onRenderFooter();
+      }
     };
 
     // Initial render
@@ -67,14 +73,14 @@ export async function showMenu(options: MenuOptions): Promise<string> {
     const onKeypress = (str: string, key: any) => {
       if (key.name === "up") {
         selectedIndex = selectedIndex > 0 ? selectedIndex - 1 : options.items.length - 1;
-        // Move cursor up and re-render menu items
-        process.stdout.write(`\x1b[${options.items.length}A`);
-        renderMenuItems();
+        // Clear screen and re-render everything
+        console.clear();
+        renderFullMenu();
       } else if (key.name === "down") {
         selectedIndex = selectedIndex < options.items.length - 1 ? selectedIndex + 1 : 0;
-        // Move cursor up and re-render menu items
-        process.stdout.write(`\x1b[${options.items.length}A`);
-        renderMenuItems();
+        // Clear screen and re-render everything
+        console.clear();
+        renderFullMenu();
       } else if (key.name === "return") {
         if (process.stdin.isTTY) {
           process.stdin.setRawMode(false);
