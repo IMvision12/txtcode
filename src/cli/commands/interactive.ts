@@ -27,9 +27,12 @@ function getTerminalWidth(): number {
 async function showCenteredMenu(choices: MainMenuChoice[], terminalWidth: number): Promise<string> {
   return new Promise((resolve) => {
     let selectedIndex = 0;
+    let isFirstRender = true;
     
-    const renderMenu = () => {
+    const renderBanner = () => {
       console.clear();
+      
+      const terminalHeight = process.stdout.rows || 24;
       
       // Re-render banner
       const logoLines = [
@@ -43,16 +46,24 @@ async function showCenteredMenu(choices: MainMenuChoice[], terminalWidth: number
       
       const subtitle = "Remote coding via WhatsApp, Telegram, Discord & iMessage";
       
-      console.log();
+      const config = loadConfig();
+      const isConfigured = config !== null;
+      
+      // Calculate total content height
+      const contentHeight = logoLines.length + 1 + 1 + (isConfigured ? 1 : 2) + 1 + 1 + choices.length;
+      const topPadding = Math.max(0, Math.floor((terminalHeight - contentHeight) / 2));
+      
+      // Add vertical padding
+      for (let i = 0; i < topPadding; i++) {
+        console.log();
+      }
+      
       logoLines.forEach(line => {
         console.log(centerText(chalk.white(line), terminalWidth));
       });
       console.log();
       console.log(centerText(chalk.gray(subtitle), terminalWidth));
       console.log();
-      
-      const config = loadConfig();
-      const isConfigured = config !== null;
       
       if (!isConfigured) {
         console.log(centerText(chalk.yellow("⚠ Not configured yet"), terminalWidth));
@@ -63,6 +74,16 @@ async function showCenteredMenu(choices: MainMenuChoice[], terminalWidth: number
       
       console.log(centerText(chalk.cyan("What would you like to do? (Use arrow keys)"), terminalWidth));
       console.log();
+    };
+    
+    const renderMenu = () => {
+      if (isFirstRender) {
+        renderBanner();
+        isFirstRender = false;
+      } else {
+        // Move cursor up to the start of menu items
+        process.stdout.write(`\x1b[${choices.length}A`);
+      }
       
       // Find the longest choice text to determine menu width
       const longestChoice = Math.max(...choices.map(choice => {
@@ -78,6 +99,9 @@ async function showCenteredMenu(choices: MainMenuChoice[], terminalWidth: number
         const bullet = isSelected ? chalk.green("● ") : chalk.gray("○ ");
         const arrow = isSelected ? chalk.cyan("→ ") : "  ";
         const text = isSelected ? chalk.cyan(choice.name) : choice.name;
+        
+        // Clear the line and write new content
+        process.stdout.write("\x1b[2K"); // Clear entire line
         console.log(" ".repeat(leftPadding) + arrow + bullet + text);
       });
     };
