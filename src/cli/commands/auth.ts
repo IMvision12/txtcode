@@ -393,6 +393,7 @@ export async function authCommand() {
 
     const apiKey = await showCenteredInput({
       message: "Enter API Key:",
+      password: true,
       validate: (input) => input.length > 0 || "API key is required",
     });
 
