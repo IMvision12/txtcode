@@ -64,6 +64,10 @@ export async function showMainMenu(options: MainMenuOptions): Promise<string> {
         name: "Hard Reset" + chalk.gray(" - Delete all data"),
         value: "hard-reset",
       },
+      {
+        name: "Help" + chalk.gray(" - View all platform commands"),
+        value: "help",
+      },
     );
   }
 

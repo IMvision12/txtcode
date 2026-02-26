@@ -2,6 +2,7 @@ import chalk from "chalk";
 import { showMainMenu, showGoodbyeScreen, pressAnyKey } from "../tui";
 import { authCommand, loadConfig } from "./auth";
 import { configCommand } from "./config";
+import { showHelpScreen } from "./help";
 import { logsCommand } from "./logs";
 import { resetCommand, logoutCommand, hardResetCommand } from "./reset";
 import { startCommand } from "./start";
@@ -51,6 +52,11 @@ export async function interactiveMode(): Promise<void> {
 
         case "hard-reset":
           await hardResetCommand();
+          await pressAnyKey();
+          break;
+
+        case "help":
+          showHelpScreen();
           await pressAnyKey();
           break;
 
