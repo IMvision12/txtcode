@@ -34,11 +34,13 @@ export class HttpTool implements Tool {
           },
           headers: {
             type: "object",
-            description: "Request headers as key-value pairs (e.g. {\"Authorization\": \"Bearer ...\", \"Content-Type\": \"application/json\"}).",
+            description:
+              'Request headers as key-value pairs (e.g. {"Authorization": "Bearer ...", "Content-Type": "application/json"}).',
           },
           body: {
             type: "string",
-            description: "Request body (for POST/PUT/PATCH). Send as string — use JSON.stringify for JSON payloads.",
+            description:
+              "Request body (for POST/PUT/PATCH). Send as string — use JSON.stringify for JSON payloads.",
           },
           timeout: {
             type: "number",
@@ -68,7 +70,11 @@ export class HttpTool implements Tool {
     }
 
     if (BLOCKED_HOSTS.has(parsedUrl.hostname)) {
-      return { toolCallId: "", output: `Blocked: requests to ${parsedUrl.hostname} are not allowed (cloud metadata security).`, isError: true };
+      return {
+        toolCallId: "",
+        output: `Blocked: requests to ${parsedUrl.hostname} are not allowed (cloud metadata security).`,
+        isError: true,
+      };
     }
 
     const method = ((args.method as string) || "GET").toUpperCase();
@@ -100,19 +106,30 @@ export class HttpTool implements Tool {
       const elapsed = Date.now() - startTime;
 
       const responseHeaders: Record<string, string> = {};
-      const importantHeaders = ["content-type", "content-length", "server", "x-request-id", "location", "set-cookie", "cache-control"];
+      const importantHeaders = [
+        "content-type",
+        "content-length",
+        "server",
+        "x-request-id",
+        "location",
+        "set-cookie",
+        "cache-control",
+      ];
       for (const key of importantHeaders) {
         const val = response.headers.get(key);
-        if (val) {responseHeaders[key] = val;}
+        if (val) {
+          responseHeaders[key] = val;
+        }
       }
 
       let responseBody = "";
       if (method !== "HEAD") {
         try {
           const text = await response.text();
-          responseBody = text.length > MAX_BODY_SIZE
-            ? text.substring(0, MAX_BODY_SIZE) + "\n\n(body truncated)"
-            : text;
+          responseBody =
+            text.length > MAX_BODY_SIZE
+              ? text.substring(0, MAX_BODY_SIZE) + "\n\n(body truncated)"
+              : text;
         } catch {
           responseBody = "(could not read response body)";
         }
@@ -126,7 +143,9 @@ export class HttpTool implements Tool {
         `${response.status} ${response.statusText} (${elapsed}ms)`,
         headerLines ? `\nHeaders:\n${headerLines}` : "",
         responseBody ? `\nBody:\n${responseBody}` : "",
-      ].filter(Boolean).join("\n");
+      ]
+        .filter(Boolean)
+        .join("\n");
 
       return {
         toolCallId: "",

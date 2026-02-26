@@ -112,10 +112,17 @@ Available models: ${models.length}`;
       const config = this.getConfig();
       const { exec } = require("child_process");
       await new Promise((resolve, reject) => {
-        exec(`${config.cliCommand} --version`, { timeout: 5000 }, (error: Error | null, stdout: string) => {
-          if (error) {reject(error);}
-          else {resolve(stdout);}
-        });
+        exec(
+          `${config.cliCommand} --version`,
+          { timeout: 5000 },
+          (error: Error | null, stdout: string) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(stdout);
+            }
+          },
+        );
       });
 
       const response = await fetch("http://localhost:11434/api/tags", {

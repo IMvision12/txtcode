@@ -15,7 +15,7 @@ function runCommand(
       resolve({
         stdout: stdout?.toString() ?? "",
         stderr: stderr?.toString() ?? "",
-        code: err ? (err as { code?: number }).code ?? 1 : 0,
+        code: err ? ((err as { code?: number }).code ?? 1) : 0,
       });
     });
   });
@@ -78,7 +78,11 @@ export class NetworkTool implements Tool {
       case "ports":
         return this.actionPorts(port);
       default:
-        return { toolCallId: "", output: `Unknown action: ${action}. Use: ping, dns, reachable, ports.`, isError: true };
+        return {
+          toolCallId: "",
+          output: `Unknown action: ${action}. Use: ping, dns, reachable, ports.`,
+          isError: true,
+        };
     }
   }
 
@@ -157,7 +161,11 @@ export class NetworkTool implements Tool {
         isError: results.length <= 1,
       };
     } catch (err) {
-      return { toolCallId: "", output: `DNS lookup failed for ${hostname}: ${err instanceof Error ? err.message : String(err)}`, isError: true };
+      return {
+        toolCallId: "",
+        output: `DNS lookup failed for ${hostname}: ${err instanceof Error ? err.message : String(err)}`,
+        isError: true,
+      };
     }
   }
 
@@ -192,9 +200,19 @@ export class NetworkTool implements Tool {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       if (message.includes("abort")) {
-        return { toolCallId: "", output: `${target} is not reachable (timed out after ${REACHABLE_TIMEOUT}ms).`, isError: false, metadata: { reachable: false } };
+        return {
+          toolCallId: "",
+          output: `${target} is not reachable (timed out after ${REACHABLE_TIMEOUT}ms).`,
+          isError: false,
+          metadata: { reachable: false },
+        };
       }
-      return { toolCallId: "", output: `${target} is not reachable: ${message}`, isError: false, metadata: { reachable: false } };
+      return {
+        toolCallId: "",
+        output: `${target} is not reachable: ${message}`,
+        isError: false,
+        metadata: { reachable: false },
+      };
     } finally {
       clearTimeout(timeoutId);
     }
@@ -209,15 +227,19 @@ export class NetworkTool implements Tool {
     if (isWindows) {
       if (port) {
         result = await runCommand("powershell.exe", [
-          "-NoProfile", "-NonInteractive", "-Command",
+          "-NoProfile",
+          "-NonInteractive",
+          "-Command",
           `Get-NetTCPConnection -LocalPort ${port} -State Listen -ErrorAction SilentlyContinue | ` +
-          `Select-Object LocalAddress, LocalPort, OwningProcess | Format-Table -AutoSize`,
+            `Select-Object LocalAddress, LocalPort, OwningProcess | Format-Table -AutoSize`,
         ]);
       } else {
         result = await runCommand("powershell.exe", [
-          "-NoProfile", "-NonInteractive", "-Command",
+          "-NoProfile",
+          "-NonInteractive",
+          "-Command",
           `Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | ` +
-          `Select-Object LocalAddress, LocalPort, OwningProcess | Sort-Object LocalPort | Format-Table -AutoSize`,
+            `Select-Object LocalAddress, LocalPort, OwningProcess | Sort-Object LocalPort | Format-Table -AutoSize`,
         ]);
       }
     } else if (isMac) {
@@ -241,7 +263,11 @@ export class NetworkTool implements Tool {
       if (port) {
         return { toolCallId: "", output: `No process listening on port ${port}.`, isError: false };
       }
-      return { toolCallId: "", output: output || "Could not retrieve listening ports.", isError: result.code !== 0 };
+      return {
+        toolCallId: "",
+        output: output || "Could not retrieve listening ports.",
+        isError: result.code !== 0,
+      };
     }
 
     return {

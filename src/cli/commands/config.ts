@@ -241,7 +241,8 @@ function viewConfig(config: Record<string, unknown>) {
   }
 
   centerLog(
-    chalk.white("Configured At: ") + chalk.yellow(new Date(String(config.configuredAt)).toLocaleString()),
+    chalk.white("Configured At: ") +
+      chalk.yellow(new Date(String(config.configuredAt)).toLocaleString()),
   );
   console.log();
   centerLog(chalk.gray(`Config file: ${CONFIG_FILE}`));

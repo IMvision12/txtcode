@@ -16,13 +16,18 @@ function runGit(
   signal?: AbortSignal,
 ): Promise<{ stdout: string; stderr: string; code: number | null }> {
   return new Promise((resolve) => {
-    const proc = execFile("git", args, { cwd, maxBuffer: 1024 * 1024, timeout: 30_000 }, (err, stdout, stderr) => {
-      resolve({
-        stdout: stdout?.toString() ?? "",
-        stderr: stderr?.toString() ?? "",
-        code: err ? (err as { code?: number }).code ?? 1 : 0,
-      });
-    });
+    const proc = execFile(
+      "git",
+      args,
+      { cwd, maxBuffer: 1024 * 1024, timeout: 30_000 },
+      (err, stdout, stderr) => {
+        resolve({
+          stdout: stdout?.toString() ?? "",
+          stderr: stderr?.toString() ?? "",
+          code: err ? ((err as { code?: number }).code ?? 1) : 0,
+        });
+      },
+    );
 
     if (signal) {
       const handler = () => {
@@ -63,11 +68,32 @@ export class GitTool implements Tool {
           action: {
             type: "string",
             description: "Git action to perform.",
-            enum: ["status", "diff", "log", "branch", "commit", "stash", "checkout", "add", "reset", "remote", "show", "blame", "tag", "pull", "push", "fetch", "merge", "rebase", "cherry-pick"],
+            enum: [
+              "status",
+              "diff",
+              "log",
+              "branch",
+              "commit",
+              "stash",
+              "checkout",
+              "add",
+              "reset",
+              "remote",
+              "show",
+              "blame",
+              "tag",
+              "pull",
+              "push",
+              "fetch",
+              "merge",
+              "rebase",
+              "cherry-pick",
+            ],
           },
           args: {
             type: "string",
-            description: "Additional arguments (e.g. branch name, file path, --oneline, -n 10). Passed directly to git.",
+            description:
+              "Additional arguments (e.g. branch name, file path, --oneline, -n 10). Passed directly to git.",
           },
           message: {
             type: "string",
@@ -79,7 +105,8 @@ export class GitTool implements Tool {
           },
           force: {
             type: "boolean",
-            description: "Allow destructive operations like push --force or reset --hard. Default false.",
+            description:
+              "Allow destructive operations like push --force or reset --hard. Default false.",
           },
         },
         required: ["action"],
@@ -124,38 +151,57 @@ export class GitTool implements Tool {
     switch (action) {
       case "status":
         gitArgs = ["status", "--short", "--branch"];
-        if (extraArgs) {gitArgs.push(...extraArgs.split(/\s+/));}
+        if (extraArgs) {
+          gitArgs.push(...extraArgs.split(/\s+/));
+        }
         break;
 
       case "diff":
         gitArgs = ["diff"];
-        if (extraArgs) {gitArgs.push(...extraArgs.split(/\s+/));}
-        else {gitArgs.push("--stat");}
+        if (extraArgs) {
+          gitArgs.push(...extraArgs.split(/\s+/));
+        } else {
+          gitArgs.push("--stat");
+        }
         break;
 
       case "log":
         gitArgs = ["log", "--oneline"];
-        if (extraArgs) {gitArgs.push(...extraArgs.split(/\s+/));}
-        else {gitArgs.push("-20");}
+        if (extraArgs) {
+          gitArgs.push(...extraArgs.split(/\s+/));
+        } else {
+          gitArgs.push("-20");
+        }
         break;
 
       case "commit":
         if (!message) {
-          return { toolCallId: "", output: "Error: commit requires a message parameter.", isError: true };
+          return {
+            toolCallId: "",
+            output: "Error: commit requires a message parameter.",
+            isError: true,
+          };
         }
         gitArgs = ["commit", "-m", message];
-        if (extraArgs) {gitArgs.push(...extraArgs.split(/\s+/));}
+        if (extraArgs) {
+          gitArgs.push(...extraArgs.split(/\s+/));
+        }
         break;
 
       case "branch":
         gitArgs = ["branch"];
-        if (extraArgs) {gitArgs.push(...extraArgs.split(/\s+/));}
-        else {gitArgs.push("-a");}
+        if (extraArgs) {
+          gitArgs.push(...extraArgs.split(/\s+/));
+        } else {
+          gitArgs.push("-a");
+        }
         break;
 
       default:
         gitArgs = [action];
-        if (extraArgs) {gitArgs.push(...extraArgs.split(/\s+/));}
+        if (extraArgs) {
+          gitArgs.push(...extraArgs.split(/\s+/));
+        }
         break;
     }
 

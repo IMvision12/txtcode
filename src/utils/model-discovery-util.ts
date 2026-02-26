@@ -195,7 +195,8 @@ export async function discoverHuggingFaceModels(apiKey: string): Promise<Discove
 
     if ((error as Error).name === "AbortError") {
       throw new Error(
-        "HuggingFace API request timed out. Please check your connection and try again.", { cause: error },
+        "HuggingFace API request timed out. Please check your connection and try again.",
+        { cause: error },
       );
     }
 
@@ -271,7 +272,8 @@ export async function discoverOpenRouterModels(apiKey?: string): Promise<Discove
 
     if ((error as Error).name === "AbortError") {
       throw new Error(
-        "OpenRouter API request timed out. Please check your connection and try again.", { cause: error },
+        "OpenRouter API request timed out. Please check your connection and try again.",
+        { cause: error },
       );
     }
 

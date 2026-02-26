@@ -21,7 +21,9 @@ export class BlockReplyPipeline {
 
   async processText(text: string): Promise<void> {
     const normalized = normalizeStreamOutput(text);
-    if (normalized.skip) {return;}
+    if (normalized.skip) {
+      return;
+    }
 
     this.accumulatedText += normalized.text;
 

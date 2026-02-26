@@ -45,9 +45,13 @@ export class WhatsAppBot {
 
   private cleanupRequest(userId: string) {
     const active = this.activeRequests.get(userId);
-    if (!active) {return;}
+    if (!active) {
+      return;
+    }
     active.aborted = true;
-    if (active.heartbeatInterval) {clearInterval(active.heartbeatInterval);}
+    if (active.heartbeatInterval) {
+      clearInterval(active.heartbeatInterval);
+    }
     this.activeRequests.delete(userId);
   }
 
@@ -96,20 +100,31 @@ export class WhatsAppBot {
       async ({ messages, type }: { messages: WAMessage[]; type: string }) => {
         for (const msg of messages) {
           try {
-            if (type !== "notify") {continue;}
-            if (!msg.message || msg.key.remoteJid === "status@broadcast") {continue;}
+            if (type !== "notify") {
+              continue;
+            }
+            if (!msg.message || msg.key.remoteJid === "status@broadcast") {
+              continue;
+            }
 
             const from = msg.key.remoteJid || "";
             const isFromMe = msg.key.fromMe || false;
             const messageTimestamp = (msg.messageTimestamp as number) || 0;
 
-            if (!isFromMe) {continue;}
-            if (from.endsWith("@g.us")) {continue;}
+            if (!isFromMe) {
+              continue;
+            }
+            if (from.endsWith("@g.us")) {
+              continue;
+            }
 
-            const text =
-              msg.message.conversation || msg.message.extendedTextMessage?.text || "";
-            if (!text) {continue;}
-            if (messageTimestamp <= this.lastProcessedTimestamp) {continue;}
+            const text = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
+            if (!text) {
+              continue;
+            }
+            if (messageTimestamp <= this.lastProcessedTimestamp) {
+              continue;
+            }
 
             this.lastProcessedTimestamp = messageTimestamp;
             logger.debug(`Incoming message: ${text}`);
@@ -144,7 +159,9 @@ export class WhatsAppBot {
             const typingSignaler = new WhatsAppTypingSignaler(this.sock, from);
 
             active.heartbeatInterval = setInterval(async () => {
-              if (active.aborted) {return;}
+              if (active.aborted) {
+                return;
+              }
               await typingSignaler.signalTyping();
             }, 3000);
 
@@ -156,26 +173,38 @@ export class WhatsAppBot {
                   timestamp: new Date(messageTimestamp * 1000),
                 },
                 async (_chunk: string) => {
-                  if (!active.aborted) {await typingSignaler.signalTyping();}
+                  if (!active.aborted) {
+                    await typingSignaler.signalTyping();
+                  }
                 },
               );
 
-              if (active.aborted) {continue;}
+              if (active.aborted) {
+                continue;
+              }
 
-              if (active.heartbeatInterval) {clearInterval(active.heartbeatInterval);}
+              if (active.heartbeatInterval) {
+                clearInterval(active.heartbeatInterval);
+              }
               this.activeRequests.delete(from);
               await typingSignaler.stopTyping();
 
               await this.sendLongMessage(from, response, msg);
             } catch (error) {
-              if (active.aborted) {continue;}
+              if (active.aborted) {
+                continue;
+              }
 
-              if (active.heartbeatInterval) {clearInterval(active.heartbeatInterval);}
+              if (active.heartbeatInterval) {
+                clearInterval(active.heartbeatInterval);
+              }
               this.activeRequests.delete(from);
               await typingSignaler.stopTyping();
 
               const isAbort = error instanceof Error && error.message.includes("aborted");
-              if (isAbort) {continue;}
+              if (isAbort) {
+                continue;
+              }
 
               const errMsg = `Error: ${error instanceof Error ? error.message : "Unknown error"}`;
               await this.sock.sendMessage(from, { text: errMsg }, { quoted: msg });
@@ -188,11 +217,7 @@ export class WhatsAppBot {
     );
   }
 
-  private async sendLongMessage(
-    jid: string,
-    text: string,
-    quotedMsg: WAMessage,
-  ): Promise<void> {
+  private async sendLongMessage(jid: string, text: string, quotedMsg: WAMessage): Promise<void> {
     if (text.length <= MAX_WA_LENGTH) {
       await this.sock.sendMessage(jid, { text }, { quoted: quotedMsg });
       return;
@@ -217,7 +242,9 @@ function splitMessage(text: string, max: number): string[] {
       break;
     }
     let breakAt = remaining.lastIndexOf("\n", max);
-    if (breakAt < max / 2) {breakAt = max;}
+    if (breakAt < max / 2) {
+      breakAt = max;
+    }
     parts.push(remaining.slice(0, breakAt));
     remaining = remaining.slice(breakAt);
   }

@@ -8,7 +8,10 @@ export class AgentCore {
   private authorizedUser: string | null;
   private configPath: string;
   private userModes: Map<string, "chat" | "code"> = new Map();
-  private pendingSwitch: Map<string, "main" | "adapter" | "provider" | "cli-model" | "cli-model-custom"> = new Map();
+  private pendingSwitch: Map<
+    string,
+    "main" | "adapter" | "provider" | "cli-model" | "cli-model-custom"
+  > = new Map();
 
   constructor() {
     this.router = new Router();
@@ -72,7 +75,9 @@ export class AgentCore {
     ) {
       return false;
     }
-    if (this.pendingSwitch.has(userId)) {return false;}
+    if (this.pendingSwitch.has(userId)) {
+      return false;
+    }
     return this.userModes.get(userId) === "code";
   }
 
@@ -471,7 +476,9 @@ Your chat messages will now use ${selectedProvider}.`;
   private persistAdapterModel(adapterName: string, modelId: string): void {
     try {
       const config = this.loadConfigSafely();
-      if (!config) {return;}
+      if (!config) {
+        return;
+      }
 
       if (!config.adapterModels) {
         config.adapterModels = {} as Record<string, string>;

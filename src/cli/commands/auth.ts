@@ -160,7 +160,8 @@ function authenticateWhatsApp(): Promise<void> {
 
         if (connection === "close" && !pairingComplete) {
           clearTimeout(connectionTimeout);
-          const statusCode = (lastDisconnect?.error as { output?: { statusCode?: number } })?.output?.statusCode;
+          const statusCode = (lastDisconnect?.error as { output?: { statusCode?: number } })?.output
+            ?.statusCode;
           const errorMessage = lastDisconnect?.error?.message || "Unknown error";
 
           if (!hasShownQR) {
@@ -243,7 +244,9 @@ export async function authCommand() {
 
   // Check for existing configuration
   const existingConfig = loadConfig();
-  const existingProviders = existingConfig?.providers as Record<string, { model: string }> | undefined;
+  const existingProviders = existingConfig?.providers as
+    | Record<string, { model: string }>
+    | undefined;
   if (existingConfig && existingProviders) {
     console.log(chalk.yellow("⚠️  Existing configuration detected!"));
     console.log();
@@ -386,7 +389,8 @@ export async function authCommand() {
           return await configureProvider(label);
         } else {
           throw new Error(
-            "HuggingFace model discovery failed. Please run 'txtcode auth' again with a valid API key.", { cause: error },
+            "HuggingFace model discovery failed. Please run 'txtcode auth' again with a valid API key.",
+            { cause: error },
           );
         }
       }
@@ -418,16 +422,19 @@ export async function authCommand() {
           return await configureProvider(label);
         } else {
           throw new Error(
-            "OpenRouter model discovery failed. Please run 'txtcode auth' again with a valid API key.", { cause: error },
+            "OpenRouter model discovery failed. Please run 'txtcode auth' again with a valid API key.",
+            { cause: error },
           );
         }
       }
     } else {
       const providerModels = modelsCatalog.providers[providerValue];
-      modelChoices = providerModels.models.map((model: { id: string; name: string; recommended?: boolean }) => ({
-        name: model.recommended ? `${model.name} - Recommended` : model.name,
-        value: model.id,
-      }));
+      modelChoices = providerModels.models.map(
+        (model: { id: string; name: string; recommended?: boolean }) => ({
+          name: model.recommended ? `${model.name} - Recommended` : model.name,
+          value: model.id,
+        }),
+      );
     }
 
     // Add "Enter custom model name" option at the top

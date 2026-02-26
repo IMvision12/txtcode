@@ -61,7 +61,8 @@ export function loadModelsCatalog(): ModelsCatalog {
     return catalog;
   } catch (error) {
     throw new Error(
-      `Failed to load models catalog: ${error instanceof Error ? error.message : "Unknown error"}`, { cause: error },
+      `Failed to load models catalog: ${error instanceof Error ? error.message : "Unknown error"}`,
+      { cause: error },
     );
   }
 }

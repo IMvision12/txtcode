@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
+import type { AdapterConfig } from "../../src/adapters/base-adapter";
 import { ClaudeCodeAdapter } from "../../src/adapters/claude-code";
 import { CursorAdapter } from "../../src/adapters/cursor-cli";
 import { GeminiCodeAdapter } from "../../src/adapters/gemini-cli";
 import { KiroAdapter } from "../../src/adapters/kiro-cli";
 import { CodexAdapter } from "../../src/adapters/openai-codex";
 import { OpenCodeAdapter } from "../../src/adapters/opencode";
-import type { AdapterConfig } from "../../src/adapters/base-adapter";
 
 interface AdapterInternals {
   buildArgs(instruction: string): string[];

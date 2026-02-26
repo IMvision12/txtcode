@@ -10,7 +10,9 @@ vi.mock("child_process", () => ({
   spawn: vi.fn(),
   exec: vi.fn((_cmd: string, ...args: unknown[]) => {
     const cb = args[args.length - 1];
-    if (typeof cb === "function") {cb(null, "1.0.0");}
+    if (typeof cb === "function") {
+      cb(null, "1.0.0");
+    }
   }),
   execSync: vi.fn(),
 }));

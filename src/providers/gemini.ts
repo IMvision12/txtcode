@@ -1,6 +1,10 @@
 import fs from "fs";
 import path from "path";
-import { type FunctionResponsePart, type Tool as GeminiTool, GoogleGenerativeAI } from "@google/generative-ai";
+import {
+  type FunctionResponsePart,
+  type Tool as GeminiTool,
+  GoogleGenerativeAI,
+} from "@google/generative-ai";
 import { ToolRegistry } from "../tools/registry";
 
 const MAX_ITERATIONS = 10;

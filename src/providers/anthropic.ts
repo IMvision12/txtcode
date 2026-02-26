@@ -1,7 +1,14 @@
 import fs from "fs";
 import path from "path";
 import Anthropic from "@anthropic-ai/sdk";
-import type { ContentBlock, MessageParam, TextBlock, ToolResultBlockParam, ToolUnion, ToolUseBlock } from "@anthropic-ai/sdk/resources/messages/messages";
+import type {
+  ContentBlock,
+  MessageParam,
+  TextBlock,
+  ToolResultBlockParam,
+  ToolUnion,
+  ToolUseBlock,
+} from "@anthropic-ai/sdk/resources/messages/messages";
 import { ToolRegistry } from "../tools/registry";
 
 const MAX_ITERATIONS = 10;

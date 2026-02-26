@@ -13,7 +13,7 @@ function runCommand(
       resolve({
         stdout: stdout?.toString() ?? "",
         stderr: stderr?.toString() ?? "",
-        code: err ? (err as { code?: number }).code ?? 1 : 0,
+        code: err ? ((err as { code?: number }).code ?? 1) : 0,
       });
     });
   });
@@ -28,7 +28,7 @@ function runShell(
       resolve({
         stdout: stdout?.toString() ?? "",
         stderr: stderr?.toString() ?? "",
-        code: err ? (err as { code?: number }).code ?? 1 : 0,
+        code: err ? ((err as { code?: number }).code ?? 1) : 0,
       });
     });
   });
@@ -55,11 +55,13 @@ export class CronTool implements Tool {
           },
           name: {
             type: "string",
-            description: "Task name (required for get, add, remove). On Unix, used as a comment identifier in crontab.",
+            description:
+              "Task name (required for get, add, remove). On Unix, used as a comment identifier in crontab.",
           },
           schedule: {
             type: "string",
-            description: "Schedule expression. Unix: cron expression (e.g. '0 2 * * *'). Windows: schtasks schedule (e.g. '/sc daily /st 02:00').",
+            description:
+              "Schedule expression. Unix: cron expression (e.g. '0 2 * * *'). Windows: schtasks schedule (e.g. '/sc daily /st 02:00').",
           },
           command: {
             type: "string",
@@ -87,15 +89,17 @@ export class CronTool implements Tool {
       case "list":
         return isWindows ? this.listWindows() : this.listUnix();
       case "get":
-        return isWindows
-          ? this.getWindows(args.name as string)
-          : this.getUnix(args.name as string);
+        return isWindows ? this.getWindows(args.name as string) : this.getUnix(args.name as string);
       case "add":
         return this.addTask(args, isWindows);
       case "remove":
         return this.removeTask(args, isWindows);
       default:
-        return { toolCallId: "", output: `Unknown action: ${action}. Use: list, get, add, remove.`, isError: true };
+        return {
+          toolCallId: "",
+          output: `Unknown action: ${action}. Use: list, get, add, remove.`,
+          isError: true,
+        };
     }
   }
 
@@ -104,9 +108,17 @@ export class CronTool implements Tool {
 
     if (result.code !== 0) {
       if (result.stderr.includes("no crontab")) {
-        return { toolCallId: "", output: "No crontab configured for current user.", isError: false };
+        return {
+          toolCallId: "",
+          output: "No crontab configured for current user.",
+          isError: false,
+        };
       }
-      return { toolCallId: "", output: `Failed to list crontab: ${result.stderr.trim()}`, isError: true };
+      return {
+        toolCallId: "",
+        output: `Failed to list crontab: ${result.stderr.trim()}`,
+        isError: true,
+      };
     }
 
     const lines = result.stdout.trim().split("\n");
@@ -114,7 +126,9 @@ export class CronTool implements Tool {
 
     for (const line of lines) {
       const trimmed = line.trim();
-      if (!trimmed) {continue;}
+      if (!trimmed) {
+        continue;
+      }
       if (trimmed.startsWith("#")) {
         jobs.push(trimmed);
         continue;
@@ -126,14 +140,23 @@ export class CronTool implements Tool {
       return { toolCallId: "", output: "Crontab is empty.", isError: false };
     }
 
-    return { toolCallId: "", output: `Crontab entries:\n\n${jobs.join("\n")}`, isError: false, metadata: { count: jobs.length } };
+    return {
+      toolCallId: "",
+      output: `Crontab entries:\n\n${jobs.join("\n")}`,
+      isError: false,
+      metadata: { count: jobs.length },
+    };
   }
 
   private async listWindows(): Promise<ToolResult> {
     const result = await runCommand("schtasks.exe", ["/query", "/fo", "TABLE", "/nh"]);
 
     if (result.code !== 0) {
-      return { toolCallId: "", output: `Failed to list scheduled tasks: ${result.stderr.trim()}`, isError: true };
+      return {
+        toolCallId: "",
+        output: `Failed to list scheduled tasks: ${result.stderr.trim()}`,
+        isError: true,
+      };
     }
 
     const output = result.stdout.trim();
@@ -151,7 +174,11 @@ export class CronTool implements Tool {
 
     const result = await runCommand("crontab", ["-l"]);
     if (result.code !== 0) {
-      return { toolCallId: "", output: `Failed to read crontab: ${result.stderr.trim()}`, isError: true };
+      return {
+        toolCallId: "",
+        output: `Failed to read crontab: ${result.stderr.trim()}`,
+        isError: true,
+      };
     }
 
     const lines = result.stdout.split("\n");
@@ -167,7 +194,11 @@ export class CronTool implements Tool {
       return { toolCallId: "", output: `No crontab entry matching "${name}".`, isError: false };
     }
 
-    return { toolCallId: "", output: `Entries matching "${name}":\n\n${matching.join("\n")}`, isError: false };
+    return {
+      toolCallId: "",
+      output: `Entries matching "${name}":\n\n${matching.join("\n")}`,
+      isError: false,
+    };
   }
 
   private async getWindows(name: string | undefined): Promise<ToolResult> {
@@ -178,7 +209,11 @@ export class CronTool implements Tool {
     const result = await runCommand("schtasks.exe", ["/query", "/tn", name, "/v", "/fo", "LIST"]);
 
     if (result.code !== 0) {
-      return { toolCallId: "", output: `Task "${name}" not found: ${result.stderr.trim()}`, isError: true };
+      return {
+        toolCallId: "",
+        output: `Task "${name}" not found: ${result.stderr.trim()}`,
+        isError: true,
+      };
     }
 
     return { toolCallId: "", output: result.stdout.trim(), isError: false };
@@ -190,9 +225,15 @@ export class CronTool implements Tool {
     const command = (args.command as string)?.trim();
     const confirm = args.confirm === true;
 
-    if (!name) {return { toolCallId: "", output: "Error: name is required for add.", isError: true };}
-    if (!schedule) {return { toolCallId: "", output: "Error: schedule is required for add.", isError: true };}
-    if (!command) {return { toolCallId: "", output: "Error: command is required for add.", isError: true };}
+    if (!name) {
+      return { toolCallId: "", output: "Error: name is required for add.", isError: true };
+    }
+    if (!schedule) {
+      return { toolCallId: "", output: "Error: schedule is required for add.", isError: true };
+    }
+    if (!command) {
+      return { toolCallId: "", output: "Error: command is required for add.", isError: true };
+    }
     if (!confirm) {
       return {
         toolCallId: "",
@@ -209,7 +250,11 @@ export class CronTool implements Tool {
 
       const result = await runCommand("schtasks.exe", schtasksArgs);
       if (result.code !== 0) {
-        return { toolCallId: "", output: `Failed to create task: ${(result.stdout + result.stderr).trim()}`, isError: true };
+        return {
+          toolCallId: "",
+          output: `Failed to create task: ${(result.stdout + result.stderr).trim()}`,
+          isError: true,
+        };
       }
       return { toolCallId: "", output: `Task "${name}" created successfully.`, isError: false };
     }
@@ -222,7 +267,11 @@ export class CronTool implements Tool {
 
     const result = await runShell(`echo '${newCrontab.replace(/'/g, "'\\''")}' | crontab -`);
     if (result.code !== 0) {
-      return { toolCallId: "", output: `Failed to add cron job: ${result.stderr.trim()}`, isError: true };
+      return {
+        toolCallId: "",
+        output: `Failed to add cron job: ${result.stderr.trim()}`,
+        isError: true,
+      };
     }
 
     return { toolCallId: "", output: `Cron job "${name}" added:\n  ${cronLine}`, isError: false };
@@ -232,15 +281,25 @@ export class CronTool implements Tool {
     const name = (args.name as string)?.trim();
     const confirm = args.confirm === true;
 
-    if (!name) {return { toolCallId: "", output: "Error: name is required for remove.", isError: true };}
+    if (!name) {
+      return { toolCallId: "", output: "Error: name is required for remove.", isError: true };
+    }
     if (!confirm) {
-      return { toolCallId: "", output: `This will remove the scheduled task "${name}". Set confirm=true to proceed.`, isError: false };
+      return {
+        toolCallId: "",
+        output: `This will remove the scheduled task "${name}". Set confirm=true to proceed.`,
+        isError: false,
+      };
     }
 
     if (isWindows) {
       const result = await runCommand("schtasks.exe", ["/delete", "/tn", name, "/f"]);
       if (result.code !== 0) {
-        return { toolCallId: "", output: `Failed to remove task: ${(result.stdout + result.stderr).trim()}`, isError: true };
+        return {
+          toolCallId: "",
+          output: `Failed to remove task: ${(result.stdout + result.stderr).trim()}`,
+          isError: true,
+        };
       }
       return { toolCallId: "", output: `Task "${name}" removed.`, isError: false };
     }
@@ -248,7 +307,11 @@ export class CronTool implements Tool {
     // Unix: remove matching lines from crontab
     const existing = await runCommand("crontab", ["-l"]);
     if (existing.code !== 0) {
-      return { toolCallId: "", output: `No crontab to modify: ${existing.stderr.trim()}`, isError: true };
+      return {
+        toolCallId: "",
+        output: `No crontab to modify: ${existing.stderr.trim()}`,
+        isError: true,
+      };
     }
 
     const lines = existing.stdout.split("\n");
@@ -261,7 +324,11 @@ export class CronTool implements Tool {
     const newCrontab = filtered.join("\n");
     const result = await runShell(`echo '${newCrontab.replace(/'/g, "'\\''")}' | crontab -`);
     if (result.code !== 0) {
-      return { toolCallId: "", output: `Failed to update crontab: ${result.stderr.trim()}`, isError: true };
+      return {
+        toolCallId: "",
+        output: `Failed to update crontab: ${result.stderr.trim()}`,
+        isError: true,
+      };
     }
 
     return { toolCallId: "", output: `Cron job "${name}" removed.`, isError: false };

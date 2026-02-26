@@ -54,8 +54,10 @@ function resolveShell(): { shell: string; buildArgs: (cmd: string) => string[] }
           buildArgs: (cmd: string) => [
             "-NoProfile",
             "-NonInteractive",
-            "-ExecutionPolicy", "Bypass",
-            "-Command", cmd,
+            "-ExecutionPolicy",
+            "Bypass",
+            "-Command",
+            cmd,
           ],
         };
       } catch {}

@@ -28,7 +28,9 @@ export function setupFakeFs(config: Config | null): {
   return {
     existsSync: (_p: string) => config !== null,
     readFileSync: (_p: string) => {
-      if (!config) {throw new Error("ENOENT");}
+      if (!config) {
+        throw new Error("ENOENT");
+      }
       return JSON.stringify(config);
     },
     writeFileSync: (p: string, data: string) => {

@@ -1,7 +1,10 @@
 import fs from "fs";
 import path from "path";
 import OpenAI from "openai";
-import type { ChatCompletionMessageParam, ChatCompletionTool } from "openai/resources/chat/completions/completions";
+import type {
+  ChatCompletionMessageParam,
+  ChatCompletionTool,
+} from "openai/resources/chat/completions/completions";
 import { ToolRegistry } from "../tools/registry";
 
 const MAX_ITERATIONS = 10;
@@ -51,7 +54,9 @@ export async function processWithOpenAI(
       messages.push(assistantMsg);
 
       for (const toolCall of assistantMsg.tool_calls) {
-        if (toolCall.type !== "function") { continue; }
+        if (toolCall.type !== "function") {
+          continue;
+        }
         const args = JSON.parse(toolCall.function.arguments);
         const result = await toolRegistry.execute(toolCall.function.name, args);
         messages.push({
