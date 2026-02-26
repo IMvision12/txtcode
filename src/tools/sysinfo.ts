@@ -207,25 +207,21 @@ export class SysinfoTool implements Tool {
       };
     }
 
-    const output = await runCommand("df", [
-      "-h",
-      "--type=ext4",
-      "--type=xfs",
-      "--type=btrfs",
-      "--type=apfs",
-      "--type=hfs",
-    ]);
-    if (!output) {
-      // Fallback without type filter (macOS df doesn't support --type)
-      const fallback = await runCommand("df", ["-h"]);
-      return {
-        toolCallId: "",
-        output: fallback || "Could not retrieve disk info.",
-        isError: !fallback,
-      };
+    const isMac = process.platform === "darwin";
+    const dfArgs = isMac
+      ? ["-h"]
+      : ["-h", "--type=ext4", "--type=xfs", "--type=btrfs", "--type=apfs", "--type=hfs"];
+
+    let output = await runCommand("df", dfArgs);
+    if (!output && !isMac) {
+      output = await runCommand("df", ["-h"]);
     }
 
-    return { toolCallId: "", output, isError: false };
+    return {
+      toolCallId: "",
+      output: output || "Could not retrieve disk info.",
+      isError: !output,
+    };
   }
 
   private actionUptime(): ToolResult {
@@ -260,7 +256,9 @@ export class SysinfoTool implements Tool {
       };
     }
 
-    const output = await runCommand("ps", ["aux", "--sort=-%cpu"]);
+    const isMac = process.platform === "darwin";
+    const psArgs = isMac ? ["aux", "-r"] : ["aux", "--sort=-%cpu"];
+    const output = await runCommand("ps", psArgs);
 
     if (!output) {
       return { toolCallId: "", output: "Could not retrieve process list.", isError: true };

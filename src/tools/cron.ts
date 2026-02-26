@@ -1,4 +1,4 @@
-import { execFile, exec } from "child_process";
+import { execFile, spawn } from "child_process";
 import { Tool, ToolDefinition, ToolResult } from "./types";
 
 const CMD_TIMEOUT = 15_000;
@@ -19,18 +19,34 @@ function runCommand(
   });
 }
 
-function runShell(
-  command: string,
+function writeCrontab(
+  content: string,
   timeout: number = CMD_TIMEOUT,
-): Promise<{ stdout: string; stderr: string; code: number | null }> {
+): Promise<{ stderr: string; code: number | null }> {
   return new Promise((resolve) => {
-    exec(command, { timeout, maxBuffer: 512 * 1024 }, (err, stdout, stderr) => {
-      resolve({
-        stdout: stdout?.toString() ?? "",
-        stderr: stderr?.toString() ?? "",
-        code: err ? ((err as { code?: number }).code ?? 1) : 0,
-      });
+    const proc = spawn("crontab", ["-"], { stdio: ["pipe", "ignore", "pipe"] });
+    let stderr = "";
+    const timer = setTimeout(() => {
+      proc.kill();
+      resolve({ stderr: "crontab write timed out", code: 1 });
+    }, timeout);
+
+    proc.stderr.on("data", (data: Buffer) => {
+      stderr += data.toString();
     });
+
+    proc.on("close", (code) => {
+      clearTimeout(timer);
+      resolve({ stderr, code });
+    });
+
+    proc.on("error", (err) => {
+      clearTimeout(timer);
+      resolve({ stderr: err.message, code: 1 });
+    });
+
+    proc.stdin.write(content);
+    proc.stdin.end();
   });
 }
 
@@ -265,7 +281,7 @@ export class CronTool implements Tool {
     const currentCrontab = existing.code === 0 ? existing.stdout : "";
     const newCrontab = currentCrontab.trimEnd() + "\n" + cronLine + "\n";
 
-    const result = await runShell(`echo '${newCrontab.replace(/'/g, "'\\''")}' | crontab -`);
+    const result = await writeCrontab(newCrontab);
     if (result.code !== 0) {
       return {
         toolCallId: "",
@@ -321,8 +337,8 @@ export class CronTool implements Tool {
       return { toolCallId: "", output: `No crontab entry matching "${name}".`, isError: false };
     }
 
-    const newCrontab = filtered.join("\n");
-    const result = await runShell(`echo '${newCrontab.replace(/'/g, "'\\''")}' | crontab -`);
+    const newCrontab = filtered.join("\n") + "\n";
+    const result = await writeCrontab(newCrontab);
     if (result.code !== 0) {
       return {
         toolCallId: "",

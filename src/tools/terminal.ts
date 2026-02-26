@@ -1,4 +1,5 @@
 import { spawn, ChildProcessWithoutNullStreams } from "child_process";
+import { killProcessTree, forceKillProcess } from "../shared/process-kill";
 import {
   createSession,
   appendOutput,
@@ -304,11 +305,10 @@ export class TerminalTool implements Tool {
 
       const abortHandler = () => {
         if (!processExited) {
-          try {
-            proc.kill("SIGTERM");
-          } catch {}
+          cleanupAbortListener();
+          killProcessTree(proc);
           if (!yielded) {
-            markExited(session, null, "SIGTERM", "killed");
+            markExited(session, null, null, "killed");
             resolve({
               status: "failed",
               exitCode: null,
@@ -317,7 +317,7 @@ export class TerminalTool implements Tool {
               timedOut: false,
             });
           } else {
-            markExited(session, null, "SIGTERM", "killed");
+            markExited(session, null, null, "killed");
           }
         }
       };
@@ -336,11 +336,9 @@ export class TerminalTool implements Tool {
       const killTimer = setTimeout(() => {
         if (!processExited) {
           cleanupAbortListener();
-          try {
-            proc.kill("SIGKILL");
-          } catch {}
+          forceKillProcess(proc);
           if (!yielded) {
-            markExited(session, null, "SIGKILL", "killed");
+            markExited(session, null, null, "killed");
             resolve({
               status: "failed",
               exitCode: null,
@@ -350,7 +348,7 @@ export class TerminalTool implements Tool {
               timedOut: true,
             });
           } else {
-            markExited(session, null, "SIGKILL", "killed");
+            markExited(session, null, null, "killed");
           }
         }
       }, timeoutMs);
