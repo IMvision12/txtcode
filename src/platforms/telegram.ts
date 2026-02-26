@@ -273,7 +273,10 @@ export class TelegramBot {
     logger.info("Telegram bot is running!");
 
     process.once("SIGINT", () => this.bot.stop("SIGINT"));
-    process.once("SIGTERM", () => this.bot.stop("SIGTERM"));
+    if (process.platform !== "win32") {
+      process.once("SIGTERM", () => this.bot.stop("SIGTERM"));
+    }
+    process.once("beforeExit", () => this.bot.stop("beforeExit"));
   }
 }
 

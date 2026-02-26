@@ -25,7 +25,11 @@ export class OpenCodeAdapter extends BaseAdapter {
         "Please install OpenCode CLI first:\n" +
         "  curl -fsSL https://raw.githubusercontent.com/opencode-ai/opencode/refs/heads/main/install | bash\n" +
         "Or using Homebrew:\n" +
-        "  brew install opencode-ai/tap/opencode",
+        "  brew install opencode-ai/tap/opencode\n" +
+        "On Windows (PowerShell):\n" +
+        "  irm https://raw.githubusercontent.com/opencode-ai/opencode/refs/heads/main/install.ps1 | iex\n" +
+        "Or using Scoop:\n" +
+        "  scoop install opencode",
       statusKeywords: ["opencode", "tokens", "completed", "success"],
       stdinMode: "inherit",
     };

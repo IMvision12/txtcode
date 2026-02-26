@@ -1,4 +1,5 @@
 import { execFile } from "child_process";
+import { killProcessTree } from "../shared/process-kill";
 import { Tool, ToolDefinition, ToolResult } from "./types";
 
 const BLOCKED_PATTERNS = [
@@ -31,7 +32,7 @@ function runGit(
 
     if (signal) {
       const handler = () => {
-        proc.kill("SIGTERM");
+        killProcessTree(proc);
       };
       signal.addEventListener("abort", handler, { once: true });
       proc.on("exit", () => signal.removeEventListener("abort", handler));

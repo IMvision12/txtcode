@@ -710,10 +710,19 @@ export async function authCommand() {
 
   // Set strict file permissions
   try {
-    fs.chmodSync(CONFIG_DIR, 0o700);
-    fs.chmodSync(CONFIG_FILE, 0o600);
+    if (process.platform === "win32") {
+      const { execSync } = require("child_process");
+      const user = process.env.USERNAME || process.env.USER || "";
+      if (user) {
+        execSync(`icacls "${CONFIG_DIR}" /inheritance:r /grant:r "${user}:(OI)(CI)F" /T`, { stdio: "ignore" });
+        execSync(`icacls "${CONFIG_FILE}" /inheritance:r /grant:r "${user}:F"`, { stdio: "ignore" });
+      }
+    } else {
+      fs.chmodSync(CONFIG_DIR, 0o700);
+      fs.chmodSync(CONFIG_FILE, 0o600);
+    }
   } catch {
-    // Windows doesn't support chmod
+    // Permissions could not be set — non-critical
   }
 
   console.log(chalk.green("\nAuthentication successful!"));

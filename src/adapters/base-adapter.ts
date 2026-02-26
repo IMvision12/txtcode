@@ -1,5 +1,6 @@
 import { spawn, ChildProcess } from "child_process";
 import { logger } from "../shared/logger";
+import { killProcessTree } from "../shared/process-kill";
 import { IDEAdapter, ModelInfo, TrackedFiles } from "../shared/types";
 
 export interface AdapterConfig {
@@ -66,6 +67,7 @@ export abstract class BaseAdapter implements IDEAdapter {
   protected connected: boolean = false;
   protected projectPath: string;
   protected currentProcess: ChildProcess | null = null;
+  private _intentionalKill: boolean = false;
   private modifiedFiles: Set<string> = new Set();
   private readFiles: Set<string> = new Set();
 
@@ -122,7 +124,8 @@ export abstract class BaseAdapter implements IDEAdapter {
 
   async disconnect(): Promise<void> {
     if (this.currentProcess) {
-      this.currentProcess.kill("SIGTERM");
+      this._intentionalKill = true;
+      this.killProcess(this.currentProcess);
       this.currentProcess = null;
     }
     this.connected = false;
@@ -131,6 +134,7 @@ export abstract class BaseAdapter implements IDEAdapter {
   abort(): void {
     if (this.currentProcess) {
       logger.debug("Aborting current process...");
+      this._intentionalKill = true;
       this.killProcess(this.currentProcess);
       this.currentProcess = null;
     }
@@ -161,6 +165,7 @@ export abstract class BaseAdapter implements IDEAdapter {
       const abortHandler = () => {
         if (this.currentProcess) {
           logger.debug("Aborting command execution...");
+          this._intentionalKill = true;
           this.killProcess(this.currentProcess);
           this.currentProcess = null;
         }
@@ -236,7 +241,9 @@ export abstract class BaseAdapter implements IDEAdapter {
         this.currentProcess = null;
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
 
-        if (sig === "SIGTERM") {
+        const wasIntentional = this._intentionalKill || sig === "SIGTERM";
+        this._intentionalKill = false;
+        if (wasIntentional) {
           reject(new Error("Process terminated"));
           return;
         }
@@ -483,27 +490,8 @@ export abstract class BaseAdapter implements IDEAdapter {
   }
 
   private killProcess(proc: ChildProcess): void {
-    const isWindows = process.platform === "win32";
-
-    if (isWindows && proc.pid) {
-      try {
-        const { execSync } = require("child_process");
-        execSync(`taskkill /pid ${proc.pid} /T /F`, { stdio: "ignore" });
-        logger.debug(`Killed process tree ${proc.pid} with taskkill`);
-      } catch (error) {
-        logger.debug(`taskkill failed, trying SIGKILL: ${error}`);
-        proc.kill("SIGKILL");
-      }
-    } else {
-      proc.kill("SIGTERM");
-      setTimeout(() => {
-        try {
-          proc.kill("SIGKILL");
-        } catch {
-          // process already exited
-        }
-      }, 100);
-    }
+    killProcessTree(proc);
+    logger.debug(`Killed process ${proc.pid ?? "?"}`);
   }
 
   private filterAndLogOutput(text: string, statusKeywords: string[]): void {

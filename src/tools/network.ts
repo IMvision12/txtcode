@@ -92,9 +92,11 @@ export class NetworkTool implements Tool {
     }
 
     const isWindows = process.platform === "win32";
+    const isMac = process.platform === "darwin";
+    const timeoutVal = isMac ? "5000" : "5";
     const pingArgs = isWindows
       ? ["-n", String(count), target]
-      : ["-c", String(count), "-W", "5", target];
+      : ["-c", String(count), "-W", timeoutVal, target];
 
     const result = await runCommand("ping", pingArgs, PING_TIMEOUT + count * 2000);
     const output = (result.stdout + result.stderr).trim();

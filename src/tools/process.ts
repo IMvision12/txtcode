@@ -8,6 +8,7 @@ import {
   clearFinished,
   tail,
 } from "./process-registry";
+import { killProcessTree, forceKillProcess } from "../shared/process-kill";
 import { Tool, ToolDefinition, ToolResult } from "./types";
 
 export class ProcessTool implements Tool {
@@ -195,20 +196,22 @@ export class ProcessTool implements Tool {
 
     if (running.child) {
       try {
-        running.child.kill("SIGTERM");
+        killProcessTree(running.child, 3000);
         setTimeout(() => {
           if (!running.exited && running.child) {
-            try {
-              running.child.kill("SIGKILL");
-            } catch {}
+            forceKillProcess(running.child);
           }
         }, 3000);
       } catch {}
     }
 
+    const killMsg = process.platform === "win32"
+      ? `Terminating session ${sessionId} (pid ${running.pid ?? "?"}) via taskkill.`
+      : `Sent SIGTERM to session ${sessionId} (pid ${running.pid ?? "?"}). Will force-kill in 3s if still alive.`;
+
     return {
       toolCallId: "",
-      output: `Sent SIGTERM to session ${sessionId} (pid ${running.pid ?? "?"}). Will force-kill in 3s if still alive.`,
+      output: killMsg,
       isError: false,
     };
   }
