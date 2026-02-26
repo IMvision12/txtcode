@@ -1,7 +1,7 @@
 import { spawn, ChildProcess } from "child_process";
 import path from "path";
 import { logger } from "../shared/logger";
-import { IDEAdapter } from "../shared/types";
+import { IDEAdapter, ModelInfo } from "../shared/types";
 
 export interface AdapterConfig {
   cliCommand: string;
@@ -280,6 +280,18 @@ export abstract class BaseAdapter implements IDEAdapter {
       logger.debug(`${config.displayName} health check failed: ${error}`);
       return false;
     }
+  }
+
+  getAvailableModels(): ModelInfo[] {
+    return [];
+  }
+
+  getCurrentModel(): string {
+    return "default";
+  }
+
+  setModel(modelId: string): void {
+    logger.debug(`setModel not implemented for this adapter: ${modelId}`);
   }
 
   protected onProcessSpawned(): void {}

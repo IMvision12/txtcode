@@ -15,7 +15,7 @@ import { processWithOpenAI } from "../providers/openai";
 import { processWithOpenRouter } from "../providers/openrouter";
 import { processWithXAI } from "../providers/xai";
 import { logger } from "../shared/logger";
-import { IDEAdapter } from "../shared/types";
+import { IDEAdapter, ModelInfo } from "../shared/types";
 import { ProcessTool } from "../tools/process";
 import { ToolRegistry } from "../tools/registry";
 import { TerminalTool } from "../tools/terminal";
@@ -56,6 +56,7 @@ export class Router {
     this.currentAdapterName = ideType;
     this.contextManager.setCurrentAdapter(ideType);
     this.adapter = this.createAdapter(ideType);
+    this.restoreAdapterModel(ideType);
   }
 
   private createAdapter(ideType: string): IDEAdapter {
@@ -101,6 +102,7 @@ export class Router {
     // Create and set new adapter
     this.adapter = this.createAdapter(newAdapterName);
     this.currentAdapterName = newAdapterName;
+    this.restoreAdapterModel(newAdapterName);
 
     logger.debug(`Switched adapter: ${oldAdapter} → ${newAdapterName}`);
 
@@ -236,5 +238,35 @@ export class Router {
 
   getContextEntryCount(): number {
     return this.contextManager.getEntryCount();
+  }
+
+  getAdapterModels(): ModelInfo[] {
+    return this.adapter.getAvailableModels();
+  }
+
+  getAdapterCurrentModel(): string {
+    return this.adapter.getCurrentModel();
+  }
+
+  setAdapterModel(modelId: string): void {
+    this.adapter.setModel(modelId);
+  }
+
+  private restoreAdapterModel(adapterName: string): void {
+    try {
+      const fs = require("fs");
+      const path = require("path");
+      const os = require("os");
+      const configPath = path.join(os.homedir(), ".txtcode", "config.json");
+      if (!fs.existsSync(configPath)) return;
+      const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+      const savedModel = config.adapterModels?.[adapterName];
+      if (savedModel) {
+        this.adapter.setModel(savedModel);
+        logger.debug(`Restored model ${savedModel} for adapter ${adapterName}`);
+      }
+    } catch {
+      // ignore
+    }
   }
 }

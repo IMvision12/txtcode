@@ -1,9 +1,19 @@
 import { randomUUID } from "crypto";
 import path from "path";
 import { logger } from "../shared/logger";
+import { ModelInfo } from "../shared/types";
 import { AdapterConfig, BaseAdapter } from "./base-adapter";
 
+const OPENCODE_MODELS: ModelInfo[] = [
+  { id: "anthropic/claude-sonnet-4-5", name: "Claude Sonnet 4.5 (Anthropic)" },
+  { id: "anthropic/claude-sonnet-4", name: "Claude Sonnet 4 (Anthropic)" },
+  { id: "openai/gpt-5.2", name: "GPT-5.2 (OpenAI)" },
+  { id: "google/gemini-2.5-pro", name: "Gemini 2.5 Pro (Google)" },
+  { id: "copilot/gpt-5.2", name: "GPT-5.2 (Copilot)" },
+];
+
 export class OpenCodeAdapter extends BaseAdapter {
+  private openCodeModel: string = "";
   private sessionId: string | null = null;
 
   protected getConfig(): AdapterConfig {
@@ -26,7 +36,12 @@ export class OpenCodeAdapter extends BaseAdapter {
       this.sessionId = randomUUID();
     }
 
-    return ["--non-interactive", "--session", this.sessionId, "--message", fullInstruction];
+    const args = ["--non-interactive", "--session", this.sessionId];
+    if (this.openCodeModel) {
+      args.push("--model", this.openCodeModel);
+    }
+    args.push("--message", fullInstruction);
+    return args;
   }
 
   protected getStatusText(): string {
@@ -43,8 +58,22 @@ Features:
 - File change tracking`;
   }
 
+  getAvailableModels(): ModelInfo[] {
+    return OPENCODE_MODELS;
+  }
+
+  getCurrentModel(): string {
+    return this.openCodeModel || "default";
+  }
+
+  setModel(modelId: string): void {
+    this.openCodeModel = modelId;
+    logger.debug(`OpenCode model set to: ${modelId}`);
+  }
+
   async connect(): Promise<void> {
     await super.connect();
+    logger.debug(`   Model: ${this.openCodeModel || "configured in opencode"}`);
     logger.debug(`   Mode: Terminal-based AI assistant`);
   }
 }

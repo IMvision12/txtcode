@@ -8,7 +8,7 @@ export class AgentCore {
   private authorizedUser: string | null;
   private configPath: string;
   private userModes: Map<string, "chat" | "code"> = new Map();
-  private pendingSwitch: Map<string, "main" | "adapter" | "provider"> = new Map();
+  private pendingSwitch: Map<string, "main" | "adapter" | "provider" | "cli-model" | "cli-model-custom"> = new Map();
 
   constructor() {
     this.router = new Router();
@@ -64,6 +64,7 @@ export class AgentCore {
       lower === "/chat" ||
       lower === "/switch" ||
       lower === "/cancel" ||
+      lower === "/cli-model" ||
       lower === "help" ||
       lower === "/help" ||
       lower === "status" ||
@@ -143,6 +144,10 @@ To switch to code mode, use: /code`;
     if (lowerText === "/cancel") {
       this.router.abortCurrentCommand();
       return "Current command cancelled.";
+    }
+
+    if (lowerText === "/cli-model") {
+      return this.showCliModelMenu(message.from);
     }
 
     if (lowerText === "/switch") {
@@ -285,6 +290,22 @@ Reply with 1 or 2:`;
       return await this.handleAdapterSelection(userId, text);
     }
 
+    if (switchState === "cli-model") {
+      return this.handleCliModelSelection(userId, text);
+    }
+
+    if (switchState === "cli-model-custom") {
+      this.pendingSwitch.delete(userId);
+      const customModel = text.trim();
+      if (!customModel) {
+        return `No model name provided. Use /cli-model to try again.`;
+      }
+      const adapterName = this.router.getAdapterName();
+      this.router.setAdapterModel(customModel);
+      this.persistAdapterModel(adapterName, customModel);
+      return `✅ Model switched!\n\nAdapter: ${adapterName}\nModel: ${customModel} (custom)`;
+    }
+
     this.pendingSwitch.delete(userId);
     return `Invalid state. Please use /switch again.`;
   }
@@ -398,6 +419,79 @@ Your chat messages will now use ${selectedProvider}.`;
     }
   }
 
+  private showCliModelMenu(userId: string): string {
+    const adapterName = this.router.getAdapterName();
+    const currentModel = this.router.getAdapterCurrentModel();
+    const models = this.router.getAdapterModels();
+
+    let response = `🔧 CLI Model Selection (${adapterName})\n\nCurrent model: ${currentModel}\n\n`;
+
+    if (models.length === 0) {
+      response += `No predefined models available for this adapter.\n\n`;
+      response += `0. Enter custom model name\n`;
+    } else {
+      models.forEach((model, index) => {
+        const isCurrent = model.id === currentModel;
+        const marker = isCurrent ? " ✓" : "";
+        response += `${index + 1}. ${model.name} (${model.id})${marker}\n`;
+      });
+      response += `\n0. Enter custom model name\n`;
+    }
+
+    response += `\nReply with a number to select, or 0 for custom:`;
+    this.pendingSwitch.set(userId, "cli-model");
+    return response;
+  }
+
+  private handleCliModelSelection(userId: string, text: string): string {
+    this.pendingSwitch.delete(userId);
+    const adapterName = this.router.getAdapterName();
+
+    if (text.trim() === "0") {
+      this.pendingSwitch.set(userId, "cli-model-custom");
+      return `Enter the model name to use with ${adapterName}:`;
+    }
+
+    const models = this.router.getAdapterModels();
+    const selection = parseInt(text, 10);
+
+    if (models.length > 0 && !isNaN(selection) && selection >= 1 && selection <= models.length) {
+      const selected = models[selection - 1];
+      this.router.setAdapterModel(selected.id);
+      this.persistAdapterModel(adapterName, selected.id);
+      return `✅ Model switched!\n\nAdapter: ${adapterName}\nModel: ${selected.name} (${selected.id})`;
+    }
+
+    // Treat as custom model name if not a valid number
+    const customModel = text.trim();
+    if (customModel) {
+      this.router.setAdapterModel(customModel);
+      this.persistAdapterModel(adapterName, customModel);
+      return `✅ Model switched!\n\nAdapter: ${adapterName}\nModel: ${customModel} (custom)`;
+    }
+
+    return `Invalid selection. Use /cli-model to try again.`;
+  }
+
+  private persistAdapterModel(adapterName: string, modelId: string): void {
+    try {
+      const config = this.loadConfigSafely();
+      if (!config) return;
+
+      if (!config.adapterModels) {
+        config.adapterModels = {};
+      }
+      config.adapterModels[adapterName] = modelId;
+      config.updatedAt = new Date().toISOString();
+
+      const fs = require("fs");
+      fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2));
+      logger.debug(`Persisted model ${modelId} for adapter ${adapterName}`);
+    } catch (error) {
+      logger.error("Failed to persist adapter model", error);
+    }
+  }
+
   private getHelpMessage(): string {
     return `TxtCode Agent
 
@@ -406,6 +500,7 @@ Commands:
 /chat - Switch to CHAT mode (messages go to primary LLM)
 /cancel - Cancel the current running command
 /switch - Switch Primary LLM or Coding Adapter
+/cli-model - Change the model used by the current coding adapter
 /status - Check IDE connection
 /help - Show this message
 

@@ -22,6 +22,14 @@ export interface Config {
       model: string;
     };
   };
+  adapterModels?: {
+    [adapterName: string]: string;
+  };
+}
+
+export interface ModelInfo {
+  id: string;
+  name: string;
 }
 
 export interface IDEAdapter {
@@ -36,6 +44,9 @@ export interface IDEAdapter {
   getStatus(): Promise<string>;
   isHealthy(): Promise<boolean>;
   abort?(): void;
+  getAvailableModels(): ModelInfo[];
+  getCurrentModel(): string;
+  setModel(modelId: string): void;
 }
 
 export interface ConversationEntry {

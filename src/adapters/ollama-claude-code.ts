@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import path from "path";
 import { logger } from "../shared/logger";
+import { ModelInfo } from "../shared/types";
 import { AdapterConfig, BaseAdapter } from "./base-adapter";
 
 export class OllamaClaudeCodeAdapter extends BaseAdapter {
@@ -133,9 +134,41 @@ Available models: ${models.length}`;
     }
   }
 
+  getAvailableModels(): ModelInfo[] {
+    return this.cachedModels;
+  }
+
+  getCurrentModel(): string {
+    return this.ollamaModel;
+  }
+
+  setModel(modelId: string): void {
+    this.ollamaModel = modelId;
+    logger.debug(`Ollama model set to: ${modelId}`);
+  }
+
   async connect(): Promise<void> {
     await super.connect();
+    await this.fetchOllamaModels();
     logger.debug(`   Model: ${this.ollamaModel}`);
     logger.debug(`   Mode: Ollama Launch`);
+  }
+
+  private cachedModels: ModelInfo[] = [];
+
+  private async fetchOllamaModels(): Promise<void> {
+    try {
+      const response = await fetch("http://localhost:11434/api/tags");
+      if (response.ok) {
+        const data: any = await response.json();
+        const models = data.models || [];
+        this.cachedModels = models.map((m: any) => ({
+          id: m.name,
+          name: m.name,
+        }));
+      }
+    } catch {
+      this.cachedModels = [];
+    }
   }
 }
