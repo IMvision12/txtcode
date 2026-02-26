@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { type FunctionResponsePart, type Tool as GeminiTool, GoogleGenerativeAI } from "@google/generative-ai";
 import { ToolRegistry } from "../tools/registry";
 
 const MAX_ITERATIONS = 10;
@@ -23,7 +23,9 @@ export async function processWithGemini(
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    const tools = toolRegistry ? toolRegistry.getDefinitionsForProvider("gemini") : undefined;
+    const tools = toolRegistry
+      ? (toolRegistry.getDefinitionsForProvider("gemini") as unknown as GeminiTool[])
+      : undefined;
 
     const genModel = genAI.getGenerativeModel({
       model,
@@ -42,7 +44,7 @@ export async function processWithGemini(
         return response.text();
       }
 
-      const toolResults: any[] = [];
+      const toolResults: FunctionResponsePart[] = [];
       for (const call of calls) {
         const execResult = await toolRegistry.execute(
           call.name,
@@ -60,7 +62,7 @@ export async function processWithGemini(
     }
 
     return "Reached maximum tool iterations.";
-  } catch (error) {
+  } catch (error: unknown) {
     throw new Error(
       `Gemini API error: ${error instanceof Error ? error.message : "Unknown error"}`,
       { cause: error },

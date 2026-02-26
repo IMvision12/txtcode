@@ -18,7 +18,7 @@ function runCommand(
 
 function formatBytes(bytes: number): string {
   const gb = bytes / (1024 * 1024 * 1024);
-  if (gb >= 1) return `${gb.toFixed(1)} GB`;
+  if (gb >= 1) {return `${gb.toFixed(1)} GB`;}
   const mb = bytes / (1024 * 1024);
   return `${mb.toFixed(0)} MB`;
 }
@@ -29,8 +29,8 @@ function formatUptime(seconds: number): string {
   const minutes = Math.floor((seconds % 3600) / 60);
 
   const parts: string[] = [];
-  if (days > 0) parts.push(`${days}d`);
-  if (hours > 0) parts.push(`${hours}h`);
+  if (days > 0) {parts.push(`${days}d`);}
+  if (hours > 0) {parts.push(`${hours}h`);}
   parts.push(`${minutes}m`);
   return parts.join(" ");
 }

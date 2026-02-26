@@ -1,7 +1,7 @@
 import { logger } from "../shared/logger";
 import { Message } from "../shared/types";
 import { getApiKey } from "../utils/keychain";
-import { Router, AVAILABLE_ADAPTERS } from "./router";
+import { Router } from "./router";
 
 export class AgentCore {
   private router: Router;
@@ -29,7 +29,7 @@ export class AgentCore {
     }
   }
 
-  private loadConfigSafely(): any | null {
+  private loadConfigSafely(): Record<string, unknown> | null {
     try {
       const fs = require("fs");
       if (!fs.existsSync(this.configPath)) {
@@ -72,7 +72,7 @@ export class AgentCore {
     ) {
       return false;
     }
-    if (this.pendingSwitch.has(userId)) return false;
+    if (this.pendingSwitch.has(userId)) {return false;}
     return this.userModes.get(userId) === "code";
   }
 
@@ -211,11 +211,9 @@ Reply with 1 or 2:`;
     const currentProvider = this.router.getProviderName();
     const currentModel = this.router.getCurrentModel();
 
-    // Get configured providers and validate them
-    const configuredProviders = config.providers || {};
+    const configuredProviders = (config.providers || {}) as Record<string, { model: string }>;
     const allProviders = Object.keys(configuredProviders);
 
-    // Filter out providers with invalid configurations
     const validProviders = allProviders.filter((provider) => {
       const providerConfig = configuredProviders[provider];
       return providerConfig && providerConfig.model;
@@ -225,7 +223,6 @@ Reply with 1 or 2:`;
       return `[ERROR] No valid providers configured. Please run 'txtcode auth' to configure providers.`;
     }
 
-    // Warn if some providers were filtered out
     if (validProviders.length < allProviders.length) {
       const invalidCount = allProviders.length - validProviders.length;
       logger.debug(`${invalidCount} provider(s) have invalid configuration and were excluded`);
@@ -319,10 +316,9 @@ Reply with 1 or 2:`;
       return `[ERROR] Failed to load configuration. Config file may be corrupted.\n\nPlease run 'txtcode auth' to reconfigure.`;
     }
 
-    const configuredProviders = config.providers || {};
+    const configuredProviders = (config.providers || {}) as Record<string, { model: string }>;
     const allProviders = Object.keys(configuredProviders);
 
-    // Filter out providers with invalid configurations (same as showProviderList)
     const validProviders = allProviders.filter((provider) => {
       const providerConfig = configuredProviders[provider];
       return providerConfig && providerConfig.model;
@@ -342,7 +338,6 @@ Reply with 1 or 2:`;
 
     const providerConfig = configuredProviders[selectedProvider];
 
-    // Validate provider configuration (redundant check for safety)
     if (!providerConfig || !providerConfig.model) {
       return `[ERROR] Provider configuration for ${selectedProvider} is invalid.\n\nPlease run 'txtcode auth' to reconfigure.`;
     }
@@ -375,8 +370,8 @@ Provider: ${selectedProvider}
 Model: ${providerConfig.model}
 
 Your chat messages will now use ${selectedProvider}.`;
-    } catch (error: any) {
-      return `[ERROR] Failed to switch provider: ${error.message}`;
+    } catch (error: unknown) {
+      return `[ERROR] Failed to switch provider: ${error instanceof Error ? error.message : String(error)}`;
     }
   }
 
@@ -476,12 +471,12 @@ Your chat messages will now use ${selectedProvider}.`;
   private persistAdapterModel(adapterName: string, modelId: string): void {
     try {
       const config = this.loadConfigSafely();
-      if (!config) return;
+      if (!config) {return;}
 
       if (!config.adapterModels) {
-        config.adapterModels = {};
+        config.adapterModels = {} as Record<string, string>;
       }
-      config.adapterModels[adapterName] = modelId;
+      (config.adapterModels as Record<string, string>)[adapterName] = modelId;
       config.updatedAt = new Date().toISOString();
 
       const fs = require("fs");

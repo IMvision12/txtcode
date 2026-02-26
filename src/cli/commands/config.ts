@@ -67,7 +67,7 @@ export async function configCommand() {
   }
 }
 
-async function configurePlatform(config: any) {
+async function configurePlatform(config: Record<string, unknown>) {
   console.log();
   centerLog(chalk.cyan("📱 Messaging Platform Configuration"));
   console.log();
@@ -104,7 +104,7 @@ async function configurePlatform(config: any) {
   console.log();
 }
 
-async function configureIDE(config: any) {
+async function configureIDE(config: Record<string, unknown>) {
   console.log();
   centerLog(chalk.cyan("🤖 IDE Configuration"));
   console.log();
@@ -148,7 +148,7 @@ async function configureIDE(config: any) {
   console.log();
 }
 
-async function configureAI(config: any) {
+async function configureAI(config: Record<string, unknown>) {
   console.log();
   centerLog(chalk.cyan("🧠 AI Provider Configuration"));
   console.log();
@@ -157,8 +157,7 @@ async function configureAI(config: any) {
   centerLog(chalk.gray("To reconfigure all providers, run authentication again."));
   console.log();
 
-  // Get list of already configured providers
-  const configuredProviders = config.providers || {};
+  const configuredProviders = (config.providers || {}) as Record<string, { model: string }>;
   const providerList = Object.keys(configuredProviders);
 
   if (providerList.length === 0) {
@@ -170,7 +169,6 @@ async function configureAI(config: any) {
     return;
   }
 
-  // Show configured providers
   const providerChoices = providerList.map((providerId) => ({
     name: `${providerId} (${configuredProviders[providerId].model})`,
     value: providerId,
@@ -181,7 +179,6 @@ async function configureAI(config: any) {
     choices: providerChoices,
   });
 
-  // Update top-level fields to match selected provider
   config.aiProvider = selectedProvider;
   config.aiModel = configuredProviders[selectedProvider].model;
   config.updatedAt = new Date().toISOString();
@@ -198,7 +195,7 @@ async function configureAI(config: any) {
   console.log();
 }
 
-async function configureProject(config: any) {
+async function configureProject(config: Record<string, unknown>) {
   console.log();
   centerLog(chalk.cyan("📁 Project Path Configuration"));
   console.log();
@@ -207,7 +204,7 @@ async function configureProject(config: any) {
     message: "Enter your project path:",
   });
 
-  config.projectPath = projectPath || config.projectPath || process.cwd();
+  config.projectPath = projectPath || (config.projectPath as string) || process.cwd();
 
   saveConfig(config);
   console.log();
@@ -215,43 +212,43 @@ async function configureProject(config: any) {
   console.log();
 }
 
-function viewConfig(config: any) {
+function viewConfig(config: Record<string, unknown>) {
   console.log();
   centerLog(chalk.cyan("Current Configuration"));
   console.log();
-  centerLog(chalk.white("Platform: ") + chalk.yellow(config.platform));
-  centerLog(chalk.white("IDE Type: ") + chalk.yellow(config.ideType));
-  centerLog(chalk.white("AI Provider: ") + chalk.yellow(config.aiProvider));
+  centerLog(chalk.white("Platform: ") + chalk.yellow(String(config.platform)));
+  centerLog(chalk.white("IDE Type: ") + chalk.yellow(String(config.ideType)));
+  centerLog(chalk.white("AI Provider: ") + chalk.yellow(String(config.aiProvider)));
 
   if (config.projectPath) {
-    centerLog(chalk.white("Project Path: ") + chalk.yellow(config.projectPath));
+    centerLog(chalk.white("Project Path: ") + chalk.yellow(String(config.projectPath)));
   }
 
   if (config.ollamaModel) {
-    centerLog(chalk.white("Ollama Model: ") + chalk.yellow(config.ollamaModel));
+    centerLog(chalk.white("Ollama Model: ") + chalk.yellow(String(config.ollamaModel)));
   }
 
   if (config.claudeModel) {
-    centerLog(chalk.white("Claude Model: ") + chalk.yellow(config.claudeModel));
+    centerLog(chalk.white("Claude Model: ") + chalk.yellow(String(config.claudeModel)));
   }
 
   if (config.geminiModel) {
-    centerLog(chalk.white("Gemini Model: ") + chalk.yellow(config.geminiModel));
+    centerLog(chalk.white("Gemini Model: ") + chalk.yellow(String(config.geminiModel)));
   }
 
   if (config.authorizedUser) {
-    centerLog(chalk.white("Authorized User: ") + chalk.yellow(config.authorizedUser));
+    centerLog(chalk.white("Authorized User: ") + chalk.yellow(String(config.authorizedUser)));
   }
 
   centerLog(
-    chalk.white("Configured At: ") + chalk.yellow(new Date(config.configuredAt).toLocaleString()),
+    chalk.white("Configured At: ") + chalk.yellow(new Date(String(config.configuredAt)).toLocaleString()),
   );
   console.log();
   centerLog(chalk.gray(`Config file: ${CONFIG_FILE}`));
   console.log();
 }
 
-function saveConfig(config: any) {
+function saveConfig(config: Record<string, unknown>) {
   config.updatedAt = new Date().toISOString();
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
 }

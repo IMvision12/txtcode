@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, Message, Partials } from "discord.js";
+import { Client, type DMChannel, GatewayIntentBits, Message, type NewsChannel, Partials, type TextChannel } from "discord.js";
 import { AgentCore } from "../core/agent";
 import { BlockReplyPipeline } from "../shared/block-reply-pipeline";
 import { logger } from "../shared/logger";
@@ -36,9 +36,9 @@ export class DiscordBot {
 
   private cleanupRequest(userId: string) {
     const active = this.activeRequests.get(userId);
-    if (!active) return;
+    if (!active) {return;}
     active.aborted = true;
-    if (active.heartbeatInterval) clearInterval(active.heartbeatInterval);
+    if (active.heartbeatInterval) {clearInterval(active.heartbeatInterval);}
     this.activeRequests.delete(userId);
   }
 
@@ -49,12 +49,12 @@ export class DiscordBot {
     });
 
     this.client.on("messageCreate", async (message: Message) => {
-      if (message.author.bot) return;
-      if (message.guild && !message.mentions.has(this.client.user!)) return;
+      if (message.author.bot) {return;}
+      if (message.guild && !message.mentions.has(this.client.user!)) {return;}
 
       const from = message.author.id;
       const text = message.content.replace(`<@${this.client.user?.id}>`, "").trim();
-      if (!text) return;
+      if (!text) {return;}
 
       logger.debug(`Incoming message from ${message.author.tag}: ${text}`);
 
@@ -73,7 +73,7 @@ export class DiscordBot {
         const response = await this.agent.processMessage({ from, text, timestamp: new Date() });
         try {
           await this.sendLongReply(message, response);
-        } catch (error: any) {
+        } catch (error) {
           logger.error("Failed to send Discord message", error);
         }
         return;
@@ -120,9 +120,9 @@ export class DiscordBot {
         },
         typingSignaler,
         onChunk: async (chunk: StreamChunk) => {
-          if (active.aborted || !active.progressMessage) return;
+          if (active.aborted || !active.progressMessage) {return;}
           const preview = truncate(chunk.text, MAX_DISCORD_LENGTH - 50);
-          if (preview === lastEditText) return;
+          if (preview === lastEditText) {return;}
           try {
             await active.progressMessage.edit(preview);
             lastEditText = preview;
@@ -133,10 +133,10 @@ export class DiscordBot {
       });
 
       active.heartbeatInterval = setInterval(async () => {
-        if (active.aborted || !active.progressMessage) return;
+        if (active.aborted || !active.progressMessage) {return;}
         const elapsed = Math.floor((Date.now() - taskStartTime) / 1000);
         const msg = `Still working... (${elapsed}s)`;
-        if (msg === lastEditText) return;
+        if (msg === lastEditText) {return;}
         try {
           await active.progressMessage.edit(msg);
           lastEditText = msg;
@@ -149,13 +149,13 @@ export class DiscordBot {
         const response = await this.agent.processMessage(
           { from, text, timestamp: new Date() },
           async (chunk: string) => {
-            if (!active.aborted) await pipeline.processText(chunk);
+            if (!active.aborted) {await pipeline.processText(chunk);}
           },
         );
 
-        if (active.aborted) return;
+        if (active.aborted) {return;}
 
-        if (active.heartbeatInterval) clearInterval(active.heartbeatInterval);
+        if (active.heartbeatInterval) {clearInterval(active.heartbeatInterval);}
         this.activeRequests.delete(from);
         await pipeline.flush();
 
@@ -182,14 +182,14 @@ export class DiscordBot {
           }
         }
       } catch (error) {
-        if (active.aborted) return;
+        if (active.aborted) {return;}
 
-        if (active.heartbeatInterval) clearInterval(active.heartbeatInterval);
+        if (active.heartbeatInterval) {clearInterval(active.heartbeatInterval);}
         this.activeRequests.delete(from);
         await typingSignaler.stopTyping();
 
         const isAbort = error instanceof Error && error.message.includes("aborted");
-        if (isAbort) return;
+        if (isAbort) {return;}
 
         const errMsg = `Error: ${error instanceof Error ? error.message : "Unknown error"}`;
         if (active.progressMessage) {
@@ -217,7 +217,7 @@ export class DiscordBot {
       if (i === 0) {
         await message.reply(parts[i]);
       } else {
-        await (message.channel as any).send(parts[i]);
+        await (message.channel as TextChannel | DMChannel | NewsChannel).send(parts[i]);
       }
     }
   }
@@ -235,7 +235,7 @@ export class DiscordBot {
 }
 
 function truncate(text: string, max: number): string {
-  if (text.length <= max) return text;
+  if (text.length <= max) {return text;}
   return text.slice(0, max - 20) + "\n\n... (truncated)";
 }
 
@@ -248,7 +248,7 @@ function splitMessage(text: string, max: number): string[] {
       break;
     }
     let breakAt = remaining.lastIndexOf("\n", max);
-    if (breakAt < max / 2) breakAt = max;
+    if (breakAt < max / 2) {breakAt = max;}
     parts.push(remaining.slice(0, breakAt));
     remaining = remaining.slice(breakAt);
   }

@@ -13,9 +13,9 @@ function isSensitive(name: string): boolean {
 }
 
 function maskValue(name: string, value: string, unmask: boolean): string {
-  if (unmask) return value;
+  if (unmask) {return value;}
   if (isSensitive(name)) {
-    if (value.length <= 4) return "****";
+    if (value.length <= 4) {return "****";}
     return value.substring(0, 2) + "****" + value.substring(value.length - 2);
   }
   return value;
@@ -146,7 +146,7 @@ export class EnvTool implements Tool {
       const found: string[] = [];
       for (const alt of alternatives) {
         const altPath = path.join(this.defaultCwd, alt);
-        if (fs.existsSync(altPath)) found.push(alt);
+        if (fs.existsSync(altPath)) {found.push(alt);}
       }
 
       let msg = `File not found: ${envFile}`;

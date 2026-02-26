@@ -272,7 +272,7 @@ export class Router {
       const path = require("path");
       const os = require("os");
       const configPath = path.join(os.homedir(), ".txtcode", "config.json");
-      if (!fs.existsSync(configPath)) return;
+      if (!fs.existsSync(configPath)) {return;}
       const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
       const savedModel = config.adapterModels?.[adapterName];
       if (savedModel) {

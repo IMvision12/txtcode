@@ -11,7 +11,7 @@ export class ToolRegistry {
     return Array.from(this.tools.values()).map((t) => t.getDefinition());
   }
 
-  getDefinitionsForProvider(provider: string): any[] {
+  getDefinitionsForProvider(provider: string): (Record<string, unknown> | ToolDefinition)[] {
     const defs = this.getDefinitions();
 
     switch (provider) {

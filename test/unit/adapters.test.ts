@@ -5,6 +5,12 @@ import { GeminiCodeAdapter } from "../../src/adapters/gemini-cli";
 import { KiroAdapter } from "../../src/adapters/kiro-cli";
 import { CodexAdapter } from "../../src/adapters/openai-codex";
 import { OpenCodeAdapter } from "../../src/adapters/opencode";
+import type { AdapterConfig } from "../../src/adapters/base-adapter";
+
+interface AdapterInternals {
+  buildArgs(instruction: string): string[];
+  getConfig(): AdapterConfig;
+}
 
 // Suppress logger file I/O during tests
 vi.mock("../../src/shared/logger", () => ({
@@ -46,7 +52,7 @@ describe("ClaudeCodeAdapter", () => {
   });
 
   it("buildArgs includes --model flag", () => {
-    const args = (adapter as any).buildArgs("fix the bug");
+    const args = (adapter as unknown as AdapterInternals).buildArgs("fix the bug");
     expect(args).toContain("--model");
     expect(args).toContain("sonnet");
     expect(args).toContain("fix the bug");
@@ -55,12 +61,12 @@ describe("ClaudeCodeAdapter", () => {
 
   it("buildArgs uses updated model after setModel", () => {
     adapter.setModel("opus");
-    const args = (adapter as any).buildArgs("do something");
+    const args = (adapter as unknown as AdapterInternals).buildArgs("do something");
     expect(args).toContain("opus");
   });
 
   it("getConfig returns correct CLI command", () => {
-    const config = (adapter as any).getConfig();
+    const config = (adapter as unknown as AdapterInternals).getConfig();
     expect(config.cliCommand).toBe("claude");
     expect(config.displayName).toContain("Claude Code");
   });
@@ -84,7 +90,7 @@ describe("CursorAdapter", () => {
   });
 
   it("buildArgs omits --model when Auto", () => {
-    const args = (adapter as any).buildArgs("write tests");
+    const args = (adapter as unknown as AdapterInternals).buildArgs("write tests");
     expect(args).not.toContain("--model");
     expect(args).toContain("--headless");
     expect(args).toContain("--prompt");
@@ -92,13 +98,13 @@ describe("CursorAdapter", () => {
 
   it("buildArgs includes --model when non-Auto", () => {
     adapter.setModel("GPT-5.3 Codex");
-    const args = (adapter as any).buildArgs("refactor");
+    const args = (adapter as unknown as AdapterInternals).buildArgs("refactor");
     expect(args).toContain("--model");
     expect(args).toContain("GPT-5.3 Codex");
   });
 
   it("getConfig returns cursor CLI command", () => {
-    const config = (adapter as any).getConfig();
+    const config = (adapter as unknown as AdapterInternals).getConfig();
     expect(config.cliCommand).toBe("cursor");
   });
 });
@@ -127,7 +133,7 @@ describe("GeminiCodeAdapter", () => {
   });
 
   it("buildArgs omits --model when model is empty", () => {
-    const args = (adapter as any).buildArgs("explain code");
+    const args = (adapter as unknown as AdapterInternals).buildArgs("explain code");
     expect(args).not.toContain("--model");
     expect(args).toContain("--approval-mode");
     expect(args).toContain("yolo");
@@ -136,7 +142,7 @@ describe("GeminiCodeAdapter", () => {
 
   it("buildArgs includes --model when model is set", () => {
     adapter.setModel("gemini-2.5-pro");
-    const args = (adapter as any).buildArgs("explain code");
+    const args = (adapter as unknown as AdapterInternals).buildArgs("explain code");
     expect(args).toContain("--model");
     expect(args).toContain("gemini-2.5-pro");
   });
@@ -160,7 +166,7 @@ describe("KiroAdapter", () => {
   });
 
   it("buildArgs omits --model when auto", () => {
-    const args = (adapter as any).buildArgs("build feature");
+    const args = (adapter as unknown as AdapterInternals).buildArgs("build feature");
     expect(args).toContain("chat");
     expect(args).toContain("--no-interactive");
     expect(args).not.toContain("--model");
@@ -169,7 +175,7 @@ describe("KiroAdapter", () => {
 
   it("buildArgs includes --model when non-auto", () => {
     adapter.setModel("claude-sonnet-4");
-    const args = (adapter as any).buildArgs("build feature");
+    const args = (adapter as unknown as AdapterInternals).buildArgs("build feature");
     expect(args).toContain("--model");
     expect(args).toContain("claude-sonnet-4");
   });
@@ -193,7 +199,7 @@ describe("CodexAdapter", () => {
   });
 
   it("buildArgs includes -m flag with model", () => {
-    const args = (adapter as any).buildArgs("create api");
+    const args = (adapter as unknown as AdapterInternals).buildArgs("create api");
     expect(args).toContain("exec");
     expect(args).toContain("--full-auto");
     expect(args).toContain("-m");
@@ -202,7 +208,7 @@ describe("CodexAdapter", () => {
 
   it("buildArgs reflects model change", () => {
     adapter.setModel("gpt-5.2-codex");
-    const args = (adapter as any).buildArgs("refactor");
+    const args = (adapter as unknown as AdapterInternals).buildArgs("refactor");
     expect(args).toContain("gpt-5.2-codex");
   });
 });
@@ -225,7 +231,7 @@ describe("OpenCodeAdapter", () => {
   });
 
   it("buildArgs omits --model when default (empty)", () => {
-    const args = (adapter as any).buildArgs("test");
+    const args = (adapter as unknown as AdapterInternals).buildArgs("test");
     expect(args).toContain("--non-interactive");
     expect(args).toContain("--message");
     expect(args).not.toContain("--model");
@@ -233,7 +239,7 @@ describe("OpenCodeAdapter", () => {
 
   it("buildArgs includes --model after setModel", () => {
     adapter.setModel("openai/gpt-5.2");
-    const args = (adapter as any).buildArgs("test");
+    const args = (adapter as unknown as AdapterInternals).buildArgs("test");
     expect(args).toContain("--model");
     expect(args).toContain("openai/gpt-5.2");
   });

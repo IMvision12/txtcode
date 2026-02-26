@@ -3,11 +3,11 @@ import { Tool, ToolDefinition, ToolResult } from "./types";
 const DEFAULT_TIMEOUT_MS = 30_000;
 const MAX_BODY_SIZE = 50_000;
 
-const BLOCKED_HOSTS = [
+const BLOCKED_HOSTS = new Set([
   "169.254.169.254", // AWS/GCP/Azure metadata
   "metadata.google.internal",
   "metadata.internal",
-];
+]);
 
 export class HttpTool implements Tool {
   name = "http";
@@ -67,7 +67,7 @@ export class HttpTool implements Tool {
       return { toolCallId: "", output: `Error: invalid URL: ${url}`, isError: true };
     }
 
-    if (BLOCKED_HOSTS.includes(parsedUrl.hostname)) {
+    if (BLOCKED_HOSTS.has(parsedUrl.hostname)) {
       return { toolCallId: "", output: `Blocked: requests to ${parsedUrl.hostname} are not allowed (cloud metadata security).`, isError: true };
     }
 
@@ -103,7 +103,7 @@ export class HttpTool implements Tool {
       const importantHeaders = ["content-type", "content-length", "server", "x-request-id", "location", "set-cookie", "cache-control"];
       for (const key of importantHeaders) {
         const val = response.headers.get(key);
-        if (val) responseHeaders[key] = val;
+        if (val) {responseHeaders[key] = val;}
       }
 
       let responseBody = "";

@@ -21,7 +21,7 @@ export class BlockReplyPipeline {
 
   async processText(text: string): Promise<void> {
     const normalized = normalizeStreamOutput(text);
-    if (normalized.skip) return;
+    if (normalized.skip) {return;}
 
     this.accumulatedText += normalized.text;
 
@@ -29,7 +29,7 @@ export class BlockReplyPipeline {
 
     const chunks = this.chunker.addText(normalized.text);
 
-    for (const chunkText of chunks) {
+    for (const _chunkText of chunks) {
       await this.sendChunk(false);
     }
   }
@@ -55,7 +55,7 @@ export class BlockReplyPipeline {
 
     try {
       await this.config.onChunk(chunk);
-    } catch (error) {
+    } catch {
       // Streaming should be resilient
     }
   }

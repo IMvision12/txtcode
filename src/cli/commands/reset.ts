@@ -23,7 +23,7 @@ export async function resetCommand() {
     try {
       const configData = fs.readFileSync(CONFIG_FILE, "utf-8");
       config = JSON.parse(configData);
-    } catch (parseError) {
+    } catch {
       console.log();
       centerLog(chalk.red("❌ Config file is corrupted."));
       console.log();
@@ -41,12 +41,12 @@ export async function resetCommand() {
       console.log();
       centerLog(chalk.cyan("The next person to message will become the authorized user."));
       console.log();
-    } catch (writeError) {
+    } catch {
       console.log();
       centerLog(chalk.red("❌ Failed to save config file."));
       console.log();
     }
-  } catch (error) {
+  } catch {
     console.log();
     centerLog(chalk.red("❌ Failed to reset. Unexpected error."));
     console.log();
@@ -67,7 +67,7 @@ export async function logoutCommand() {
       centerLog(chalk.yellow("⚠️ No WhatsApp session found."));
       console.log();
     }
-  } catch (error) {
+  } catch {
     console.log();
     centerLog(chalk.red("❌ Failed to delete session."));
     console.log();
@@ -98,7 +98,7 @@ export async function hardResetCommand() {
         centerLog(chalk.green("✓ Deleted configuration directory"));
         deletedItems++;
       }
-    } catch (error) {
+    } catch {
       console.log();
       centerLog(chalk.red("✗ Failed to delete configuration directory"));
     }

@@ -13,7 +13,7 @@ function runCommand(
       resolve({
         stdout: stdout?.toString() ?? "",
         stderr: stderr?.toString() ?? "",
-        code: err ? (err as any).code ?? 1 : 0,
+        code: err ? (err as { code?: number }).code ?? 1 : 0,
       });
     });
   });
@@ -28,7 +28,7 @@ function runShell(
       resolve({
         stdout: stdout?.toString() ?? "",
         stderr: stderr?.toString() ?? "",
-        code: err ? (err as any).code ?? 1 : 0,
+        code: err ? (err as { code?: number }).code ?? 1 : 0,
       });
     });
   });
@@ -114,7 +114,7 @@ export class CronTool implements Tool {
 
     for (const line of lines) {
       const trimmed = line.trim();
-      if (!trimmed) continue;
+      if (!trimmed) {continue;}
       if (trimmed.startsWith("#")) {
         jobs.push(trimmed);
         continue;
@@ -190,9 +190,9 @@ export class CronTool implements Tool {
     const command = (args.command as string)?.trim();
     const confirm = args.confirm === true;
 
-    if (!name) return { toolCallId: "", output: "Error: name is required for add.", isError: true };
-    if (!schedule) return { toolCallId: "", output: "Error: schedule is required for add.", isError: true };
-    if (!command) return { toolCallId: "", output: "Error: command is required for add.", isError: true };
+    if (!name) {return { toolCallId: "", output: "Error: name is required for add.", isError: true };}
+    if (!schedule) {return { toolCallId: "", output: "Error: schedule is required for add.", isError: true };}
+    if (!command) {return { toolCallId: "", output: "Error: command is required for add.", isError: true };}
     if (!confirm) {
       return {
         toolCallId: "",
@@ -232,7 +232,7 @@ export class CronTool implements Tool {
     const name = (args.name as string)?.trim();
     const confirm = args.confirm === true;
 
-    if (!name) return { toolCallId: "", output: "Error: name is required for remove.", isError: true };
+    if (!name) {return { toolCallId: "", output: "Error: name is required for remove.", isError: true };}
     if (!confirm) {
       return { toolCallId: "", output: `This will remove the scheduled task "${name}". Set confirm=true to proceed.`, isError: false };
     }

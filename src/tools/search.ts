@@ -18,7 +18,7 @@ function walkDir(
   depth: number = 0,
   maxDepth: number = 20,
 ): void {
-  if (depth > maxDepth) return;
+  if (depth > maxDepth) {return;}
 
   let entries: fs.Dirent[];
   try {
@@ -28,8 +28,8 @@ function walkDir(
   }
 
   for (const entry of entries) {
-    if (SKIP_DIRS.has(entry.name)) continue;
-    if (entry.name.startsWith(".") && entry.name !== ".env" && depth > 0) continue;
+    if (SKIP_DIRS.has(entry.name)) {continue;}
+    if (entry.name.startsWith(".") && entry.name !== ".env" && depth > 0) {continue;}
 
     const fullPath = path.join(dir, entry.name);
 
@@ -39,7 +39,7 @@ function walkDir(
       try {
         const stat = fs.statSync(fullPath);
         const shouldStop = callback(fullPath, stat);
-        if (shouldStop) return;
+        if (shouldStop) {return;}
       } catch {}
     }
   }
@@ -154,8 +154,8 @@ export class SearchTool implements Tool {
     let fileCount = 0;
 
     walkDir(searchPath, (filePath, stat) => {
-      if (stat.size > MAX_FILE_SIZE) return false;
-      if (include && !matchGlob(path.basename(filePath), include)) return false;
+      if (stat.size > MAX_FILE_SIZE) {return false;}
+      if (include && !matchGlob(path.basename(filePath), include)) {return false;}
 
       let content: string;
       try {
@@ -165,7 +165,7 @@ export class SearchTool implements Tool {
       }
 
       // Skip binary files
-      if (content.includes("\0")) return false;
+      if (content.includes("\0")) {return false;}
 
       const lines = content.split("\n");
       const relativePath = path.relative(searchPath, filePath);
@@ -183,7 +183,7 @@ export class SearchTool implements Tool {
             : lines[i];
           matches.push(`${relativePath}:${i + 1}: ${lineContent.trim()}`);
 
-          if (matches.length >= maxResults) return true;
+          if (matches.length >= maxResults) {return true;}
         }
       }
       return false;
@@ -209,7 +209,7 @@ export class SearchTool implements Tool {
       const filename = path.basename(filePath);
       if (matchGlob(filename, pattern)) {
         results.push(path.relative(searchPath, filePath));
-        if (results.length >= maxResults) return true;
+        if (results.length >= maxResults) {return true;}
       }
       return false;
     });
@@ -237,7 +237,7 @@ export class SearchTool implements Tool {
           size: formatSize(stat.size),
           modified: stat.mtime.toISOString().split("T")[0],
         });
-        if (results.length >= maxResults) return true;
+        if (results.length >= maxResults) {return true;}
       }
       return false;
     });
@@ -257,7 +257,7 @@ export class SearchTool implements Tool {
 }
 
 function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes}B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+  if (bytes < 1024) {return `${bytes}B`;}
+  if (bytes < 1024 * 1024) {return `${(bytes / 1024).toFixed(1)}KB`;}
   return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
 }

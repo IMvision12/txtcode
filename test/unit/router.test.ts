@@ -8,9 +8,9 @@ vi.mock("../../src/shared/logger", () => ({
 // Mock child_process
 vi.mock("child_process", () => ({
   spawn: vi.fn(),
-  exec: vi.fn((_cmd: string, ...args: any[]) => {
+  exec: vi.fn((_cmd: string, ...args: unknown[]) => {
     const cb = args[args.length - 1];
-    if (typeof cb === "function") cb(null, "1.0.0");
+    if (typeof cb === "function") {cb(null, "1.0.0");}
   }),
   execSync: vi.fn(),
 }));
@@ -71,9 +71,9 @@ vi.mock("fs", () => ({
 }));
 
 describe("Router", () => {
-  let Router: any;
-  let AVAILABLE_ADAPTERS: any;
-  let router: any;
+  let Router: typeof import("../../src/core/router").Router;
+  let AVAILABLE_ADAPTERS: typeof import("../../src/core/router").AVAILABLE_ADAPTERS;
+  let router: InstanceType<typeof import("../../src/core/router").Router>;
 
   beforeEach(async () => {
     process.env.IDE_TYPE = "claude-code";
@@ -143,7 +143,7 @@ describe("Router", () => {
 
   describe("AVAILABLE_ADAPTERS", () => {
     it("has expected adapter entries", () => {
-      const ids = AVAILABLE_ADAPTERS.map((a: any) => a.id);
+      const ids = AVAILABLE_ADAPTERS.map((a: { id: string }) => a.id);
       expect(ids).toContain("claude-code");
       expect(ids).toContain("cursor");
       expect(ids).toContain("gemini-code");

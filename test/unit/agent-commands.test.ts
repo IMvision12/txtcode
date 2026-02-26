@@ -43,9 +43,9 @@ vi.mock("../../src/utils/keychain", () => ({
 
 vi.mock("child_process", () => ({
   spawn: vi.fn(),
-  exec: vi.fn((_cmd: string, ...args: any[]) => {
+  exec: vi.fn((_cmd: string, ...args: unknown[]) => {
     const cb = args[args.length - 1];
-    if (typeof cb === "function") cb(null, "1.0.0");
+    if (typeof cb === "function") {cb(null, "1.0.0");}
   }),
   execSync: vi.fn(),
 }));
@@ -102,7 +102,7 @@ describe("AgentCore commands", () => {
     agent = new AgentCore();
     // Directly set authorized user since require("fs") inside AgentCore
     // may not resolve the vi.mock in all environments
-    (agent as any).authorizedUser = "user1";
+    (agent as unknown as { authorizedUser: string }).authorizedUser = "user1";
   });
 
   describe("/code command", () => {

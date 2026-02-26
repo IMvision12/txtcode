@@ -15,7 +15,7 @@ function runCommand(
       resolve({
         stdout: stdout?.toString() ?? "",
         stderr: stderr?.toString() ?? "",
-        code: err ? (err as any).code ?? 1 : 0,
+        code: err ? (err as { code?: number }).code ?? 1 : 0,
       });
     });
   });

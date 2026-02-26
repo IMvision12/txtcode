@@ -22,6 +22,7 @@ export async function showMenu(options: MenuOptions): Promise<string> {
 
     const longestChoice = Math.max(
       ...options.items.map((item) => {
+        // eslint-disable-next-line no-control-regex
         const plainText = item.name.replace(/\x1b\[[0-9;]*m/g, "");
         return plainText.length;
       }),
@@ -84,7 +85,7 @@ export async function showMenu(options: MenuOptions): Promise<string> {
       process.stdin.setRawMode(true);
     }
 
-    const onKeypress = (_str: string, key: any) => {
+    const onKeypress = (_str: string, key: { name: string; ctrl?: boolean }) => {
       if (key.name === "up") {
         selectedIndex = selectedIndex > 0 ? selectedIndex - 1 : options.items.length - 1;
         render(false);

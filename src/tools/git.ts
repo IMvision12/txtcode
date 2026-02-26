@@ -20,7 +20,7 @@ function runGit(
       resolve({
         stdout: stdout?.toString() ?? "",
         stderr: stderr?.toString() ?? "",
-        code: err ? (err as any).code ?? 1 : 0,
+        code: err ? (err as { code?: number }).code ?? 1 : 0,
       });
     });
 
@@ -124,19 +124,19 @@ export class GitTool implements Tool {
     switch (action) {
       case "status":
         gitArgs = ["status", "--short", "--branch"];
-        if (extraArgs) gitArgs.push(...extraArgs.split(/\s+/));
+        if (extraArgs) {gitArgs.push(...extraArgs.split(/\s+/));}
         break;
 
       case "diff":
         gitArgs = ["diff"];
-        if (extraArgs) gitArgs.push(...extraArgs.split(/\s+/));
-        else gitArgs.push("--stat");
+        if (extraArgs) {gitArgs.push(...extraArgs.split(/\s+/));}
+        else {gitArgs.push("--stat");}
         break;
 
       case "log":
         gitArgs = ["log", "--oneline"];
-        if (extraArgs) gitArgs.push(...extraArgs.split(/\s+/));
-        else gitArgs.push("-20");
+        if (extraArgs) {gitArgs.push(...extraArgs.split(/\s+/));}
+        else {gitArgs.push("-20");}
         break;
 
       case "commit":
@@ -144,18 +144,18 @@ export class GitTool implements Tool {
           return { toolCallId: "", output: "Error: commit requires a message parameter.", isError: true };
         }
         gitArgs = ["commit", "-m", message];
-        if (extraArgs) gitArgs.push(...extraArgs.split(/\s+/));
+        if (extraArgs) {gitArgs.push(...extraArgs.split(/\s+/));}
         break;
 
       case "branch":
         gitArgs = ["branch"];
-        if (extraArgs) gitArgs.push(...extraArgs.split(/\s+/));
-        else gitArgs.push("-a");
+        if (extraArgs) {gitArgs.push(...extraArgs.split(/\s+/));}
+        else {gitArgs.push("-a");}
         break;
 
       default:
         gitArgs = [action];
-        if (extraArgs) gitArgs.push(...extraArgs.split(/\s+/));
+        if (extraArgs) {gitArgs.push(...extraArgs.split(/\s+/));}
         break;
     }
 

@@ -77,15 +77,18 @@ class Logger {
 
   info(msg: string): void {
     console.log(msg);
+    // eslint-disable-next-line no-control-regex
     this.writeToFile("INFO", msg.replace(/\x1b\[[0-9;]*m/g, ""));
   }
 
   debug(msg: string): void {
+    // eslint-disable-next-line no-control-regex
     this.writeToFile("DEBUG", msg.replace(/\x1b\[[0-9;]*m/g, ""));
   }
 
   error(msg: string, err?: unknown): void {
     const errStr = err instanceof Error ? `: ${err.message}` : err ? `: ${String(err)}` : "";
+    // eslint-disable-next-line no-control-regex
     this.writeToFile("ERROR", msg.replace(/\x1b\[[0-9;]*m/g, "") + errStr);
   }
 
