@@ -1,22 +1,6 @@
+import readline from "readline";
 import chalk from "chalk";
-import inquirer from "inquirer";
 import { centerLog } from "./centered-text";
-
-/**
- * Centered prompt wrapper for inquirer
- */
-export async function centeredPrompt(
-  questions: inquirer.QuestionCollection,
-  title?: string,
-): Promise<inquirer.Answers> {
-  if (title) {
-    console.log();
-    centerLog(chalk.cyan(title));
-    console.log();
-  }
-
-  return inquirer.prompt(questions);
-}
 
 /**
  * Show a centered message
@@ -48,11 +32,11 @@ export function showMessage(
  * Press any key to continue
  */
 export async function pressAnyKey(message: string = "Press Enter to continue..."): Promise<void> {
-  await inquirer.prompt([
-    {
-      type: "input",
-      name: "continue",
-      message: chalk.gray(message),
-    },
-  ]);
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise((resolve) => {
+    rl.question(chalk.gray(message), () => {
+      rl.close();
+      resolve();
+    });
+  });
 }

@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { logger } from "../shared/logger";
-import { ConversationEntry, ContextSession } from "../shared/types";
+import { ConversationEntry, ContextSession, TrackedFiles } from "../shared/types";
 import { generateHandoffPrompt, summarizeHistory } from "./context-prompt";
 import { saveSession, loadLatestSession } from "./context-store";
 
@@ -30,13 +30,12 @@ export class ContextManager {
    * Called when switching adapters. Saves current session to disk,
    * generates a handoff prompt, and resets in-memory history.
    */
-  handleSwitch(fromAdapter: string, toAdapter: string): string | null {
+  handleSwitch(fromAdapter: string, toAdapter: string, trackedFiles?: TrackedFiles): string | null {
     if (this.history.length === 0) {
       logger.debug("No conversation history to transfer");
       return null;
     }
 
-    // Build a structured session from current history
     const summary = summarizeHistory(this.history);
 
     const session: ContextSession = {
@@ -48,20 +47,18 @@ export class ContextManager {
       decisions: summary.decisions,
       currentState: summary.currentState,
       conversationHistory: [...this.history],
+      trackedFiles: trackedFiles,
     };
 
-    // Persist to disk
     saveSession(session);
 
-    // Generate handoff prompt
     const prompt = generateHandoffPrompt(session, fromAdapter, toAdapter);
 
-    // Reset history for the new adapter
     this.history = [];
     this.currentAdapter = toAdapter;
 
     logger.debug(
-      `Context handoff: ${fromAdapter} → ${toAdapter} (${session.conversationHistory.length} entries saved)`,
+      `Context handoff: ${fromAdapter} → ${toAdapter} (${session.conversationHistory.length} entries, ${(trackedFiles?.modified.length || 0) + (trackedFiles?.read.length || 0)} tracked files)`,
     );
 
     return prompt;

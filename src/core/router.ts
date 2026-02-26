@@ -88,8 +88,8 @@ export class Router {
     const oldAdapter = this.currentAdapterName;
     const entryCount = this.contextManager.getEntryCount();
 
-    // Generate handoff and save session to disk
-    const handoff = this.contextManager.handleSwitch(oldAdapter, newAdapterName);
+    const trackedFiles = this.adapter.getTrackedFiles();
+    const handoff = this.contextManager.handleSwitch(oldAdapter, newAdapterName, trackedFiles);
     this.pendingHandoff = handoff;
 
     // Disconnect old adapter

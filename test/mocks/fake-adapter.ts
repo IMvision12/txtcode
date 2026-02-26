@@ -1,4 +1,4 @@
-import { IDEAdapter, ModelInfo } from "../../src/shared/types";
+import { IDEAdapter, ModelInfo, TrackedFiles } from "../../src/shared/types";
 
 export class FakeAdapter implements IDEAdapter {
   connected = false;
@@ -62,5 +62,9 @@ export class FakeAdapter implements IDEAdapter {
 
   setModel(modelId: string): void {
     this.modelId = modelId;
+  }
+
+  getTrackedFiles(): TrackedFiles {
+    return { modified: [], read: [] };
   }
 }

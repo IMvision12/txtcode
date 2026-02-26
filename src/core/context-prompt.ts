@@ -29,7 +29,30 @@ export function generateHandoffPrompt(
     prompt += `## Current State\n${session.currentState}\n\n`;
   }
 
-  // Include recent conversation (last 10 exchanges, truncated)
+  if (session.trackedFiles) {
+    const { modified, read } = session.trackedFiles;
+    if (modified.length > 0 || read.length > 0) {
+      prompt += `## Files Involved\n`;
+      prompt += `These files were already analyzed by the previous adapter. You do NOT need to re-read or re-scan them unless the user asks for new changes to them.\n\n`;
+
+      if (modified.length > 0) {
+        prompt += `**Modified files** (already changed — review before overwriting):\n`;
+        for (const f of modified.slice(0, 30)) {
+          prompt += `- ${f}\n`;
+        }
+        prompt += `\n`;
+      }
+
+      if (read.length > 0) {
+        prompt += `**Read/analyzed files** (already reviewed — no need to re-scan):\n`;
+        for (const f of read.slice(0, 30)) {
+          prompt += `- ${f}\n`;
+        }
+        prompt += `\n`;
+      }
+    }
+  }
+
   const recent = session.conversationHistory.slice(-20);
   if (recent.length > 0) {
     prompt += `## Recent Conversation\n`;
@@ -41,7 +64,7 @@ export function generateHandoffPrompt(
     }
   }
 
-  prompt += `Continue from where the previous session left off. Only respond to the user's new message — do not repeat or summarize the above context.`;
+  prompt += `Continue from where the previous session left off. The files listed above were already handled — focus on the user's new message without re-scanning known files.`;
 
   return prompt;
 }

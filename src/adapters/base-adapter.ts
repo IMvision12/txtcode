@@ -1,7 +1,7 @@
 import { spawn, ChildProcess } from "child_process";
 import path from "path";
 import { logger } from "../shared/logger";
-import { IDEAdapter, ModelInfo } from "../shared/types";
+import { IDEAdapter, ModelInfo, TrackedFiles } from "../shared/types";
 
 export interface AdapterConfig {
   cliCommand: string;
@@ -51,10 +51,23 @@ const CLI_NOISE_PATTERNS = [
   /^\s*\d+\.\d+s\s*$/,
 ];
 
+const FILE_MODIFIED_PATTERNS = [
+  /(?:writ(?:e|ing|ten)|creat(?:e|ed|ing)|updat(?:e|ed|ing)|sav(?:e|ed|ing)|modif(?:y|ied|ying)|edit(?:ed|ing)?|apply_patch|file update)\s+[`'"]?([^\s`'"]+\.\w{1,10})[`'"]?/gi,
+  /(?:wrote|created|updated|saved|modified|edited)\s+(?:to\s+)?[`'"]?([^\s`'"]+\.\w{1,10})[`'"]?/gi,
+];
+
+const FILE_READ_PATTERNS = [
+  /(?:read(?:ing)?|analyz(?:e|ed|ing)|inspect(?:ed|ing)?|review(?:ed|ing)?|look(?:ed|ing)?\s+at|open(?:ed|ing)?)\s+[`'"]?([^\s`'"]+\.\w{1,10})[`'"]?/gi,
+];
+
+const FILE_PATH_PATTERN = /(?:^|\s)([a-zA-Z]?:?(?:\/|\\)?(?:[\w.\-]+(?:\/|\\))+[\w.\-]+\.\w{1,10})(?:\s|$|[,;:)`'"])/g;
+
 export abstract class BaseAdapter implements IDEAdapter {
   protected connected: boolean = false;
   protected projectPath: string;
   protected currentProcess: ChildProcess | null = null;
+  private modifiedFiles: Set<string> = new Set();
+  private readFiles: Set<string> = new Set();
 
   constructor() {
     this.projectPath = process.env.PROJECT_PATH || process.cwd();
@@ -134,6 +147,9 @@ export abstract class BaseAdapter implements IDEAdapter {
     logger.debug(`Processing with ${config.displayName}...`);
     logger.debug(`   Instruction: ${instruction}`);
 
+    this.modifiedFiles.clear();
+    this.readFiles.clear();
+
     return new Promise((resolve, reject) => {
       const startTime = Date.now();
       let output = "";
@@ -194,6 +210,8 @@ export abstract class BaseAdapter implements IDEAdapter {
       child.stdout!.on("data", (data) => {
         const text = data.toString();
         output += text;
+
+        this.extractFilePaths(text);
 
         if (onProgress) {
           const cleaned = this.cleanProgressChunk(text);
@@ -292,6 +310,62 @@ export abstract class BaseAdapter implements IDEAdapter {
 
   setModel(modelId: string): void {
     logger.debug(`setModel not implemented for this adapter: ${modelId}`);
+  }
+
+  getTrackedFiles(): TrackedFiles {
+    return {
+      modified: [...this.modifiedFiles],
+      read: [...this.readFiles].filter((f) => !this.modifiedFiles.has(f)),
+    };
+  }
+
+  private extractFilePaths(text: string): void {
+    const cleaned = stripAnsi(text);
+
+    for (const pattern of FILE_MODIFIED_PATTERNS) {
+      pattern.lastIndex = 0;
+      let match;
+      while ((match = pattern.exec(cleaned)) !== null) {
+        const fp = this.normalizeFilePath(match[1]);
+        if (fp) this.modifiedFiles.add(fp);
+      }
+    }
+
+    for (const pattern of FILE_READ_PATTERNS) {
+      pattern.lastIndex = 0;
+      let match;
+      while ((match = pattern.exec(cleaned)) !== null) {
+        const fp = this.normalizeFilePath(match[1]);
+        if (fp) this.readFiles.add(fp);
+      }
+    }
+
+    FILE_PATH_PATTERN.lastIndex = 0;
+    let match;
+    while ((match = FILE_PATH_PATTERN.exec(cleaned)) !== null) {
+      const fp = this.normalizeFilePath(match[1]);
+      if (fp && !this.modifiedFiles.has(fp)) {
+        this.readFiles.add(fp);
+      }
+    }
+  }
+
+  private normalizeFilePath(raw: string): string | null {
+    const trimmed = raw.trim().replace(/['"`,;:)]+$/, "");
+    if (!trimmed || trimmed.length < 3) return null;
+
+    const ext = trimmed.split(".").pop() || "";
+    const codeExtensions = [
+      "ts", "tsx", "js", "jsx", "py", "rs", "go", "java", "c", "cpp", "h", "hpp",
+      "cs", "rb", "php", "swift", "kt", "scala", "vue", "svelte", "html", "css",
+      "scss", "less", "json", "yaml", "yml", "toml", "xml", "md", "txt", "sql",
+      "sh", "bash", "zsh", "ps1", "bat", "cmd", "dockerfile", "makefile",
+    ];
+    if (!codeExtensions.includes(ext.toLowerCase())) return null;
+
+    if (trimmed.includes("node_modules") || trimmed.includes(".git/")) return null;
+
+    return trimmed;
   }
 
   protected onProcessSpawned(): void {}

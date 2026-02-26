@@ -32,6 +32,11 @@ export interface ModelInfo {
   name: string;
 }
 
+export interface TrackedFiles {
+  modified: string[];
+  read: string[];
+}
+
 export interface IDEAdapter {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
@@ -47,6 +52,7 @@ export interface IDEAdapter {
   getAvailableModels(): ModelInfo[];
   getCurrentModel(): string;
   setModel(modelId: string): void;
+  getTrackedFiles(): TrackedFiles;
 }
 
 export interface ConversationEntry {
@@ -65,4 +71,5 @@ export interface ContextSession {
   decisions: string[];
   currentState: string;
   conversationHistory: ConversationEntry[];
+  trackedFiles?: TrackedFiles;
 }
