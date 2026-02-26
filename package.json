@@ -34,7 +34,9 @@
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "prepublishOnly": "npm run build",
-    "start": "node dist/cli.js"
+    "start": "node dist/cli.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",
@@ -55,7 +57,8 @@
     "@types/qrcode-terminal": "^0.12.2",
     "oxfmt": "^0.34.0",
     "oxlint": "^1.49.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^4.0.18"
   },
   "preferGlobal": true,
   "engines": {

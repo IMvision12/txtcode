@@ -395,15 +395,15 @@ export abstract class BaseAdapter implements IDEAdapter {
   }
 }
 
-function stripAnsi(text: string): string {
+export function stripAnsi(text: string): string {
   return text.replace(/\x1b\[[0-9;]*m/g, "").replace(/\x1b\[[0-9;]*[A-Za-z]/g, "");
 }
 
-function collapseWhitespace(text: string): string {
+export function collapseWhitespace(text: string): string {
   return text.replace(/\n{3,}/g, "\n\n").trim();
 }
 
-function isDiffLine(trimmed: string): boolean {
+export function isDiffLine(trimmed: string): boolean {
   return (
     trimmed.startsWith("+") ||
     trimmed.startsWith("-") ||
@@ -417,12 +417,12 @@ function isDiffLine(trimmed: string): boolean {
   );
 }
 
-function isCliNoiseLine(trimmed: string): boolean {
+export function isCliNoiseLine(trimmed: string): boolean {
   if (!trimmed) return true;
   return CLI_NOISE_PATTERNS.some((p) => p.test(trimmed));
 }
 
-function detectRateLimit(text: string): string | null {
+export function detectRateLimit(text: string): string | null {
   for (const pattern of RATE_LIMIT_PATTERNS) {
     if (pattern.test(text)) {
       return "The AI model has reached its usage limit. Please wait a moment and try again, or use /switch to change to a different provider.";
