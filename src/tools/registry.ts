@@ -66,22 +66,17 @@ export class ToolRegistry {
   }
 
   async executeAll(calls: ToolCall[], signal?: AbortSignal): Promise<ToolResult[]> {
-    const results: ToolResult[] = [];
-    for (const call of calls) {
+    const promises = calls.map(async (call) => {
       if (signal?.aborted) {
-        results.push({
-          toolCallId: call.id,
-          output: "Tool execution aborted",
-          isError: true,
-        });
-        continue;
+        return { toolCallId: call.id, output: "Tool execution aborted", isError: true } as ToolResult;
       }
 
       const result = await this.execute(call.name, call.arguments, signal);
       result.toolCallId = call.id;
-      results.push(result);
-    }
-    return results;
+      return result;
+    });
+
+    return Promise.all(promises);
   }
 }
 

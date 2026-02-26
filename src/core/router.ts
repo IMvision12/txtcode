@@ -16,8 +16,15 @@ import { processWithOpenRouter } from "../providers/openrouter";
 import { processWithXAI } from "../providers/xai";
 import { logger } from "../shared/logger";
 import { IDEAdapter, ModelInfo } from "../shared/types";
+import { CronTool } from "../tools/cron";
+import { EnvTool } from "../tools/env";
+import { GitTool } from "../tools/git";
+import { HttpTool } from "../tools/http";
+import { NetworkTool } from "../tools/network";
 import { ProcessTool } from "../tools/process";
 import { ToolRegistry } from "../tools/registry";
+import { SearchTool } from "../tools/search";
+import { SysinfoTool } from "../tools/sysinfo";
 import { TerminalTool } from "../tools/terminal";
 import { ContextManager } from "./context-manager";
 
@@ -49,6 +56,13 @@ export class Router {
     this.toolRegistry = new ToolRegistry();
     this.toolRegistry.register(new TerminalTool());
     this.toolRegistry.register(new ProcessTool());
+    this.toolRegistry.register(new GitTool());
+    this.toolRegistry.register(new SearchTool());
+    this.toolRegistry.register(new HttpTool());
+    this.toolRegistry.register(new EnvTool());
+    this.toolRegistry.register(new NetworkTool());
+    this.toolRegistry.register(new CronTool());
+    this.toolRegistry.register(new SysinfoTool());
 
     this.contextManager = new ContextManager();
 

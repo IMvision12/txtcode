@@ -36,6 +36,61 @@ const MAX_YIELD_MS = 120_000;
 const MAX_OUTPUT_CHARS = 200_000;
 const PENDING_MAX_OUTPUT_CHARS = 30_000;
 
+function resolveShell(): { shell: string; buildArgs: (cmd: string) => string[] } {
+  const isWindows = process.platform === "win32";
+
+  if (isWindows) {
+    const pwsh = process.env.COMSPEC?.toLowerCase().includes("powershell")
+      ? process.env.COMSPEC
+      : null;
+
+    // Prefer PowerShell (pwsh/powershell), fall back to cmd.exe
+    for (const candidate of ["pwsh.exe", "powershell.exe"]) {
+      try {
+        require("child_process").execSync(`${candidate} -NoProfile -Command "echo ok"`, {
+          stdio: "ignore",
+          timeout: 3000,
+        });
+        return {
+          shell: candidate,
+          buildArgs: (cmd: string) => [
+            "-NoProfile",
+            "-NonInteractive",
+            "-ExecutionPolicy", "Bypass",
+            "-Command", cmd,
+          ],
+        };
+      } catch {}
+    }
+
+    return {
+      shell: process.env.COMSPEC || "cmd.exe",
+      buildArgs: (cmd: string) => ["/c", cmd],
+    };
+  }
+
+  // Unix: prefer bash, fall back to sh
+  const fs = require("fs");
+  for (const candidate of ["/bin/bash", "/usr/bin/bash", "/usr/local/bin/bash"]) {
+    try {
+      if (fs.existsSync(candidate)) {
+        return { shell: candidate, buildArgs: (cmd: string) => ["-c", cmd] };
+      }
+    } catch {}
+  }
+
+  return { shell: "/bin/sh", buildArgs: (cmd: string) => ["-c", cmd] };
+}
+
+let cachedShell: ReturnType<typeof resolveShell> | null = null;
+
+function getShell(): ReturnType<typeof resolveShell> {
+  if (!cachedShell) {
+    cachedShell = resolveShell();
+  }
+  return cachedShell;
+}
+
 function validateEnv(env: Record<string, string>): void {
   for (const key of Object.keys(env)) {
     const upper = key.toUpperCase();
@@ -63,8 +118,11 @@ export interface ExecOutcome {
 export class TerminalTool implements Tool {
   name = "exec";
   description =
-    "Execute a shell command. Supports workdir override, env vars, timeout, and background execution via yieldMs. " +
-    "Long-running commands auto-background; use the process tool to poll/kill them.";
+    "Execute a shell command with full filesystem access. " +
+    "You can run commands in ANY directory on the machine by setting workdir to an absolute path. " +
+    "Supports env vars, timeout, and background execution via yieldMs. " +
+    "Long-running commands auto-background; use the process tool to poll/kill them. " +
+    "On Windows uses PowerShell, on macOS/Linux uses bash (falls back to sh).";
 
   private defaultCwd: string;
   private defaultTimeoutSec: number;
@@ -87,7 +145,9 @@ export class TerminalTool implements Tool {
           },
           workdir: {
             type: "string",
-            description: "Working directory (defaults to project root).",
+            description:
+              "Working directory — any absolute path on the machine (e.g. /home/user, C:\\Users\\user, /etc). " +
+              "Defaults to the project root if not specified.",
           },
           env: {
             type: "object",
@@ -125,6 +185,32 @@ export class TerminalTool implements Tool {
     }
 
     const workdir = (args.workdir as string)?.trim() || this.defaultCwd;
+
+    try {
+      const fs = require("fs");
+      if (!fs.existsSync(workdir)) {
+        return {
+          toolCallId: "",
+          output: `Error: working directory does not exist: ${workdir}`,
+          isError: true,
+        };
+      }
+      const stat = fs.statSync(workdir);
+      if (!stat.isDirectory()) {
+        return {
+          toolCallId: "",
+          output: `Error: workdir path is not a directory: ${workdir}`,
+          isError: true,
+        };
+      }
+    } catch (err) {
+      return {
+        toolCallId: "",
+        output: `Error: cannot access working directory: ${workdir} (${err instanceof Error ? err.message : "permission denied"})`,
+        isError: true,
+      };
+    }
+
     const userEnv = args.env as Record<string, string> | undefined;
     const timeoutSec =
       typeof args.timeout === "number" && args.timeout > 0 ? args.timeout : this.defaultTimeoutSec;
@@ -186,9 +272,8 @@ export class TerminalTool implements Tool {
     signal?: AbortSignal,
   ): Promise<ExecOutcome> {
     return new Promise((resolve) => {
-      const isWindows = process.platform === "win32";
-      const shell = isWindows ? "cmd.exe" : "/bin/bash";
-      const shellArgs = isWindows ? ["/c", command] : ["-c", command];
+      const { shell, buildArgs: shellBuildArgs } = getShell();
+      const shellArgs = shellBuildArgs(command);
       const startedAt = Date.now();
 
       let proc: ChildProcessWithoutNullStreams;
@@ -211,7 +296,12 @@ export class TerminalTool implements Tool {
       let yielded = false;
       let processExited = false;
 
-      // Handle abort signal
+      const cleanupAbortListener = () => {
+        if (signal && abortHandler) {
+          signal.removeEventListener("abort", abortHandler);
+        }
+      };
+
       const abortHandler = () => {
         if (!processExited) {
           try {
@@ -245,6 +335,7 @@ export class TerminalTool implements Tool {
       const timeoutMs = timeoutSec * 1000;
       const killTimer = setTimeout(() => {
         if (!processExited) {
+          cleanupAbortListener();
           try {
             proc.kill("SIGKILL");
           } catch {}
@@ -295,15 +386,16 @@ export class TerminalTool implements Tool {
         }
       }
 
-      proc.on("close", (code, signal) => {
+      proc.on("close", (code, sig) => {
         processExited = true;
+        cleanupAbortListener();
         clearTimeout(killTimer);
         if (yieldTimer) {
           clearTimeout(yieldTimer);
         }
 
         const status: "completed" | "failed" = code === 0 ? "completed" : "failed";
-        markExited(session, code, signal?.toString() ?? null, status);
+        markExited(session, code, sig?.toString() ?? null, status);
 
         if (!yielded) {
           const aggregated = session.aggregated.trim();
@@ -320,6 +412,7 @@ export class TerminalTool implements Tool {
 
       proc.on("error", (err) => {
         processExited = true;
+        cleanupAbortListener();
         clearTimeout(killTimer);
         if (yieldTimer) {
           clearTimeout(yieldTimer);
