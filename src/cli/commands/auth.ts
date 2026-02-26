@@ -805,8 +805,6 @@ export async function authCommand() {
 
   if (configuredProviders.length > 1) {
     console.log(chalk.gray("  Use /switch to change between your configured providers\n"));
-  } else {
-    console.log(chalk.gray("  Tip: Run 'txtcode auth' again to add more providers for /switch\n"));
   }
 
   // Force exit to ensure terminal closes (WhatsApp socket may have lingering listeners)
