@@ -1,4 +1,5 @@
 import { spawn, ChildProcessWithoutNullStreams } from "child_process";
+import { killProcessTree, forceKillProcess } from "../shared/process-kill";
 import {
   createSession,
   appendOutput,
@@ -6,7 +7,6 @@ import {
   markBackgrounded,
   ProcessSession,
 } from "./process-registry";
-import { killProcessTree, forceKillProcess } from "../shared/process-kill";
 import { Tool, ToolDefinition, ToolResult } from "./types";
 
 const DANGEROUS_ENV_VARS = new Set([

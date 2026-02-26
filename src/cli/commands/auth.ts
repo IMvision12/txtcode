@@ -714,8 +714,12 @@ export async function authCommand() {
       const { execSync } = require("child_process");
       const user = process.env.USERNAME || process.env.USER || "";
       if (user) {
-        execSync(`icacls "${CONFIG_DIR}" /inheritance:r /grant:r "${user}:(OI)(CI)F" /T`, { stdio: "ignore" });
-        execSync(`icacls "${CONFIG_FILE}" /inheritance:r /grant:r "${user}:F"`, { stdio: "ignore" });
+        execSync(`icacls "${CONFIG_DIR}" /inheritance:r /grant:r "${user}:(OI)(CI)F" /T`, {
+          stdio: "ignore",
+        });
+        execSync(`icacls "${CONFIG_FILE}" /inheritance:r /grant:r "${user}:F"`, {
+          stdio: "ignore",
+        });
       }
     } else {
       fs.chmodSync(CONFIG_DIR, 0o700);
