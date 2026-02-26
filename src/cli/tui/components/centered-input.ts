@@ -27,7 +27,7 @@ export async function showCenteredInput(options: CenteredInputOptions): Promise<
       process.stdin.pause();
     };
 
-    const onKeypress = (str: string, key: any) => {
+    const onKeypress = (str: string, key: { name: string; ctrl?: boolean; meta?: boolean }) => {
       if (key.ctrl && key.name === "c") {
         cleanup();
         process.exit(0);

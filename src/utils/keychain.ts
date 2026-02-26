@@ -9,7 +9,7 @@ export async function setApiKey(provider: string, apiKey: string): Promise<void>
   try {
     await keytar.setPassword(SERVICE_NAME, `${provider}-api-key`, apiKey);
   } catch (error) {
-    throw new Error(`Failed to store API key in keychain: ${error}`);
+    throw new Error(`Failed to store API key in keychain: ${error}`, { cause: error });
   }
 }
 
@@ -20,7 +20,7 @@ export async function getApiKey(provider: string): Promise<string | null> {
   try {
     return await keytar.getPassword(SERVICE_NAME, `${provider}-api-key`);
   } catch (error) {
-    throw new Error(`Failed to retrieve API key from keychain: ${error}`);
+    throw new Error(`Failed to retrieve API key from keychain: ${error}`, { cause: error });
   }
 }
 
@@ -31,7 +31,7 @@ export async function deleteApiKey(provider: string): Promise<boolean> {
   try {
     return await keytar.deletePassword(SERVICE_NAME, `${provider}-api-key`);
   } catch (error) {
-    throw new Error(`Failed to delete API key from keychain: ${error}`);
+    throw new Error(`Failed to delete API key from keychain: ${error}`, { cause: error });
   }
 }
 
@@ -42,7 +42,7 @@ export async function setBotToken(platform: string, token: string): Promise<void
   try {
     await keytar.setPassword(SERVICE_NAME, `${platform}-bot-token`, token);
   } catch (error) {
-    throw new Error(`Failed to store bot token in keychain: ${error}`);
+    throw new Error(`Failed to store bot token in keychain: ${error}`, { cause: error });
   }
 }
 
@@ -53,7 +53,7 @@ export async function getBotToken(platform: string): Promise<string | null> {
   try {
     return await keytar.getPassword(SERVICE_NAME, `${platform}-bot-token`);
   } catch (error) {
-    throw new Error(`Failed to retrieve bot token from keychain: ${error}`);
+    throw new Error(`Failed to retrieve bot token from keychain: ${error}`, { cause: error });
   }
 }
 
@@ -64,7 +64,7 @@ export async function deleteBotToken(platform: string): Promise<boolean> {
   try {
     return await keytar.deletePassword(SERVICE_NAME, `${platform}-bot-token`);
   } catch (error) {
-    throw new Error(`Failed to delete bot token from keychain: ${error}`);
+    throw new Error(`Failed to delete bot token from keychain: ${error}`, { cause: error });
   }
 }
 
@@ -77,7 +77,7 @@ export async function isKeychainAvailable(): Promise<boolean> {
     await keytar.setPassword(SERVICE_NAME, "test-key", "test-value");
     await keytar.deletePassword(SERVICE_NAME, "test-key");
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -92,6 +92,6 @@ export async function clearAllCredentials(): Promise<void> {
       await keytar.deletePassword(SERVICE_NAME, cred.account);
     }
   } catch (error) {
-    throw new Error(`Failed to clear credentials: ${error}`);
+    throw new Error(`Failed to clear credentials: ${error}`, { cause: error });
   }
 }

@@ -11,7 +11,7 @@ export class ToolRegistry {
     return Array.from(this.tools.values()).map((t) => t.getDefinition());
   }
 
-  getDefinitionsForProvider(provider: string): any[] {
+  getDefinitionsForProvider(provider: string): (Record<string, unknown> | ToolDefinition)[] {
     const defs = this.getDefinitions();
 
     switch (provider) {
@@ -68,7 +68,11 @@ export class ToolRegistry {
   async executeAll(calls: ToolCall[], signal?: AbortSignal): Promise<ToolResult[]> {
     const promises = calls.map(async (call) => {
       if (signal?.aborted) {
-        return { toolCallId: call.id, output: "Tool execution aborted", isError: true } as ToolResult;
+        return {
+          toolCallId: call.id,
+          output: "Tool execution aborted",
+          isError: true,
+        } as ToolResult;
       }
 
       const result = await this.execute(call.name, call.arguments, signal);

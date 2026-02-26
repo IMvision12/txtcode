@@ -25,7 +25,15 @@ export class CodexAdapter extends BaseAdapter {
   }
 
   protected buildArgs(fullInstruction: string): string[] {
-    return ["exec", "--full-auto", "-m", this.codexModel, "--cd", this.projectPath, fullInstruction];
+    return [
+      "exec",
+      "--full-auto",
+      "-m",
+      this.codexModel,
+      "--cd",
+      this.projectPath,
+      fullInstruction,
+    ];
   }
 
   protected exitCodeIndicatesSuccess(code: number | null, output: string): boolean {

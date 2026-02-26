@@ -5,7 +5,6 @@ import makeWASocket, {
   useMultiFileAuthState,
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
-  DisconnectReason,
 } from "@whiskeysockets/baileys";
 import chalk from "chalk";
 import qrcode from "qrcode-terminal";
@@ -21,8 +20,9 @@ const CONFIG_DIR = path.join(os.homedir(), ".txtcode");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 const WA_AUTH_DIR = path.join(CONFIG_DIR, ".wacli_auth");
 
+type BaileysLogger = NonNullable<Parameters<typeof makeWASocket>[0]["logger"]>;
 const noop = () => {};
-const silentLogger = {
+const silentLogger: BaileysLogger = {
   level: "silent" as const,
   fatal: noop,
   error: noop,
@@ -31,7 +31,7 @@ const silentLogger = {
   debug: noop,
   trace: noop,
   child: () => silentLogger,
-} as any;
+} as BaileysLogger;
 
 // Validate API key
 function validateApiKeyFormat(apiKey: string): { valid: boolean; error?: string } {
@@ -44,15 +44,30 @@ function validateApiKeyFormat(apiKey: string): { valid: boolean; error?: string 
   return { valid: true };
 }
 
-async function authenticateWhatsApp(): Promise<void> {
-  return new Promise(async (resolve, reject) => {
-    let sock: any = null;
+function authenticateWhatsApp(): Promise<void> {
+  let resolvePromise!: () => void;
+  let rejectPromise!: (err: Error) => void;
+
+  const promise = new Promise<void>((resolve, reject) => {
+    resolvePromise = resolve;
+    rejectPromise = reject;
+  });
+
+  const closeSock = (s: unknown) => {
+    try {
+      (s as { ws?: { close: () => void } })?.ws?.close();
+    } catch {
+      // Ignore
+    }
+  };
+
+  (async () => {
+    let sock: ReturnType<typeof makeWASocket> | null = null;
     let pairingComplete = false;
     let connectionTimeout: NodeJS.Timeout;
     let connectionAttempted = false;
 
     try {
-      // Check if already authenticated and offer to clear
       if (fs.existsSync(WA_AUTH_DIR)) {
         const files = fs.readdirSync(WA_AUTH_DIR);
         if (files.length > 0) {
@@ -60,16 +75,14 @@ async function authenticateWhatsApp(): Promise<void> {
           console.log(chalk.gray("Clearing old session to start fresh..."));
           console.log();
 
-          // Clear old session files to avoid 405 errors
           try {
             fs.rmSync(WA_AUTH_DIR, { recursive: true, force: true });
             fs.mkdirSync(WA_AUTH_DIR, { recursive: true });
-          } catch (e) {
+          } catch {
             console.log(chalk.yellow("Warning: Could not clear old session"));
           }
         }
       } else {
-        // Create directory if it doesn't exist
         fs.mkdirSync(WA_AUTH_DIR, { recursive: true });
       }
 
@@ -77,26 +90,19 @@ async function authenticateWhatsApp(): Promise<void> {
       console.log();
 
       const { state, saveCreds } = await useMultiFileAuthState(WA_AUTH_DIR);
-
-      // Fetch latest Baileys version (like openclaw does)
       const { version } = await fetchLatestBaileysVersion();
 
-      // Set a longer timeout for initial connection (60 seconds)
       connectionTimeout = setTimeout(() => {
         if (!pairingComplete && sock) {
-          try {
-            sock.ws?.close();
-          } catch (e) {
-            // Ignore
-          }
+          closeSock(sock);
           if (!connectionAttempted) {
-            reject(
+            rejectPromise(
               new Error(
                 "Connection timeout - No response from WhatsApp servers. Please check your internet connection.",
               ),
             );
           } else {
-            reject(new Error("QR code generation timeout - Please try again."));
+            rejectPromise(new Error("QR code generation timeout - Please try again."));
           }
         }
       }, 60000);
@@ -118,7 +124,7 @@ async function authenticateWhatsApp(): Promise<void> {
 
       sock.ev.on("creds.update", saveCreds);
 
-      sock.ev.on("connection.update", async (update: any) => {
+      sock.ev.on("connection.update", async (update) => {
         connectionAttempted = true;
         const { connection, qr, lastDisconnect } = update;
 
@@ -133,15 +139,10 @@ async function authenticateWhatsApp(): Promise<void> {
           console.log(chalk.gray("Open WhatsApp → Settings → Linked Devices → Link a Device"));
           console.log();
 
-          // Set new timeout for QR scanning (2 minutes)
           connectionTimeout = setTimeout(() => {
             if (!pairingComplete) {
-              try {
-                sock.ws?.close();
-              } catch (e) {
-                // Ignore
-              }
-              reject(new Error("QR code scan timeout - Please try again"));
+              closeSock(sock);
+              rejectPromise(new Error("QR code scan timeout - Please try again"));
             }
           }, 120000);
         }
@@ -151,39 +152,29 @@ async function authenticateWhatsApp(): Promise<void> {
           pairingComplete = true;
           console.log(chalk.green("\n[OK] WhatsApp authenticated successfully!"));
 
-          // Close socket and resolve
           setTimeout(() => {
-            try {
-              sock.ws?.close();
-            } catch (e) {
-              // Ignore
-            }
-            resolve();
+            closeSock(sock);
+            resolvePromise();
           }, 500);
         }
 
         if (connection === "close" && !pairingComplete) {
           clearTimeout(connectionTimeout);
-          const statusCode = lastDisconnect?.error?.output?.statusCode;
+          const statusCode = (lastDisconnect?.error as { output?: { statusCode?: number } })?.output
+            ?.statusCode;
           const errorMessage = lastDisconnect?.error?.message || "Unknown error";
 
-          // If connection closed before showing QR, it's a connection failure
           if (!hasShownQR) {
-            try {
-              sock.ws?.close();
-            } catch (e) {
-              // Ignore
-            }
+            closeSock(sock);
 
-            // Special handling for 405 errors
             if (statusCode === 405) {
-              reject(
+              rejectPromise(
                 new Error(
                   `WhatsApp connection failed (Error 405). This usually means:\n  • WhatsApp updated their protocol and the library needs updating\n  • Try updating: npm install @whiskeysockets/baileys@latest\n  • Or use Telegram/Discord instead (more reliable)`,
                 ),
               );
             } else {
-              reject(
+              rejectPromise(
                 new Error(
                   `Failed to connect to WhatsApp servers (${statusCode || "no status"}). ${errorMessage}. Please check your internet connection and try again.`,
                 ),
@@ -192,19 +183,13 @@ async function authenticateWhatsApp(): Promise<void> {
             return;
           }
 
-          // 515 means pairing successful but needs restart - OpenClaw pattern
           if (statusCode === 515 && hasShownQR) {
             console.log(
               chalk.cyan("\n[INFO] WhatsApp pairing complete, restarting connection...\n"),
             );
 
-            try {
-              sock.ws?.close();
-            } catch (e) {
-              // Ignore
-            }
+            closeSock(sock);
 
-            // Restart connection without QR
             const { state: newState, saveCreds: newSaveCreds } =
               await useMultiFileAuthState(WA_AUTH_DIR);
             const retrySock = makeWASocket({
@@ -215,53 +200,37 @@ async function authenticateWhatsApp(): Promise<void> {
 
             retrySock.ev.on("creds.update", newSaveCreds);
 
-            retrySock.ev.on("connection.update", async (retryUpdate: any) => {
+            retrySock.ev.on("connection.update", (retryUpdate) => {
               if (retryUpdate.connection === "open") {
                 pairingComplete = true;
                 console.log(chalk.green("[OK] WhatsApp linked successfully!\n"));
 
-                // Close and resolve
                 setTimeout(() => {
-                  try {
-                    retrySock.ws?.close();
-                  } catch (e) {
-                    // Ignore
-                  }
-                  resolve();
+                  closeSock(retrySock);
+                  resolvePromise();
                 }, 500);
               }
 
               if (retryUpdate.connection === "close") {
-                try {
-                  retrySock.ws?.close();
-                } catch (e) {
-                  // Ignore
-                }
-                reject(new Error("WhatsApp authentication failed after restart"));
+                closeSock(retrySock);
+                rejectPromise(new Error("WhatsApp authentication failed after restart"));
               }
             });
           } else if (hasShownQR && statusCode !== 515) {
-            // Other errors after showing QR
-            try {
-              sock.ws?.close();
-            } catch (e) {
-              // Ignore
-            }
-            reject(new Error(`WhatsApp authentication failed (code: ${statusCode})`));
+            closeSock(sock);
+            rejectPromise(new Error(`WhatsApp authentication failed (code: ${statusCode})`));
           }
         }
       });
     } catch (error) {
       if (sock) {
-        try {
-          sock.ws?.close();
-        } catch (e) {
-          // Ignore
-        }
+        closeSock(sock);
       }
-      reject(error);
+      rejectPromise(error instanceof Error ? error : new Error(String(error)));
     }
-  });
+  })();
+
+  return promise;
 }
 
 export async function authCommand() {
@@ -275,12 +244,15 @@ export async function authCommand() {
 
   // Check for existing configuration
   const existingConfig = loadConfig();
-  if (existingConfig && existingConfig.providers) {
+  const existingProviders = existingConfig?.providers as
+    | Record<string, { model: string }>
+    | undefined;
+  if (existingConfig && existingProviders) {
     console.log(chalk.yellow("⚠️  Existing configuration detected!"));
     console.log();
     console.log(chalk.gray("Currently configured providers:"));
-    Object.keys(existingConfig.providers).forEach((provider) => {
-      const providerConfig = existingConfig.providers[provider];
+    Object.keys(existingProviders).forEach((provider) => {
+      const providerConfig = existingProviders[provider];
       console.log(chalk.white(`• ${provider} (${providerConfig.model})`));
     });
     console.log();
@@ -418,6 +390,7 @@ export async function authCommand() {
         } else {
           throw new Error(
             "HuggingFace model discovery failed. Please run 'txtcode auth' again with a valid API key.",
+            { cause: error },
           );
         }
       }
@@ -450,15 +423,18 @@ export async function authCommand() {
         } else {
           throw new Error(
             "OpenRouter model discovery failed. Please run 'txtcode auth' again with a valid API key.",
+            { cause: error },
           );
         }
       }
     } else {
       const providerModels = modelsCatalog.providers[providerValue];
-      modelChoices = providerModels.models.map((model: any) => ({
-        name: model.recommended ? `${model.name} - Recommended` : model.name,
-        value: model.id,
-      }));
+      modelChoices = providerModels.models.map(
+        (model: { id: string; name: string; recommended?: boolean }) => ({
+          name: model.recommended ? `${model.name} - Recommended` : model.name,
+          value: model.id,
+        }),
+      );
     }
 
     // Add "Enter custom model name" option at the top
@@ -701,10 +677,9 @@ export async function authCommand() {
     if (discordToken) {
       await setBotToken("discord", discordToken);
     }
-  } catch (error) {
+  } catch {
     console.log(chalk.red("\n[ERROR] Failed to store credentials in keychain"));
     console.log(chalk.yellow("Falling back to encrypted file storage...\n"));
-    // Continue with file storage as fallback
   }
 
   // Build providers object dynamically
@@ -737,8 +712,8 @@ export async function authCommand() {
   try {
     fs.chmodSync(CONFIG_DIR, 0o700);
     fs.chmodSync(CONFIG_FILE, 0o600);
-  } catch (error) {
-    // Windows doesn't support chmod, will use icacls in security-check
+  } catch {
+    // Windows doesn't support chmod
   }
 
   console.log(chalk.green("\nAuthentication successful!"));
@@ -764,15 +739,15 @@ export async function authCommand() {
   }
 }
 
-export function loadConfig(): any {
+export function loadConfig(): Record<string, unknown> | null {
   if (!fs.existsSync(CONFIG_FILE)) {
     return null;
   }
 
   try {
     const data = fs.readFileSync(CONFIG_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch (error) {
+    return JSON.parse(data) as Record<string, unknown>;
+  } catch {
     return null;
   }
 }

@@ -52,17 +52,17 @@ export class OllamaClaudeCodeAdapter extends BaseAdapter {
         throw new Error("Ollama not responding");
       }
 
-      const data: any = await response.json();
+      const data = (await response.json()) as { models?: Array<{ name: string }> };
       const models = data.models || [];
 
       if (models.length === 0) {
         throw new Error("No models found. Please pull a model first.");
       }
 
-      const modelExists = models.some((m: any) => m.name === this.ollamaModel);
+      const modelExists = models.some((m) => m.name === this.ollamaModel);
       if (!modelExists) {
         logger.debug(`Model ${this.ollamaModel} not found`);
-        logger.debug(`   Available models: ${models.map((m: any) => m.name).join(", ")}`);
+        logger.debug(`   Available models: ${models.map((m) => m.name).join(", ")}`);
         throw new Error(`Model ${this.ollamaModel} not available`);
       }
 
@@ -97,7 +97,7 @@ Session: ${this.currentSessionId || "None"}`;
 
     try {
       const response = await fetch("http://localhost:11434/api/tags");
-      const data: any = await response.json();
+      const data = (await response.json()) as { models?: Array<{ name: string }> };
       const models = data.models || [];
 
       return `${this.getStatusText()}
@@ -112,10 +112,17 @@ Available models: ${models.length}`;
       const config = this.getConfig();
       const { exec } = require("child_process");
       await new Promise((resolve, reject) => {
-        exec(`${config.cliCommand} --version`, { timeout: 5000 }, (error: any, stdout: string) => {
-          if (error) reject(error);
-          else resolve(stdout);
-        });
+        exec(
+          `${config.cliCommand} --version`,
+          { timeout: 5000 },
+          (error: Error | null, stdout: string) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(stdout);
+            }
+          },
+        );
       });
 
       const response = await fetch("http://localhost:11434/api/tags", {
@@ -125,9 +132,9 @@ Available models: ${models.length}`;
         return false;
       }
 
-      const data: any = await response.json();
+      const data = (await response.json()) as { models?: Array<{ name: string }> };
       const models = data.models || [];
-      return models.some((m: any) => m.name === this.ollamaModel);
+      return models.some((m) => m.name === this.ollamaModel);
     } catch (error) {
       logger.debug(`Ollama health check failed: ${error}`);
       return false;
@@ -160,9 +167,9 @@ Available models: ${models.length}`;
     try {
       const response = await fetch("http://localhost:11434/api/tags");
       if (response.ok) {
-        const data: any = await response.json();
+        const data = (await response.json()) as { models?: Array<{ name: string }> };
         const models = data.models || [];
-        this.cachedModels = models.map((m: any) => ({
+        this.cachedModels = models.map((m) => ({
           id: m.name,
           name: m.name,
         }));

@@ -1,6 +1,10 @@
 import fs from "fs";
 import path from "path";
 import OpenAI from "openai";
+import type {
+  ChatCompletionMessageParam,
+  ChatCompletionTool,
+} from "openai/resources/chat/completions/completions";
 import { ToolRegistry } from "../tools/registry";
 
 const MAX_ITERATIONS = 10;
@@ -30,9 +34,11 @@ export async function processWithOpenRouter(
       },
     });
 
-    const tools = toolRegistry ? toolRegistry.getDefinitionsForProvider("openai") : undefined;
+    const tools = toolRegistry
+      ? (toolRegistry.getDefinitionsForProvider("openai") as unknown as ChatCompletionTool[])
+      : undefined;
 
-    const messages: any[] = [
+    const messages: ChatCompletionMessageParam[] = [
       { role: "system", content: loadSystemPrompt() },
       { role: "user", content: instruction },
     ];
@@ -54,8 +60,10 @@ export async function processWithOpenRouter(
 
       messages.push(assistantMsg);
 
-      for (const call of assistantMsg.tool_calls) {
-        const toolCall = call as any;
+      for (const toolCall of assistantMsg.tool_calls) {
+        if (toolCall.type !== "function") {
+          continue;
+        }
         const args = JSON.parse(toolCall.function.arguments);
         const result = await toolRegistry.execute(toolCall.function.name, args);
         messages.push({
@@ -67,7 +75,7 @@ export async function processWithOpenRouter(
     }
 
     return "Reached maximum tool iterations.";
-  } catch (error) {
+  } catch (error: unknown) {
     throw new Error(
       `OpenRouter API error: ${error instanceof Error ? error.message : "Unknown error"}`,
       { cause: error },

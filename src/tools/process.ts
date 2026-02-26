@@ -157,7 +157,7 @@ export class ProcessTool implements Tool {
 
     const running = getSession(sessionId);
     if (running) {
-      const truncNote = running.truncated ? "\n(output was truncated)" : "";
+      const _truncNote = running.truncated ? "\n(output was truncated)" : "";
       return {
         toolCallId: "",
         output: running.aggregated || "(no output yet)",

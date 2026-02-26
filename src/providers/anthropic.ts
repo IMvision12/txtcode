@@ -1,6 +1,14 @@
 import fs from "fs";
 import path from "path";
 import Anthropic from "@anthropic-ai/sdk";
+import type {
+  ContentBlock,
+  MessageParam,
+  TextBlock,
+  ToolResultBlockParam,
+  ToolUnion,
+  ToolUseBlock,
+} from "@anthropic-ai/sdk/resources/messages/messages";
 import { ToolRegistry } from "../tools/registry";
 
 const MAX_ITERATIONS = 10;
@@ -23,9 +31,11 @@ export async function processWithAnthropic(
   try {
     const anthropic = new Anthropic({ apiKey });
 
-    const tools = toolRegistry ? toolRegistry.getDefinitionsForProvider("anthropic") : undefined;
+    const tools = toolRegistry
+      ? (toolRegistry.getDefinitionsForProvider("anthropic") as unknown as ToolUnion[])
+      : undefined;
 
-    const messages: any[] = [{ role: "user", content: instruction }];
+    const messages: MessageParam[] = [{ role: "user", content: instruction }];
 
     for (let i = 0; i < MAX_ITERATIONS; i++) {
       const response = await anthropic.messages.create({
@@ -37,10 +47,12 @@ export async function processWithAnthropic(
       });
 
       const textParts = response.content
-        .filter((block: any) => block.type === "text")
-        .map((block: any) => block.text);
+        .filter((block: ContentBlock): block is TextBlock => block.type === "text")
+        .map((block: TextBlock) => block.text);
 
-      const toolCalls = response.content.filter((block: any) => block.type === "tool_use");
+      const toolCalls = response.content.filter(
+        (block: ContentBlock): block is ToolUseBlock => block.type === "tool_use",
+      );
 
       if (toolCalls.length === 0 || !toolRegistry) {
         return textParts.join("\n") || "No response from Claude";
@@ -48,9 +60,8 @@ export async function processWithAnthropic(
 
       messages.push({ role: "assistant", content: response.content });
 
-      const toolResults: any[] = [];
-      for (const call of toolCalls) {
-        const toolUse = call as any;
+      const toolResults: ToolResultBlockParam[] = [];
+      for (const toolUse of toolCalls) {
         const result = await toolRegistry.execute(
           toolUse.name,
           toolUse.input as Record<string, unknown>,
@@ -66,7 +77,7 @@ export async function processWithAnthropic(
     }
 
     return "Reached maximum tool iterations.";
-  } catch (error) {
+  } catch (error: unknown) {
     throw new Error(
       `Anthropic API error: ${error instanceof Error ? error.message : "Unknown error"}`,
       { cause: error },

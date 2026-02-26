@@ -3,9 +3,21 @@ import path from "path";
 import { Tool, ToolDefinition, ToolResult } from "./types";
 
 const SECRET_PATTERNS = [
-  /secret/i, /key/i, /token/i, /password/i, /passwd/i, /credential/i,
-  /auth/i, /private/i, /api_key/i, /apikey/i, /access/i, /jwt/i,
-  /encrypt/i, /signing/i, /certificate/i,
+  /secret/i,
+  /key/i,
+  /token/i,
+  /password/i,
+  /passwd/i,
+  /credential/i,
+  /auth/i,
+  /private/i,
+  /api_key/i,
+  /apikey/i,
+  /access/i,
+  /jwt/i,
+  /encrypt/i,
+  /signing/i,
+  /certificate/i,
 ];
 
 function isSensitive(name: string): boolean {
@@ -13,9 +25,13 @@ function isSensitive(name: string): boolean {
 }
 
 function maskValue(name: string, value: string, unmask: boolean): string {
-  if (unmask) return value;
+  if (unmask) {
+    return value;
+  }
   if (isSensitive(name)) {
-    if (value.length <= 4) return "****";
+    if (value.length <= 4) {
+      return "****";
+    }
     return value.substring(0, 2) + "****" + value.substring(value.length - 2);
   }
   return value;
@@ -48,7 +64,8 @@ export class EnvTool implements Tool {
           },
           name: {
             type: "string",
-            description: "Variable name (for action=get) or comma-separated names (for action=check).",
+            description:
+              "Variable name (for action=get) or comma-separated names (for action=check).",
           },
           file: {
             type: "string",
@@ -56,7 +73,8 @@ export class EnvTool implements Tool {
           },
           filter: {
             type: "string",
-            description: "Filter env vars by prefix or substring (for action=list). e.g. 'NODE', 'DATABASE'.",
+            description:
+              "Filter env vars by prefix or substring (for action=list). e.g. 'NODE', 'DATABASE'.",
           },
           unmask: {
             type: "boolean",
@@ -86,7 +104,11 @@ export class EnvTool implements Tool {
       case "check":
         return this.actionCheck(args.name as string | undefined);
       default:
-        return { toolCallId: "", output: `Unknown action: ${action}. Use: list, get, dotenv, check.`, isError: true };
+        return {
+          toolCallId: "",
+          output: `Unknown action: ${action}. Use: list, get, dotenv, check.`,
+          isError: true,
+        };
     }
   }
 
@@ -102,7 +124,11 @@ export class EnvTool implements Tool {
     entries.sort(([a], [b]) => a.localeCompare(b));
 
     if (entries.length === 0) {
-      return { toolCallId: "", output: filter ? `No env vars matching "${filter}".` : "No environment variables found.", isError: false };
+      return {
+        toolCallId: "",
+        output: filter ? `No env vars matching "${filter}".` : "No environment variables found.",
+        isError: false,
+      };
     }
 
     const lines = entries.map(([k, v]) => `${k}=${maskValue(k, v, unmask)}`);
@@ -126,7 +152,12 @@ export class EnvTool implements Tool {
 
     const value = process.env[name];
     if (value === undefined) {
-      return { toolCallId: "", output: `${name} is not set.`, isError: false, metadata: { exists: false } };
+      return {
+        toolCallId: "",
+        output: `${name} is not set.`,
+        isError: false,
+        metadata: { exists: false },
+      };
     }
 
     return {
@@ -146,7 +177,9 @@ export class EnvTool implements Tool {
       const found: string[] = [];
       for (const alt of alternatives) {
         const altPath = path.join(this.defaultCwd, alt);
-        if (fs.existsSync(altPath)) found.push(alt);
+        if (fs.existsSync(altPath)) {
+          found.push(alt);
+        }
       }
 
       let msg = `File not found: ${envFile}`;
@@ -160,7 +193,11 @@ export class EnvTool implements Tool {
     try {
       content = fs.readFileSync(envFile, "utf-8");
     } catch (err) {
-      return { toolCallId: "", output: `Cannot read ${envFile}: ${err instanceof Error ? err.message : "permission denied"}`, isError: true };
+      return {
+        toolCallId: "",
+        output: `Cannot read ${envFile}: ${err instanceof Error ? err.message : "permission denied"}`,
+        isError: true,
+      };
     }
 
     const lines = content.split("\n");
@@ -180,7 +217,10 @@ export class EnvTool implements Tool {
       }
 
       const key = trimmed.substring(0, eqIndex).trim();
-      const val = trimmed.substring(eqIndex + 1).trim().replace(/^["']|["']$/g, "");
+      const val = trimmed
+        .substring(eqIndex + 1)
+        .trim()
+        .replace(/^["']|["']$/g, "");
       result.push(`${key}=${maskValue(key, val, unmask)}`);
     }
 
@@ -193,10 +233,17 @@ export class EnvTool implements Tool {
 
   private actionCheck(names: string | undefined): ToolResult {
     if (!names) {
-      return { toolCallId: "", output: "Error: name is required for action=check (comma-separated).", isError: true };
+      return {
+        toolCallId: "",
+        output: "Error: name is required for action=check (comma-separated).",
+        isError: true,
+      };
     }
 
-    const varNames = names.split(",").map((n) => n.trim()).filter(Boolean);
+    const varNames = names
+      .split(",")
+      .map((n) => n.trim())
+      .filter(Boolean);
     const results: string[] = [];
     let allSet = true;
 

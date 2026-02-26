@@ -4,14 +4,15 @@ import { DiscordBot } from "../../platforms/discord";
 import { TelegramBot } from "../../platforms/telegram";
 import { WhatsAppBot } from "../../platforms/whatsapp";
 import { logger } from "../../shared/logger";
+import type { Config } from "../../shared/types";
 import { getApiKey, getBotToken } from "../../utils/keychain";
 import { centerLog } from "../tui";
 import { loadConfig } from "./auth";
 
-export async function startCommand(options: { daemon?: boolean }) {
-  const config = loadConfig();
+export async function startCommand(_options: { daemon?: boolean }) {
+  const rawConfig = loadConfig();
 
-  if (!config) {
+  if (!rawConfig) {
     console.log();
     centerLog(chalk.yellow("⚠️  TxtCode is not configured yet."));
     console.log();
@@ -20,11 +21,12 @@ export async function startCommand(options: { daemon?: boolean }) {
     process.exit(1);
   }
 
+  const config = rawConfig as unknown as Config;
+
   logger.info(chalk.blue.bold("\nStarting TxtCode Agent\n"));
   logger.info(chalk.cyan(`Platform: ${config.platform}`));
   logger.info(chalk.cyan(`IDE: ${config.ideType}\n`));
 
-  // Retrieve API key from keychain
   const apiKey = await getApiKey(config.aiProvider);
   if (!apiKey) {
     console.log();
@@ -35,7 +37,6 @@ export async function startCommand(options: { daemon?: boolean }) {
     process.exit(1);
   }
 
-  // Retrieve bot tokens from keychain if needed
   let telegramToken = "";
   let discordToken = "";
 
@@ -65,7 +66,7 @@ export async function startCommand(options: { daemon?: boolean }) {
   process.env.TELEGRAM_BOT_TOKEN = telegramToken;
   process.env.DISCORD_BOT_TOKEN = discordToken;
   process.env.IDE_TYPE = config.ideType;
-  process.env.IDE_PORT = config.idePort;
+  process.env.IDE_PORT = String(config.idePort);
   process.env.AI_API_KEY = apiKey;
   process.env.AI_PROVIDER = config.aiProvider;
   process.env.AI_MODEL = config.aiModel;

@@ -38,11 +38,11 @@ export class NoOpTypingSignaler implements TypingSignaler {
  * Discord typing signaler
  */
 export class DiscordTypingSignaler implements TypingSignaler {
-  private channel: any;
+  private channel: unknown;
   private lastTypingSignal: number = 0;
   private typingInterval: NodeJS.Timeout | null = null;
 
-  constructor(channel: any) {
+  constructor(channel: unknown) {
     this.channel = channel;
   }
 
@@ -51,8 +51,9 @@ export class DiscordTypingSignaler implements TypingSignaler {
     // Discord typing indicator lasts 10 seconds, refresh every 8 seconds
     if (now - this.lastTypingSignal > 8000) {
       try {
-        if ("sendTyping" in this.channel) {
-          await this.channel.sendTyping();
+        const ch = this.channel as Record<string, unknown>;
+        if ("sendTyping" in ch && typeof ch.sendTyping === "function") {
+          await ch.sendTyping();
           this.lastTypingSignal = now;
         }
       } catch {
@@ -77,10 +78,10 @@ export class DiscordTypingSignaler implements TypingSignaler {
  * Telegram typing signaler
  */
 export class TelegramTypingSignaler implements TypingSignaler {
-  private ctx: any;
+  private ctx: unknown;
   private lastTypingSignal: number = 0;
 
-  constructor(ctx: any) {
+  constructor(ctx: unknown) {
     this.ctx = ctx;
   }
 
@@ -89,7 +90,11 @@ export class TelegramTypingSignaler implements TypingSignaler {
     // Telegram typing indicator lasts 5 seconds, refresh every 4 seconds
     if (now - this.lastTypingSignal > 4000) {
       try {
-        await this.ctx.telegram.sendChatAction(this.ctx.chat.id, "typing");
+        const ctx = this.ctx as {
+          telegram: { sendChatAction: (chatId: unknown, action: string) => Promise<void> };
+          chat: { id: unknown };
+        };
+        await ctx.telegram.sendChatAction(ctx.chat.id, "typing");
         this.lastTypingSignal = now;
       } catch {
         // Ignore typing errors
@@ -110,11 +115,11 @@ export class TelegramTypingSignaler implements TypingSignaler {
  * WhatsApp typing signaler
  */
 export class WhatsAppTypingSignaler implements TypingSignaler {
-  private sock: any;
+  private sock: unknown;
   private jid: string;
   private lastTypingSignal: number = 0;
 
-  constructor(sock: any, jid: string) {
+  constructor(sock: unknown, jid: string) {
     this.sock = sock;
     this.jid = jid;
   }
@@ -124,7 +129,10 @@ export class WhatsAppTypingSignaler implements TypingSignaler {
     // WhatsApp typing indicator, refresh every 3 seconds
     if (now - this.lastTypingSignal > 3000) {
       try {
-        await this.sock.sendPresenceUpdate("composing", this.jid);
+        const sock = this.sock as {
+          sendPresenceUpdate: (status: string, jid: string) => Promise<void>;
+        };
+        await sock.sendPresenceUpdate("composing", this.jid);
         this.lastTypingSignal = now;
       } catch {
         // Ignore typing errors
@@ -138,7 +146,10 @@ export class WhatsAppTypingSignaler implements TypingSignaler {
 
   async stopTyping(): Promise<void> {
     try {
-      await this.sock.sendPresenceUpdate("paused", this.jid);
+      const sock = this.sock as {
+        sendPresenceUpdate: (status: string, jid: string) => Promise<void>;
+      };
+      await sock.sendPresenceUpdate("paused", this.jid);
     } catch {
       // Ignore errors
     }

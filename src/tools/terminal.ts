@@ -4,8 +4,6 @@ import {
   appendOutput,
   markExited,
   markBackgrounded,
-  drainSession,
-  tail,
   ProcessSession,
 } from "./process-registry";
 import { Tool, ToolDefinition, ToolResult } from "./types";
@@ -40,7 +38,7 @@ function resolveShell(): { shell: string; buildArgs: (cmd: string) => string[] }
   const isWindows = process.platform === "win32";
 
   if (isWindows) {
-    const pwsh = process.env.COMSPEC?.toLowerCase().includes("powershell")
+    const _pwsh = process.env.COMSPEC?.toLowerCase().includes("powershell")
       ? process.env.COMSPEC
       : null;
 
@@ -56,8 +54,10 @@ function resolveShell(): { shell: string; buildArgs: (cmd: string) => string[] }
           buildArgs: (cmd: string) => [
             "-NoProfile",
             "-NonInteractive",
-            "-ExecutionPolicy", "Bypass",
-            "-Command", cmd,
+            "-ExecutionPolicy",
+            "Bypass",
+            "-Command",
+            cmd,
           ],
         };
       } catch {}

@@ -5,7 +5,9 @@
 
 import type { NormalizedStreamOutput } from "./streaming-types";
 
+// eslint-disable-next-line no-control-regex
 const ANSI_REGEX = /\x1b\[[0-9;]*m/g;
+// eslint-disable-next-line no-control-regex
 const CONTROL_CHARS_REGEX = /[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g;
 const HEARTBEAT_TOKEN = "HEARTBEAT_OK";
 

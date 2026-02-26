@@ -31,20 +31,18 @@ export function showHelpScreen(): void {
 
   console.log(chalk.bold("  Modes"));
   console.log();
-  console.log(`  ${chalk.yellow("Chat")}  ${chalk.gray("(default)")}  Messages are processed by the primary LLM`);
-  console.log(`  ${chalk.yellow("Code")}  ${chalk.gray("(/code)")}    Messages are sent directly to the coding CLI`);
+  console.log(
+    `  ${chalk.yellow("Chat")}  ${chalk.gray("(default)")}  Messages are processed by the primary LLM`,
+  );
+  console.log(
+    `  ${chalk.yellow("Code")}  ${chalk.gray("(/code)")}    Messages are sent directly to the coding CLI`,
+  );
   console.log();
 
   console.log(chalk.bold("  Tips"));
   console.log();
-  console.log(
-    chalk.gray("  • In code mode, sending a new message auto-cancels the previous one"),
-  );
-  console.log(
-    chalk.gray("  • Use /cli-model to switch between models without restarting"),
-  );
-  console.log(
-    chalk.gray("  • Use /switch to change both the LLM provider and coding adapter"),
-  );
+  console.log(chalk.gray("  • In code mode, sending a new message auto-cancels the previous one"));
+  console.log(chalk.gray("  • Use /cli-model to switch between models without restarting"));
+  console.log(chalk.gray("  • Use /switch to change both the LLM provider and coding adapter"));
   console.log();
 }

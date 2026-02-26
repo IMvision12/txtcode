@@ -33,9 +33,13 @@ export class TelegramBot {
 
   private cleanupRequest(userId: string) {
     const active = this.activeRequests.get(userId);
-    if (!active) return;
+    if (!active) {
+      return;
+    }
     active.aborted = true;
-    if (active.heartbeatInterval) clearInterval(active.heartbeatInterval);
+    if (active.heartbeatInterval) {
+      clearInterval(active.heartbeatInterval);
+    }
     this.activeRequests.delete(userId);
   }
 
@@ -126,9 +130,13 @@ export class TelegramBot {
         },
         typingSignaler,
         onChunk: async (chunk: StreamChunk) => {
-          if (active.aborted || !active.progressMessageId) return;
+          if (active.aborted || !active.progressMessageId) {
+            return;
+          }
           const preview = truncate(chunk.text, MAX_TELEGRAM_LENGTH - 50);
-          if (preview === lastEditText) return;
+          if (preview === lastEditText) {
+            return;
+          }
           try {
             await ctx.telegram.editMessageText(
               ctx.chat.id,
@@ -144,11 +152,17 @@ export class TelegramBot {
       });
 
       active.heartbeatInterval = setInterval(async () => {
-        if (active.aborted) return;
+        if (active.aborted) {
+          return;
+        }
         const elapsed = Math.floor((Date.now() - taskStartTime) / 1000);
-        if (!active.progressMessageId) return;
+        if (!active.progressMessageId) {
+          return;
+        }
         const msg = `Still working... (${elapsed}s)`;
-        if (msg === lastEditText) return;
+        if (msg === lastEditText) {
+          return;
+        }
         try {
           await ctx.telegram.editMessageText(ctx.chat.id, active.progressMessageId, undefined, msg);
           lastEditText = msg;
@@ -161,13 +175,19 @@ export class TelegramBot {
         const response = await this.agent.processMessage(
           { from, text, timestamp: new Date() },
           async (chunk: string) => {
-            if (!active.aborted) await pipeline.processText(chunk);
+            if (!active.aborted) {
+              await pipeline.processText(chunk);
+            }
           },
         );
 
-        if (active.aborted) return;
+        if (active.aborted) {
+          return;
+        }
 
-        if (active.heartbeatInterval) clearInterval(active.heartbeatInterval);
+        if (active.heartbeatInterval) {
+          clearInterval(active.heartbeatInterval);
+        }
         this.activeRequests.delete(from);
         await pipeline.flush();
 
@@ -201,14 +221,20 @@ export class TelegramBot {
           }
         }
       } catch (error) {
-        if (active.aborted) return;
+        if (active.aborted) {
+          return;
+        }
 
-        if (active.heartbeatInterval) clearInterval(active.heartbeatInterval);
+        if (active.heartbeatInterval) {
+          clearInterval(active.heartbeatInterval);
+        }
         this.activeRequests.delete(from);
         await typingSignaler.stopTyping();
 
         const isAbort = error instanceof Error && error.message.includes("aborted");
-        if (isAbort) return;
+        if (isAbort) {
+          return;
+        }
 
         const errMsg = `Error: ${error instanceof Error ? error.message : "Unknown error"}`;
         if (active.progressMessageId) {
@@ -227,7 +253,10 @@ export class TelegramBot {
     });
   }
 
-  private async sendLongMessage(ctx: any, text: string): Promise<void> {
+  private async sendLongMessage(
+    ctx: { reply: (text: string) => Promise<unknown> },
+    text: string,
+  ): Promise<void> {
     if (text.length <= MAX_TELEGRAM_LENGTH) {
       await ctx.reply(text);
       return;
@@ -249,7 +278,9 @@ export class TelegramBot {
 }
 
 function truncate(text: string, max: number): string {
-  if (text.length <= max) return text;
+  if (text.length <= max) {
+    return text;
+  }
   return text.slice(0, max - 20) + "\n\n... (truncated)";
 }
 
@@ -262,7 +293,9 @@ function splitMessage(text: string, max: number): string[] {
       break;
     }
     let breakAt = remaining.lastIndexOf("\n", max);
-    if (breakAt < max / 2) breakAt = max;
+    if (breakAt < max / 2) {
+      breakAt = max;
+    }
     parts.push(remaining.slice(0, breakAt));
     remaining = remaining.slice(breakAt);
   }

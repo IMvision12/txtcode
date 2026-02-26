@@ -1,14 +1,10 @@
-import os from "os";
 import { execFile } from "child_process";
+import os from "os";
 import { Tool, ToolDefinition, ToolResult } from "./types";
 
 const CMD_TIMEOUT = 10_000;
 
-function runCommand(
-  cmd: string,
-  args: string[],
-  timeout: number = CMD_TIMEOUT,
-): Promise<string> {
+function runCommand(cmd: string, args: string[], timeout: number = CMD_TIMEOUT): Promise<string> {
   return new Promise((resolve) => {
     execFile(cmd, args, { timeout, maxBuffer: 512 * 1024 }, (err, stdout) => {
       resolve(stdout?.toString().trim() ?? "");
@@ -18,7 +14,9 @@ function runCommand(
 
 function formatBytes(bytes: number): string {
   const gb = bytes / (1024 * 1024 * 1024);
-  if (gb >= 1) return `${gb.toFixed(1)} GB`;
+  if (gb >= 1) {
+    return `${gb.toFixed(1)} GB`;
+  }
   const mb = bytes / (1024 * 1024);
   return `${mb.toFixed(0)} MB`;
 }
@@ -29,8 +27,12 @@ function formatUptime(seconds: number): string {
   const minutes = Math.floor((seconds % 3600) / 60);
 
   const parts: string[] = [];
-  if (days > 0) parts.push(`${days}d`);
-  if (hours > 0) parts.push(`${hours}h`);
+  if (days > 0) {
+    parts.push(`${days}d`);
+  }
+  if (hours > 0) {
+    parts.push(`${hours}h`);
+  }
   parts.push(`${minutes}m`);
   return parts.join(" ");
 }
@@ -85,7 +87,11 @@ export class SysinfoTool implements Tool {
       case "processes":
         return this.actionProcesses(count);
       default:
-        return { toolCallId: "", output: `Unknown action: ${action}. Use: overview, cpu, memory, disk, uptime, processes.`, isError: true };
+        return {
+          toolCallId: "",
+          output: `Unknown action: ${action}. Use: overview, cpu, memory, disk, uptime, processes.`,
+          isError: true,
+        };
     }
   }
 
@@ -185,21 +191,38 @@ export class SysinfoTool implements Tool {
 
     if (isWindows) {
       const output = await runCommand("powershell.exe", [
-        "-NoProfile", "-NonInteractive", "-Command",
+        "-NoProfile",
+        "-NonInteractive",
+        "-Command",
         `Get-PSDrive -PSProvider FileSystem | Select-Object Name, ` +
-        `@{N='Used(GB)';E={[math]::Round($_.Used/1GB,1)}}, ` +
-        `@{N='Free(GB)';E={[math]::Round($_.Free/1GB,1)}}, ` +
-        `@{N='Total(GB)';E={[math]::Round(($_.Used+$_.Free)/1GB,1)}}, ` +
-        `Root | Format-Table -AutoSize`,
+          `@{N='Used(GB)';E={[math]::Round($_.Used/1GB,1)}}, ` +
+          `@{N='Free(GB)';E={[math]::Round($_.Free/1GB,1)}}, ` +
+          `@{N='Total(GB)';E={[math]::Round(($_.Used+$_.Free)/1GB,1)}}, ` +
+          `Root | Format-Table -AutoSize`,
       ]);
-      return { toolCallId: "", output: output || "Could not retrieve disk info.", isError: !output };
+      return {
+        toolCallId: "",
+        output: output || "Could not retrieve disk info.",
+        isError: !output,
+      };
     }
 
-    const output = await runCommand("df", ["-h", "--type=ext4", "--type=xfs", "--type=btrfs", "--type=apfs", "--type=hfs"]);
+    const output = await runCommand("df", [
+      "-h",
+      "--type=ext4",
+      "--type=xfs",
+      "--type=btrfs",
+      "--type=apfs",
+      "--type=hfs",
+    ]);
     if (!output) {
       // Fallback without type filter (macOS df doesn't support --type)
       const fallback = await runCommand("df", ["-h"]);
-      return { toolCallId: "", output: fallback || "Could not retrieve disk info.", isError: !fallback };
+      return {
+        toolCallId: "",
+        output: fallback || "Could not retrieve disk info.",
+        isError: !fallback,
+      };
     }
 
     return { toolCallId: "", output, isError: false };
@@ -209,10 +232,7 @@ export class SysinfoTool implements Tool {
     const uptime = os.uptime();
     const bootTime = new Date(Date.now() - uptime * 1000);
 
-    const lines = [
-      `Uptime: ${formatUptime(uptime)}`,
-      `Boot time: ${bootTime.toISOString()}`,
-    ];
+    const lines = [`Uptime: ${formatUptime(uptime)}`, `Boot time: ${bootTime.toISOString()}`];
 
     return { toolCallId: "", output: lines.join("\n"), isError: false };
   }
@@ -222,23 +242,25 @@ export class SysinfoTool implements Tool {
 
     if (isWindows) {
       const output = await runCommand("powershell.exe", [
-        "-NoProfile", "-NonInteractive", "-Command",
+        "-NoProfile",
+        "-NonInteractive",
+        "-Command",
         `Get-Process | Sort-Object CPU -Descending | Select-Object -First ${count} ` +
-        `Id, ProcessName, ` +
-        `@{N='CPU(s)';E={[math]::Round($_.CPU,1)}}, ` +
-        `@{N='Mem(MB)';E={[math]::Round($_.WorkingSet64/1MB,1)}} ` +
-        `| Format-Table -AutoSize`,
+          `Id, ProcessName, ` +
+          `@{N='CPU(s)';E={[math]::Round($_.CPU,1)}}, ` +
+          `@{N='Mem(MB)';E={[math]::Round($_.WorkingSet64/1MB,1)}} ` +
+          `| Format-Table -AutoSize`,
       ]);
       return {
         toolCallId: "",
-        output: output ? `Top ${count} processes by CPU:\n\n${output}` : "Could not retrieve process list.",
+        output: output
+          ? `Top ${count} processes by CPU:\n\n${output}`
+          : "Could not retrieve process list.",
         isError: !output,
       };
     }
 
-    const output = await runCommand("ps", [
-      "aux", "--sort=-%cpu",
-    ]);
+    const output = await runCommand("ps", ["aux", "--sort=-%cpu"]);
 
     if (!output) {
       return { toolCallId: "", output: "Could not retrieve process list.", isError: true };

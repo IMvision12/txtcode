@@ -1,5 +1,4 @@
 import { spawn, ChildProcess } from "child_process";
-import path from "path";
 import { logger } from "../shared/logger";
 import { IDEAdapter, ModelInfo, TrackedFiles } from "../shared/types";
 
@@ -60,7 +59,8 @@ const FILE_READ_PATTERNS = [
   /(?:read(?:ing)?|analyz(?:e|ed|ing)|inspect(?:ed|ing)?|review(?:ed|ing)?|look(?:ed|ing)?\s+at|open(?:ed|ing)?)\s+[`'"]?([^\s`'"]+\.\w{1,10})[`'"]?/gi,
 ];
 
-const FILE_PATH_PATTERN = /(?:^|\s)([a-zA-Z]?:?(?:\/|\\)?(?:[\w.\-]+(?:\/|\\))+[\w.\-]+\.\w{1,10})(?:\s|$|[,;:)`'"])/g;
+const FILE_PATH_PATTERN =
+  /(?:^|\s)([a-zA-Z]?:?(?:\/|\\)?(?:[\w.-]+(?:\/|\\))+[\w.-]+\.\w{1,10})(?:\s|$|[,;:)`'"])/g;
 
 export abstract class BaseAdapter implements IDEAdapter {
   protected connected: boolean = false;
@@ -85,7 +85,7 @@ export abstract class BaseAdapter implements IDEAdapter {
     return formatted;
   }
 
-  protected exitCodeIndicatesSuccess(code: number | null, output: string): boolean {
+  protected exitCodeIndicatesSuccess(code: number | null, _output: string): boolean {
     return code === 0;
   }
 
@@ -96,9 +96,12 @@ export abstract class BaseAdapter implements IDEAdapter {
     try {
       const { exec } = require("child_process");
       await new Promise((resolve, reject) => {
-        exec(`${config.cliCommand} --version`, (error: any, stdout: string) => {
-          if (error) reject(error);
-          else resolve(stdout);
+        exec(`${config.cliCommand} --version`, (error: Error | null, stdout: string) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(stdout);
+          }
         });
       });
       logger.debug(`${config.displayName} installed`);
@@ -288,10 +291,17 @@ export abstract class BaseAdapter implements IDEAdapter {
     try {
       const { exec } = require("child_process");
       await new Promise((resolve, reject) => {
-        exec(`${config.cliCommand} --version`, { timeout: 5000 }, (error: any, stdout: string) => {
-          if (error) reject(error);
-          else resolve(stdout);
-        });
+        exec(
+          `${config.cliCommand} --version`,
+          { timeout: 5000 },
+          (error: Error | null, stdout: string) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(stdout);
+            }
+          },
+        );
       });
       return true;
     } catch (error) {
@@ -327,7 +337,9 @@ export abstract class BaseAdapter implements IDEAdapter {
       let match;
       while ((match = pattern.exec(cleaned)) !== null) {
         const fp = this.normalizeFilePath(match[1]);
-        if (fp) this.modifiedFiles.add(fp);
+        if (fp) {
+          this.modifiedFiles.add(fp);
+        }
       }
     }
 
@@ -336,7 +348,9 @@ export abstract class BaseAdapter implements IDEAdapter {
       let match;
       while ((match = pattern.exec(cleaned)) !== null) {
         const fp = this.normalizeFilePath(match[1]);
-        if (fp) this.readFiles.add(fp);
+        if (fp) {
+          this.readFiles.add(fp);
+        }
       }
     }
 
@@ -352,18 +366,60 @@ export abstract class BaseAdapter implements IDEAdapter {
 
   private normalizeFilePath(raw: string): string | null {
     const trimmed = raw.trim().replace(/['"`,;:)]+$/, "");
-    if (!trimmed || trimmed.length < 3) return null;
+    if (!trimmed || trimmed.length < 3) {
+      return null;
+    }
 
     const ext = trimmed.split(".").pop() || "";
     const codeExtensions = [
-      "ts", "tsx", "js", "jsx", "py", "rs", "go", "java", "c", "cpp", "h", "hpp",
-      "cs", "rb", "php", "swift", "kt", "scala", "vue", "svelte", "html", "css",
-      "scss", "less", "json", "yaml", "yml", "toml", "xml", "md", "txt", "sql",
-      "sh", "bash", "zsh", "ps1", "bat", "cmd", "dockerfile", "makefile",
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "py",
+      "rs",
+      "go",
+      "java",
+      "c",
+      "cpp",
+      "h",
+      "hpp",
+      "cs",
+      "rb",
+      "php",
+      "swift",
+      "kt",
+      "scala",
+      "vue",
+      "svelte",
+      "html",
+      "css",
+      "scss",
+      "less",
+      "json",
+      "yaml",
+      "yml",
+      "toml",
+      "xml",
+      "md",
+      "txt",
+      "sql",
+      "sh",
+      "bash",
+      "zsh",
+      "ps1",
+      "bat",
+      "cmd",
+      "dockerfile",
+      "makefile",
     ];
-    if (!codeExtensions.includes(ext.toLowerCase())) return null;
+    if (!codeExtensions.includes(ext.toLowerCase())) {
+      return null;
+    }
 
-    if (trimmed.includes("node_modules") || trimmed.includes(".git/")) return null;
+    if (trimmed.includes("node_modules") || trimmed.includes(".git/")) {
+      return null;
+    }
 
     return trimmed;
   }
@@ -395,9 +451,15 @@ export abstract class BaseAdapter implements IDEAdapter {
 
     for (const line of lines) {
       const trimmed = line.trim();
-      if (!trimmed) continue;
-      if (isCliNoiseLine(trimmed)) continue;
-      if (isDiffLine(trimmed)) continue;
+      if (!trimmed) {
+        continue;
+      }
+      if (isCliNoiseLine(trimmed)) {
+        continue;
+      }
+      if (isDiffLine(trimmed)) {
+        continue;
+      }
       kept.push(line);
     }
 
@@ -411,7 +473,9 @@ export abstract class BaseAdapter implements IDEAdapter {
 
     for (const line of lines) {
       const trimmed = line.trim();
-      if (isCliNoiseLine(trimmed)) continue;
+      if (isCliNoiseLine(trimmed)) {
+        continue;
+      }
       kept.push(line);
     }
 
@@ -470,6 +534,7 @@ export abstract class BaseAdapter implements IDEAdapter {
 }
 
 export function stripAnsi(text: string): string {
+  // eslint-disable-next-line no-control-regex
   return text.replace(/\x1b\[[0-9;]*m/g, "").replace(/\x1b\[[0-9;]*[A-Za-z]/g, "");
 }
 
@@ -492,7 +557,9 @@ export function isDiffLine(trimmed: string): boolean {
 }
 
 export function isCliNoiseLine(trimmed: string): boolean {
-  if (!trimmed) return true;
+  if (!trimmed) {
+    return true;
+  }
   return CLI_NOISE_PATTERNS.some((p) => p.test(trimmed));
 }
 

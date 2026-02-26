@@ -12,6 +12,7 @@ export function getTerminalHeight(): number {
 
 export function centerText(text: string, width?: number): string {
   const terminalWidth = width || getTerminalWidth();
+  // eslint-disable-next-line no-control-regex
   const plainText = text.replace(/\x1b\[[0-9;]*m/g, "");
   const padding = Math.max(0, Math.floor((terminalWidth - plainText.length) / 2));
   return " ".repeat(padding) + text;

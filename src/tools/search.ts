@@ -3,9 +3,25 @@ import path from "path";
 import { Tool, ToolDefinition, ToolResult } from "./types";
 
 const SKIP_DIRS = new Set([
-  "node_modules", ".git", "dist", "build", ".next", ".nuxt", "__pycache__",
-  ".cache", ".venv", "venv", "vendor", "target", ".gradle", ".idea", ".vs",
-  "coverage", ".nyc_output", ".turbo", ".parcel-cache",
+  "node_modules",
+  ".git",
+  "dist",
+  "build",
+  ".next",
+  ".nuxt",
+  "__pycache__",
+  ".cache",
+  ".venv",
+  "venv",
+  "vendor",
+  "target",
+  ".gradle",
+  ".idea",
+  ".vs",
+  "coverage",
+  ".nyc_output",
+  ".turbo",
+  ".parcel-cache",
 ]);
 
 const MAX_RESULTS = 200;
@@ -18,7 +34,9 @@ function walkDir(
   depth: number = 0,
   maxDepth: number = 20,
 ): void {
-  if (depth > maxDepth) return;
+  if (depth > maxDepth) {
+    return;
+  }
 
   let entries: fs.Dirent[];
   try {
@@ -28,8 +46,12 @@ function walkDir(
   }
 
   for (const entry of entries) {
-    if (SKIP_DIRS.has(entry.name)) continue;
-    if (entry.name.startsWith(".") && entry.name !== ".env" && depth > 0) continue;
+    if (SKIP_DIRS.has(entry.name)) {
+      continue;
+    }
+    if (entry.name.startsWith(".") && entry.name !== ".env" && depth > 0) {
+      continue;
+    }
 
     const fullPath = path.join(dir, entry.name);
 
@@ -39,7 +61,9 @@ function walkDir(
       try {
         const stat = fs.statSync(fullPath);
         const shouldStop = callback(fullPath, stat);
-        if (shouldStop) return;
+        if (shouldStop) {
+          return;
+        }
       } catch {}
     }
   }
@@ -80,7 +104,8 @@ export class SearchTool implements Tool {
           },
           pattern: {
             type: "string",
-            description: "Search pattern. For grep: regex or text. For glob: file pattern (e.g. *.ts, *.py). For find: file extension (e.g. ts, py).",
+            description:
+              "Search pattern. For grep: regex or text. For glob: file pattern (e.g. *.ts, *.py). For find: file extension (e.g. ts, py).",
           },
           path: {
             type: "string",
@@ -96,7 +121,8 @@ export class SearchTool implements Tool {
           },
           include: {
             type: "string",
-            description: "Only search files matching this glob pattern (e.g. *.ts, *.py). For grep action.",
+            description:
+              "Only search files matching this glob pattern (e.g. *.ts, *.py). For grep action.",
           },
         },
         required: ["action", "pattern"],
@@ -113,7 +139,8 @@ export class SearchTool implements Tool {
     const pattern = args.pattern as string;
     const searchPath = (args.path as string)?.trim() || this.defaultCwd;
     const caseSensitive = args.case_sensitive === true;
-    const maxResults = typeof args.max_results === "number" ? Math.min(args.max_results, MAX_RESULTS) : MAX_RESULTS;
+    const maxResults =
+      typeof args.max_results === "number" ? Math.min(args.max_results, MAX_RESULTS) : MAX_RESULTS;
     const include = (args.include as string)?.trim() || "";
 
     if (!pattern) {
@@ -132,7 +159,11 @@ export class SearchTool implements Tool {
       case "find":
         return this.actionFind(searchPath, pattern, maxResults);
       default:
-        return { toolCallId: "", output: `Unknown action: ${action}. Use: grep, glob, find.`, isError: true };
+        return {
+          toolCallId: "",
+          output: `Unknown action: ${action}. Use: grep, glob, find.`,
+          isError: true,
+        };
     }
   }
 
@@ -147,15 +178,22 @@ export class SearchTool implements Tool {
     try {
       regex = new RegExp(pattern, caseSensitive ? "g" : "gi");
     } catch {
-      regex = new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), caseSensitive ? "g" : "gi");
+      regex = new RegExp(
+        pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+        caseSensitive ? "g" : "gi",
+      );
     }
 
     const matches: string[] = [];
     let fileCount = 0;
 
     walkDir(searchPath, (filePath, stat) => {
-      if (stat.size > MAX_FILE_SIZE) return false;
-      if (include && !matchGlob(path.basename(filePath), include)) return false;
+      if (stat.size > MAX_FILE_SIZE) {
+        return false;
+      }
+      if (include && !matchGlob(path.basename(filePath), include)) {
+        return false;
+      }
 
       let content: string;
       try {
@@ -165,7 +203,9 @@ export class SearchTool implements Tool {
       }
 
       // Skip binary files
-      if (content.includes("\0")) return false;
+      if (content.includes("\0")) {
+        return false;
+      }
 
       const lines = content.split("\n");
       const relativePath = path.relative(searchPath, filePath);
@@ -178,12 +218,15 @@ export class SearchTool implements Tool {
             fileHasMatch = true;
             fileCount++;
           }
-          const lineContent = lines[i].length > MAX_MATCH_CONTEXT
-            ? lines[i].substring(0, MAX_MATCH_CONTEXT) + "..."
-            : lines[i];
+          const lineContent =
+            lines[i].length > MAX_MATCH_CONTEXT
+              ? lines[i].substring(0, MAX_MATCH_CONTEXT) + "..."
+              : lines[i];
           matches.push(`${relativePath}:${i + 1}: ${lineContent.trim()}`);
 
-          if (matches.length >= maxResults) return true;
+          if (matches.length >= maxResults) {
+            return true;
+          }
         }
       }
       return false;
@@ -209,7 +252,9 @@ export class SearchTool implements Tool {
       const filename = path.basename(filePath);
       if (matchGlob(filename, pattern)) {
         results.push(path.relative(searchPath, filePath));
-        if (results.length >= maxResults) return true;
+        if (results.length >= maxResults) {
+          return true;
+        }
       }
       return false;
     });
@@ -237,7 +282,9 @@ export class SearchTool implements Tool {
           size: formatSize(stat.size),
           modified: stat.mtime.toISOString().split("T")[0],
         });
-        if (results.length >= maxResults) return true;
+        if (results.length >= maxResults) {
+          return true;
+        }
       }
       return false;
     });
@@ -257,7 +304,11 @@ export class SearchTool implements Tool {
 }
 
 function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes}B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+  if (bytes < 1024) {
+    return `${bytes}B`;
+  }
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)}KB`;
+  }
   return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
 }

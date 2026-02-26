@@ -93,7 +93,7 @@ export async function showCenteredList(options: CenteredListOptions): Promise<st
       redraw();
     };
 
-    const onKeypress = (_str: string, key: any) => {
+    const onKeypress = (_str: string, key: { name: string; ctrl?: boolean }) => {
       const pageItems = getCurrentPageItems();
       const localIdx = toLocalIndex(selectedIndex);
 

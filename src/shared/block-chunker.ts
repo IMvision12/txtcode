@@ -3,7 +3,7 @@
  * Inspired by OpenClaw's block reply pipeline
  */
 
-import type { BlockChunkingConfig, ChunkBreakPreference } from "./streaming-types";
+import type { BlockChunkingConfig } from "./streaming-types";
 
 export class BlockChunker {
   private buffer: string = "";
