@@ -5,9 +5,19 @@ import { logger } from "../shared/logger";
 import type { StreamChunk } from "../shared/streaming-types";
 import { TelegramTypingSignaler } from "../shared/typing-signaler";
 
+const MAX_TELEGRAM_LENGTH = 4096;
+
+interface ActiveRequest {
+  heartbeatInterval: NodeJS.Timeout | null;
+  progressMessageId: number | null;
+  chatId: number;
+  aborted: boolean;
+}
+
 export class TelegramBot {
   private bot: Telegraf;
   private agent: AgentCore;
+  private activeRequests: Map<string, ActiveRequest> = new Map();
 
   constructor(agent: AgentCore) {
     this.agent = agent;
@@ -21,6 +31,14 @@ export class TelegramBot {
     this.setupHandlers();
   }
 
+  private cleanupRequest(userId: string) {
+    const active = this.activeRequests.get(userId);
+    if (!active) return;
+    active.aborted = true;
+    if (active.heartbeatInterval) clearInterval(active.heartbeatInterval);
+    this.activeRequests.delete(userId);
+  }
+
   private setupHandlers() {
     this.bot.start((ctx) => {
       ctx.reply("Welcome to TxtCode! Send me coding instructions.");
@@ -32,147 +50,192 @@ export class TelegramBot {
 
       logger.debug(`Incoming message from ${from}: ${text}`);
 
-      // Check if this is a command or chat mode - no streaming for these
-      const lowerText = text.toLowerCase();
-      const isCommand =
-        lowerText === "/code" ||
-        lowerText === "/chat" ||
-        lowerText === "/switch" ||
-        lowerText === "help" ||
-        lowerText === "/help" ||
-        lowerText === "status" ||
-        lowerText === "/status" ||
-        !this.agent.isUserInCodeMode(from) ||
-        this.agent.isPendingSwitch(from);
+      if (!this.agent.shouldStream(from, text)) {
+        const prev = this.activeRequests.get(from);
+        this.cleanupRequest(from);
 
-      // For commands and chat mode, no streaming
-      if (isCommand) {
-        const response = await this.agent.processMessage({
-          from,
-          text,
-          timestamp: new Date(),
-        });
+        // Edit the old progress message to show cancellation
+        if (prev?.progressMessageId) {
+          try {
+            await ctx.telegram.editMessageText(
+              prev.chatId,
+              prev.progressMessageId,
+              undefined,
+              "Cancelled.",
+            );
+          } catch {
+            // ignore
+          }
+        }
+
+        const response = await this.agent.processMessage({ from, text, timestamp: new Date() });
         try {
-          await ctx.reply(response);
-          logger.debug("Replied successfully");
+          await this.sendLongMessage(ctx, response);
         } catch (error) {
           logger.error("Failed to send message", error);
         }
         return;
       }
 
-      // CODE mode - use streaming with block reply pipeline
-      let taskStartTime = Date.now();
-      let heartbeatInterval: NodeJS.Timeout | null = null;
-      let progressMessageId: number | null = null;
+      // New code request: cancel any previous in-flight request for this user
+      const prev = this.activeRequests.get(from);
+      if (prev) {
+        this.cleanupRequest(from);
+        // Edit old progress message to show it was replaced
+        if (prev.progressMessageId) {
+          try {
+            await ctx.telegram.editMessageText(
+              prev.chatId,
+              prev.progressMessageId,
+              undefined,
+              "Cancelled (new request received).",
+            );
+          } catch {
+            // ignore edit failure
+          }
+        }
+      }
 
-      // Send initial "working" message immediately
+      const active: ActiveRequest = {
+        heartbeatInterval: null,
+        progressMessageId: null,
+        chatId: ctx.chat.id,
+        aborted: false,
+      };
+      this.activeRequests.set(from, active);
+
+      let lastEditText = "";
+      const taskStartTime = Date.now();
+
       try {
-        const msg = await ctx.reply(`⏳ Working on your request...`);
-        progressMessageId = msg.message_id;
-        logger.debug(`[PROGRESS] Sent initial working message`);
+        const msg = await ctx.reply("Working on your request...");
+        active.progressMessageId = msg.message_id;
+        lastEditText = "Working on your request...";
       } catch (error) {
         logger.debug(`Failed to send initial message: ${error}`);
       }
 
-      // Create typing signaler
       const typingSignaler = new TelegramTypingSignaler(ctx);
 
-      // Create block reply pipeline
       const pipeline = new BlockReplyPipeline({
         chunking: {
-          minChars: 150,
-          maxChars: 500,
+          minChars: 200,
+          maxChars: 800,
           breakPreference: "paragraph",
           flushOnParagraph: true,
         },
         typingSignaler,
         onChunk: async (chunk: StreamChunk) => {
+          if (active.aborted || !active.progressMessageId) return;
+          const preview = truncate(chunk.text, MAX_TELEGRAM_LENGTH - 50);
+          if (preview === lastEditText) return;
           try {
-            const prefix = chunk.isComplete ? "✅" : "⏳ Progress...";
-            if (progressMessageId) {
-              await ctx.telegram.editMessageText(
-                ctx.chat.id,
-                progressMessageId,
-                undefined,
-                `${prefix}\n\`\`\`\n${chunk.text}\n\`\`\``,
-              );
-            }
-            logger.debug(`[PIPELINE] Sent chunk: ${chunk.text.length} chars`);
-          } catch (error) {
-            logger.debug(`Failed to send chunk: ${error}`);
+            await ctx.telegram.editMessageText(
+              ctx.chat.id,
+              active.progressMessageId,
+              undefined,
+              preview,
+            );
+            lastEditText = preview;
+          } catch {
+            // ignore
           }
         },
       });
 
-      // Start heartbeat to send periodic updates every 25 seconds
-      heartbeatInterval = setInterval(async () => {
+      active.heartbeatInterval = setInterval(async () => {
+        if (active.aborted) return;
         const elapsed = Math.floor((Date.now() - taskStartTime) / 1000);
+        if (!active.progressMessageId) return;
+        const msg = `Still working... (${elapsed}s)`;
+        if (msg === lastEditText) return;
         try {
-          if (progressMessageId) {
-            await ctx.telegram.editMessageText(
-              ctx.chat.id,
-              progressMessageId,
-              undefined,
-              `⏳ Still working... (${elapsed}s elapsed)`,
-            );
-          }
-          logger.debug(`[HEARTBEAT] Sent periodic update at ${elapsed}s`);
-        } catch (error) {
-          logger.debug(`Failed to send heartbeat: ${error}`);
+          await ctx.telegram.editMessageText(ctx.chat.id, active.progressMessageId, undefined, msg);
+          lastEditText = msg;
+        } catch {
+          // ignore
         }
       }, 25000);
 
       try {
         const response = await this.agent.processMessage(
-          {
-            from,
-            text,
-            timestamp: new Date(),
-          },
+          { from, text, timestamp: new Date() },
           async (chunk: string) => {
-            // Process through pipeline
-            await pipeline.processText(chunk);
+            if (!active.aborted) await pipeline.processText(chunk);
           },
         );
 
-        // Clear heartbeat
-        if (heartbeatInterval) {
-          clearInterval(heartbeatInterval);
-        }
+        if (active.aborted) return;
 
-        // Flush pipeline
-        await pipeline.flush({ force: true });
+        if (active.heartbeatInterval) clearInterval(active.heartbeatInterval);
+        this.activeRequests.delete(from);
+        await pipeline.flush();
+
+        const finalText = truncate(response, MAX_TELEGRAM_LENGTH);
 
         try {
-          if (progressMessageId) {
-            await ctx.telegram.editMessageText(ctx.chat.id, progressMessageId, undefined, response);
-          } else {
-            await ctx.reply(response);
-          }
-          logger.debug("Replied successfully");
-        } catch (error) {
-          logger.error("Failed to send final message", error);
-          if (progressMessageId) {
-            try {
+          if (active.progressMessageId) {
+            if (finalText !== lastEditText) {
               await ctx.telegram.editMessageText(
                 ctx.chat.id,
-                progressMessageId,
+                active.progressMessageId,
                 undefined,
-                "[OK] Task completed",
+                finalText,
               );
-            } catch {}
+            }
+          } else {
+            await this.sendLongMessage(ctx, response);
+          }
+        } catch {
+          try {
+            if (active.progressMessageId) {
+              await ctx.telegram.editMessageText(
+                ctx.chat.id,
+                active.progressMessageId,
+                undefined,
+                "Task completed.",
+              );
+            }
+          } catch {
+            // give up
           }
         }
       } catch (error) {
-        // Clear heartbeat on error
-        if (heartbeatInterval) {
-          clearInterval(heartbeatInterval);
-        }
+        if (active.aborted) return;
+
+        if (active.heartbeatInterval) clearInterval(active.heartbeatInterval);
+        this.activeRequests.delete(from);
         await typingSignaler.stopTyping();
-        throw error;
+
+        const isAbort = error instanceof Error && error.message.includes("aborted");
+        if (isAbort) return;
+
+        const errMsg = `Error: ${error instanceof Error ? error.message : "Unknown error"}`;
+        if (active.progressMessageId) {
+          try {
+            await ctx.telegram.editMessageText(
+              ctx.chat.id,
+              active.progressMessageId,
+              undefined,
+              errMsg,
+            );
+          } catch {
+            // ignore
+          }
+        }
       }
     });
+  }
+
+  private async sendLongMessage(ctx: any, text: string): Promise<void> {
+    if (text.length <= MAX_TELEGRAM_LENGTH) {
+      await ctx.reply(text);
+      return;
+    }
+    const parts = splitMessage(text, MAX_TELEGRAM_LENGTH);
+    for (const part of parts) {
+      await ctx.reply(part);
+    }
   }
 
   async start() {
@@ -183,4 +246,25 @@ export class TelegramBot {
     process.once("SIGINT", () => this.bot.stop("SIGINT"));
     process.once("SIGTERM", () => this.bot.stop("SIGTERM"));
   }
+}
+
+function truncate(text: string, max: number): string {
+  if (text.length <= max) return text;
+  return text.slice(0, max - 20) + "\n\n... (truncated)";
+}
+
+function splitMessage(text: string, max: number): string[] {
+  const parts: string[] = [];
+  let remaining = text;
+  while (remaining.length > 0) {
+    if (remaining.length <= max) {
+      parts.push(remaining);
+      break;
+    }
+    let breakAt = remaining.lastIndexOf("\n", max);
+    if (breakAt < max / 2) breakAt = max;
+    parts.push(remaining.slice(0, breakAt));
+    remaining = remaining.slice(breakAt);
+  }
+  return parts;
 }

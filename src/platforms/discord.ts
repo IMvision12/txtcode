@@ -5,9 +5,18 @@ import { logger } from "../shared/logger";
 import type { StreamChunk } from "../shared/streaming-types";
 import { DiscordTypingSignaler } from "../shared/typing-signaler";
 
+const MAX_DISCORD_LENGTH = 2000;
+
+interface ActiveRequest {
+  heartbeatInterval: NodeJS.Timeout | null;
+  progressMessage: Message | null;
+  aborted: boolean;
+}
+
 export class DiscordBot {
   private client: Client;
   private agent: AgentCore;
+  private activeRequests: Map<string, ActiveRequest> = new Map();
 
   constructor(agent: AgentCore) {
     this.agent = agent;
@@ -25,6 +34,14 @@ export class DiscordBot {
     this.setupHandlers();
   }
 
+  private cleanupRequest(userId: string) {
+    const active = this.activeRequests.get(userId);
+    if (!active) return;
+    active.aborted = true;
+    if (active.heartbeatInterval) clearInterval(active.heartbeatInterval);
+    this.activeRequests.delete(userId);
+  }
+
   private setupHandlers() {
     this.client.once("ready", () => {
       logger.info(`Discord bot logged in as ${this.client.user?.tag}!`);
@@ -32,157 +49,177 @@ export class DiscordBot {
     });
 
     this.client.on("messageCreate", async (message: Message) => {
-      if (message.author.bot) {
-        return;
-      }
-
-      if (message.guild && !message.mentions.has(this.client.user!)) {
-        return;
-      }
+      if (message.author.bot) return;
+      if (message.guild && !message.mentions.has(this.client.user!)) return;
 
       const from = message.author.id;
       const text = message.content.replace(`<@${this.client.user?.id}>`, "").trim();
-
-      if (!text) {
-        return;
-      }
+      if (!text) return;
 
       logger.debug(`Incoming message from ${message.author.tag}: ${text}`);
 
-      // Check if this is a command or chat mode - no streaming for these
-      const lowerText = text.toLowerCase();
-      const isCommand =
-        lowerText === "/code" ||
-        lowerText === "/chat" ||
-        lowerText === "/switch" ||
-        lowerText === "help" ||
-        lowerText === "/help" ||
-        lowerText === "status" ||
-        lowerText === "/status" ||
-        !this.agent.isUserInCodeMode(from) ||
-        this.agent.isPendingSwitch(from);
+      if (!this.agent.shouldStream(from, text)) {
+        const prev = this.activeRequests.get(from);
+        this.cleanupRequest(from);
 
-      // For commands and chat mode, no streaming
-      if (isCommand) {
-        const response = await this.agent.processMessage({
-          from,
-          text,
-          timestamp: new Date(),
-        });
+        if (prev?.progressMessage) {
+          try {
+            await prev.progressMessage.edit("Cancelled.");
+          } catch {
+            // ignore
+          }
+        }
+
+        const response = await this.agent.processMessage({ from, text, timestamp: new Date() });
         try {
-          await message.reply(response);
-          logger.debug(`Replied: ${response}`);
+          await this.sendLongReply(message, response);
         } catch (error: any) {
           logger.error("Failed to send Discord message", error);
         }
         return;
       }
 
-      // CODE mode - use streaming with block reply pipeline
-      let taskStartTime = Date.now();
-      let heartbeatInterval: NodeJS.Timeout | null = null;
-      let progressMessage: Message | null = null;
+      // New code request: cancel previous in-flight request
+      const prev = this.activeRequests.get(from);
+      if (prev) {
+        this.cleanupRequest(from);
+        if (prev.progressMessage) {
+          try {
+            await prev.progressMessage.edit("Cancelled (new request received).");
+          } catch {
+            // ignore
+          }
+        }
+      }
 
-      // Send initial "working" message immediately
+      const active: ActiveRequest = {
+        heartbeatInterval: null,
+        progressMessage: null,
+        aborted: false,
+      };
+      this.activeRequests.set(from, active);
+
+      let lastEditText = "";
+      const taskStartTime = Date.now();
+
       try {
-        progressMessage = await message.reply(`⏳ Working on your request...`);
-        logger.debug(`[PROGRESS] Sent initial working message`);
+        active.progressMessage = await message.reply("Working on your request...");
+        lastEditText = "Working on your request...";
       } catch (error) {
         logger.debug(`Failed to send initial message: ${error}`);
       }
 
-      // Create typing signaler
       const typingSignaler = new DiscordTypingSignaler(message.channel);
 
-      // Create block reply pipeline
       const pipeline = new BlockReplyPipeline({
         chunking: {
-          minChars: 150,
-          maxChars: 500,
+          minChars: 200,
+          maxChars: 800,
           breakPreference: "paragraph",
           flushOnParagraph: true,
         },
         typingSignaler,
         onChunk: async (chunk: StreamChunk) => {
+          if (active.aborted || !active.progressMessage) return;
+          const preview = truncate(chunk.text, MAX_DISCORD_LENGTH - 50);
+          if (preview === lastEditText) return;
           try {
-            const prefix = chunk.isComplete ? "✅" : "⏳ Progress...";
-            if (progressMessage) {
-              await (progressMessage as Message).edit(`${prefix}\n\`\`\`\n${chunk.text}\n\`\`\``);
-            }
-            logger.debug(`[PIPELINE] Sent chunk: ${chunk.text.length} chars`);
-          } catch (error) {
-            logger.debug(`Failed to send chunk: ${error}`);
+            await active.progressMessage.edit(preview);
+            lastEditText = preview;
+          } catch {
+            // ignore
           }
         },
       });
 
-      // Start heartbeat to send periodic updates every 25 seconds
-      heartbeatInterval = setInterval(async () => {
+      active.heartbeatInterval = setInterval(async () => {
+        if (active.aborted || !active.progressMessage) return;
         const elapsed = Math.floor((Date.now() - taskStartTime) / 1000);
+        const msg = `Still working... (${elapsed}s)`;
+        if (msg === lastEditText) return;
         try {
-          if (progressMessage) {
-            await (progressMessage as Message).edit(`⏳ Still working... (${elapsed}s elapsed)`);
-          }
-          logger.debug(`[HEARTBEAT] Sent periodic update at ${elapsed}s`);
-        } catch (error) {
-          logger.debug(`Failed to send heartbeat: ${error}`);
+          await active.progressMessage.edit(msg);
+          lastEditText = msg;
+        } catch {
+          // ignore
         }
       }, 25000);
 
       try {
         const response = await this.agent.processMessage(
-          {
-            from,
-            text,
-            timestamp: new Date(),
-          },
+          { from, text, timestamp: new Date() },
           async (chunk: string) => {
-            // Process through pipeline
-            await pipeline.processText(chunk);
+            if (!active.aborted) await pipeline.processText(chunk);
           },
         );
 
-        // Clear heartbeat
-        if (heartbeatInterval) {
-          clearInterval(heartbeatInterval);
-        }
+        if (active.aborted) return;
 
-        // Flush pipeline
-        await pipeline.flush({ force: true });
+        if (active.heartbeatInterval) clearInterval(active.heartbeatInterval);
+        this.activeRequests.delete(from);
+        await pipeline.flush();
+
+        const finalText = truncate(response, MAX_DISCORD_LENGTH);
 
         try {
-          if (progressMessage) {
-            await (progressMessage as Message).edit(response);
+          if (active.progressMessage) {
+            if (finalText !== lastEditText) {
+              await active.progressMessage.edit(finalText);
+            }
           } else {
-            await message.reply(response);
+            await this.sendLongReply(message, response);
           }
-          logger.debug(`Replied: ${response}`);
-        } catch (error: any) {
-          logger.error("Failed to send Discord message", error);
+        } catch {
           try {
-            const fallbackMsg = "[OK] Task completed, but output was too long to display.";
-            if (progressMessage) {
-              await (progressMessage as Message).edit(fallbackMsg);
+            const fallback = "Task completed, but the output was too long to display.";
+            if (active.progressMessage) {
+              await active.progressMessage.edit(fallback);
             } else {
-              await message.reply(fallbackMsg);
+              await message.reply(fallback);
             }
           } catch (fallbackError) {
             logger.error("Failed to send fallback message", fallbackError);
           }
         }
       } catch (error) {
-        // Clear heartbeat on error
-        if (heartbeatInterval) {
-          clearInterval(heartbeatInterval);
-        }
+        if (active.aborted) return;
+
+        if (active.heartbeatInterval) clearInterval(active.heartbeatInterval);
+        this.activeRequests.delete(from);
         await typingSignaler.stopTyping();
-        throw error;
+
+        const isAbort = error instanceof Error && error.message.includes("aborted");
+        if (isAbort) return;
+
+        const errMsg = `Error: ${error instanceof Error ? error.message : "Unknown error"}`;
+        if (active.progressMessage) {
+          try {
+            await active.progressMessage.edit(errMsg);
+          } catch {
+            // ignore
+          }
+        }
       }
     });
 
     this.client.on("error", (error) => {
       logger.error("Discord client error", error);
     });
+  }
+
+  private async sendLongReply(message: Message, text: string): Promise<void> {
+    if (text.length <= MAX_DISCORD_LENGTH) {
+      await message.reply(text);
+      return;
+    }
+    const parts = splitMessage(text, MAX_DISCORD_LENGTH);
+    for (let i = 0; i < parts.length; i++) {
+      if (i === 0) {
+        await message.reply(parts[i]);
+      } else {
+        await (message.channel as any).send(parts[i]);
+      }
+    }
   }
 
   async start() {
@@ -195,4 +232,25 @@ export class DiscordBot {
     logger.info("Connecting to Discord...");
     await this.client.login(token);
   }
+}
+
+function truncate(text: string, max: number): string {
+  if (text.length <= max) return text;
+  return text.slice(0, max - 20) + "\n\n... (truncated)";
+}
+
+function splitMessage(text: string, max: number): string[] {
+  const parts: string[] = [];
+  let remaining = text;
+  while (remaining.length > 0) {
+    if (remaining.length <= max) {
+      parts.push(remaining);
+      break;
+    }
+    let breakAt = remaining.lastIndexOf("\n", max);
+    if (breakAt < max / 2) breakAt = max;
+    parts.push(remaining.slice(0, breakAt));
+    remaining = remaining.slice(breakAt);
+  }
+  return parts;
 }

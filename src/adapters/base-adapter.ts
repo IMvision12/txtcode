@@ -12,6 +12,45 @@ export interface AdapterConfig {
   stdinMode: "inherit" | "pipe";
 }
 
+const RATE_LIMIT_PATTERNS = [
+  /rate.?limit/i,
+  /too many requests/i,
+  /429/,
+  /quota.?exceeded/i,
+  /token.?limit/i,
+  /context.?length.?exceeded/i,
+  /max.?tokens/i,
+  /capacity/i,
+  /overloaded/i,
+  /throttl/i,
+];
+
+const CLI_NOISE_PATTERNS = [
+  /^╭─+╮$/,
+  /^╰─+╯$/,
+  /^│\s*│$/,
+  /^\s*⎿\s*$/,
+  /^\s*⎡\s*$/,
+  /^─+$/,
+  /^━+$/,
+  /^Loading/i,
+  /^Initializing/i,
+  /^Connecting/i,
+  /^Starting/i,
+  /^\s*\d+\s*[│|]\s*$/,
+  /^>\s*$/,
+  /YOLO mode is enabled/i,
+  /Hook registry initialized/i,
+  /Loaded cached credentials/i,
+  /^\s*tokens used/i,
+  /^\s*input tokens/i,
+  /^\s*output tokens/i,
+  /^\s*total cost/i,
+  /^\s*session cost/i,
+  /^\s*duration/i,
+  /^\s*\d+\.\d+s\s*$/,
+];
+
 export abstract class BaseAdapter implements IDEAdapter {
   protected connected: boolean = false;
   protected projectPath: string;
@@ -157,7 +196,10 @@ export abstract class BaseAdapter implements IDEAdapter {
         output += text;
 
         if (onProgress) {
-          onProgress(text);
+          const cleaned = this.cleanProgressChunk(text);
+          if (cleaned) {
+            onProgress(cleaned);
+          }
         }
 
         this.filterAndLogOutput(text, config.statusKeywords);
@@ -178,12 +220,24 @@ export abstract class BaseAdapter implements IDEAdapter {
           return;
         }
 
+        const combined = output + "\n" + errorOutput;
+        const rateLimitMsg = detectRateLimit(combined);
+        if (rateLimitMsg) {
+          resolve(rateLimitMsg);
+          return;
+        }
+
         if (this.exitCodeIndicatesSuccess(code, output)) {
           logger.debug(`Command executed successfully! Time: ${elapsed}s`);
           resolve(this.formatResponse(output || "Task completed successfully."));
         } else {
+          const errRateLimit = detectRateLimit(errorOutput);
+          if (errRateLimit) {
+            resolve(errRateLimit);
+            return;
+          }
           logger.error(`Process exited with code ${code}`);
-          reject(new Error(errorOutput || `Process exited with code ${code}`));
+          resolve(this.formatErrorResponse(errorOutput, code));
         }
       });
 
@@ -231,10 +285,51 @@ export abstract class BaseAdapter implements IDEAdapter {
   protected onProcessSpawned(): void {}
 
   private formatResponse(output: string): string {
-    let formatted = output.trim();
-    formatted = formatted.replace(/\x1b\[[0-9;]*m/g, "");
+    let formatted = stripAnsi(output);
+    formatted = this.stripCliNoise(formatted);
     formatted = this.extraFormatResponse(formatted);
+    formatted = collapseWhitespace(formatted);
     return formatted || "Task completed successfully.";
+  }
+
+  private formatErrorResponse(errorOutput: string, code: number | null): string {
+    const cleaned = stripAnsi(errorOutput).trim();
+    if (!cleaned) {
+      return `Command failed (exit code ${code}). The adapter may have encountered an internal error.`;
+    }
+    const truncated = cleaned.length > 500 ? cleaned.slice(-500) : cleaned;
+    return `Command failed (exit code ${code}):\n${truncated}`;
+  }
+
+  private cleanProgressChunk(raw: string): string | null {
+    let text = stripAnsi(raw);
+
+    const lines = text.split("\n");
+    const kept: string[] = [];
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      if (isCliNoiseLine(trimmed)) continue;
+      if (isDiffLine(trimmed)) continue;
+      kept.push(line);
+    }
+
+    const result = kept.join("\n").trim();
+    return result || null;
+  }
+
+  private stripCliNoise(text: string): string {
+    const lines = text.split("\n");
+    const kept: string[] = [];
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (isCliNoiseLine(trimmed)) continue;
+      kept.push(line);
+    }
+
+    return kept.join("\n");
   }
 
   private killProcess(proc: ChildProcess): void {
@@ -266,24 +361,7 @@ export abstract class BaseAdapter implements IDEAdapter {
     for (const line of lines) {
       const trimmed = line.trim();
 
-      if (
-        trimmed.startsWith("+") ||
-        trimmed.startsWith("-") ||
-        trimmed.startsWith("@@") ||
-        trimmed.startsWith("diff ") ||
-        trimmed.startsWith("index ") ||
-        trimmed.startsWith("---") ||
-        trimmed.startsWith("+++") ||
-        trimmed.startsWith("new file") ||
-        trimmed.startsWith("deleted file") ||
-        trimmed.includes("def ") ||
-        trimmed.includes("class ") ||
-        trimmed.includes("import ") ||
-        trimmed.includes("from ") ||
-        trimmed.includes("return ") ||
-        trimmed.includes("    ") ||
-        trimmed.length > 150
-      ) {
+      if (isDiffLine(trimmed) || trimmed.length > 150) {
         continue;
       }
 
@@ -303,4 +381,40 @@ export abstract class BaseAdapter implements IDEAdapter {
       }
     }
   }
+}
+
+function stripAnsi(text: string): string {
+  return text.replace(/\x1b\[[0-9;]*m/g, "").replace(/\x1b\[[0-9;]*[A-Za-z]/g, "");
+}
+
+function collapseWhitespace(text: string): string {
+  return text.replace(/\n{3,}/g, "\n\n").trim();
+}
+
+function isDiffLine(trimmed: string): boolean {
+  return (
+    trimmed.startsWith("+") ||
+    trimmed.startsWith("-") ||
+    trimmed.startsWith("@@") ||
+    trimmed.startsWith("diff ") ||
+    trimmed.startsWith("index ") ||
+    trimmed.startsWith("---") ||
+    trimmed.startsWith("+++") ||
+    trimmed.startsWith("new file") ||
+    trimmed.startsWith("deleted file")
+  );
+}
+
+function isCliNoiseLine(trimmed: string): boolean {
+  if (!trimmed) return true;
+  return CLI_NOISE_PATTERNS.some((p) => p.test(trimmed));
+}
+
+function detectRateLimit(text: string): string | null {
+  for (const pattern of RATE_LIMIT_PATTERNS) {
+    if (pattern.test(text)) {
+      return "The AI model has reached its usage limit. Please wait a moment and try again, or use /switch to change to a different provider.";
+    }
+  }
+  return null;
 }

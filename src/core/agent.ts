@@ -57,6 +57,24 @@ export class AgentCore {
     return this.pendingSwitch.has(userId);
   }
 
+  shouldStream(userId: string, text: string): boolean {
+    const lower = text.trim().toLowerCase();
+    if (
+      lower === "/code" ||
+      lower === "/chat" ||
+      lower === "/switch" ||
+      lower === "/cancel" ||
+      lower === "help" ||
+      lower === "/help" ||
+      lower === "status" ||
+      lower === "/status"
+    ) {
+      return false;
+    }
+    if (this.pendingSwitch.has(userId)) return false;
+    return this.userModes.get(userId) === "code";
+  }
+
   private saveAuthorizedUser(userId: string) {
     try {
       const config = this.loadConfigSafely();
@@ -120,6 +138,11 @@ To switch back to chat mode, use: /chat`;
 All your messages will now be sent to the primary LLM (${this.router.getProviderName()}).
 
 To switch to code mode, use: /code`;
+    }
+
+    if (lowerText === "/cancel") {
+      this.router.abortCurrentCommand();
+      return "Current command cancelled.";
     }
 
     if (lowerText === "/switch") {
@@ -378,22 +401,19 @@ Your chat messages will now use ${selectedProvider}.`;
   private getHelpMessage(): string {
     return `TxtCode Agent
 
-Available commands:
-• help - Show this message
-• status - Check IDE connection
-• /code - Switch to CODE mode (all messages go to coding adapter)
-• /chat - Switch to CHAT mode (all messages go to primary LLM)
-• /switch - Switch Primary LLM or Coding Adaptor
+Commands:
+/code - Switch to CODE mode (messages go to coding adapter)
+/chat - Switch to CHAT mode (messages go to primary LLM)
+/cancel - Cancel the current running command
+/switch - Switch Primary LLM or Coding Adapter
+/status - Check IDE connection
+/help - Show this message
 
 Chat Mode (default):
-Messages go to the primary LLM (${this.router.getProviderName()}) with terminal tool support.
+Messages go to ${this.router.getProviderName()} with tool support.
 
 Code Mode:
-Messages go to the coding adapter (${this.router.getAdapterName()})
-
-To switch configurations:
-Use /switch to choose between:
-1. Primary LLM (for chat mode) - includes API key configuration
-2. Coding Adaptor (for code mode) - switches IDE adapter`;
+Messages go to ${this.router.getAdapterName()}.
+Sending a new message while one is running will cancel the previous one.`;
   }
 }

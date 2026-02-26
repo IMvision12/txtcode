@@ -6,23 +6,47 @@ import makeWASocket, {
   DisconnectReason,
   useMultiFileAuthState,
   WAMessage,
-  proto,
 } from "@whiskeysockets/baileys";
 import { AgentCore } from "../core/agent";
-import { BlockReplyPipeline } from "../shared/block-reply-pipeline";
 import { logger } from "../shared/logger";
-import type { StreamChunk } from "../shared/streaming-types";
 import { WhatsAppTypingSignaler } from "../shared/typing-signaler";
 
 const WA_AUTH_DIR = path.join(os.homedir(), ".txtcode", ".wacli_auth");
+const MAX_WA_LENGTH = 4096;
+
+const noop = () => {};
+const silentLogger = {
+  level: "silent" as const,
+  fatal: noop,
+  error: noop,
+  warn: noop,
+  info: noop,
+  debug: noop,
+  trace: noop,
+  child: () => silentLogger,
+} as any;
+
+interface ActiveRequest {
+  heartbeatInterval: NodeJS.Timeout | null;
+  aborted: boolean;
+}
 
 export class WhatsAppBot {
   private agent: AgentCore;
   private sock: any;
   private lastProcessedTimestamp: number = 0;
+  private activeRequests: Map<string, ActiveRequest> = new Map();
 
   constructor(agent: AgentCore) {
     this.agent = agent;
+  }
+
+  private cleanupRequest(userId: string) {
+    const active = this.activeRequests.get(userId);
+    if (!active) return;
+    active.aborted = true;
+    if (active.heartbeatInterval) clearInterval(active.heartbeatInterval);
+    this.activeRequests.delete(userId);
   }
 
   async start() {
@@ -38,24 +62,7 @@ export class WhatsAppBot {
     this.sock = makeWASocket({
       auth: state,
       printQRInTerminal: false,
-      logger: {
-        level: "silent",
-        fatal: () => {},
-        error: () => {},
-        warn: () => {},
-        info: () => {},
-        debug: () => {},
-        trace: () => {},
-        child: () => ({
-          level: "silent",
-          fatal: () => {},
-          error: () => {},
-          warn: () => {},
-          info: () => {},
-          debug: () => {},
-          trace: () => {},
-        }),
-      } as any,
+      logger: silentLogger,
     });
 
     this.sock.ev.on("connection.update", async (update: any) => {
@@ -87,118 +94,57 @@ export class WhatsAppBot {
       async ({ messages, type }: { messages: WAMessage[]; type: string }) => {
         for (const msg of messages) {
           try {
-            if (type !== "notify") {
-              continue;
-            }
-
-            if (!msg.message || msg.key.remoteJid === "status@broadcast") {
-              continue;
-            }
+            if (type !== "notify") continue;
+            if (!msg.message || msg.key.remoteJid === "status@broadcast") continue;
 
             const from = msg.key.remoteJid || "";
             const isFromMe = msg.key.fromMe || false;
             const messageTimestamp = (msg.messageTimestamp as number) || 0;
 
-            if (!isFromMe) {
-              continue;
-            }
+            if (!isFromMe) continue;
+            if (from.endsWith("@g.us")) continue;
 
-            if (from.endsWith("@g.us")) {
-              continue;
-            }
-
-            const text = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
-
-            if (!text) {
-              continue;
-            }
-
-            if (messageTimestamp <= this.lastProcessedTimestamp) {
-              continue;
-            }
+            const text =
+              msg.message.conversation || msg.message.extendedTextMessage?.text || "";
+            if (!text) continue;
+            if (messageTimestamp <= this.lastProcessedTimestamp) continue;
 
             this.lastProcessedTimestamp = messageTimestamp;
-
             logger.debug(`Incoming message: ${text}`);
 
-            // Check if this is a command or chat mode - no streaming for these
-            const lowerText = text.toLowerCase();
-            const isCommand =
-              lowerText === "/code" ||
-              lowerText === "/chat" ||
-              lowerText === "/switch" ||
-              lowerText === "help" ||
-              lowerText === "/help" ||
-              lowerText === "status" ||
-              lowerText === "/status" ||
-              !this.agent.isUserInCodeMode(from) ||
-              this.agent.isPendingSwitch(from);
+            if (!this.agent.shouldStream(from, text)) {
+              this.cleanupRequest(from);
 
-            // For commands and chat mode, no streaming
-            if (isCommand) {
               const response = await this.agent.processMessage({
                 from,
                 text,
                 timestamp: new Date(messageTimestamp * 1000),
               });
-              await this.sock.sendMessage(from, { text: response }, { quoted: msg });
-              logger.debug(`Replied: ${response}`);
+              await this.sendLongMessage(from, response, msg);
               continue;
             }
 
-            // CODE mode - use streaming with block reply pipeline
-            let taskStartTime = Date.now();
-            let heartbeatInterval: NodeJS.Timeout | null = null;
-
-            // Send initial "working" message immediately
-            try {
-              await this.sock.sendMessage(
-                from,
-                { text: `⏳ Working on your request...` },
-                { quoted: msg },
-              );
-              logger.debug(`[PROGRESS] Sent initial working message`);
-            } catch (error) {
-              logger.debug(`Failed to send initial message: ${error}`);
+            // New code request: cancel previous in-flight request
+            const prev = this.activeRequests.get(from);
+            if (prev) {
+              this.cleanupRequest(from);
+              await this.sock.sendMessage(from, {
+                text: "Previous command cancelled.",
+              });
             }
 
-            // Create typing signaler
+            const active: ActiveRequest = {
+              heartbeatInterval: null,
+              aborted: false,
+            };
+            this.activeRequests.set(from, active);
+
             const typingSignaler = new WhatsAppTypingSignaler(this.sock, from);
 
-            // Create block reply pipeline
-            const pipeline = new BlockReplyPipeline({
-              chunking: {
-                minChars: 150,
-                maxChars: 500,
-                breakPreference: "paragraph",
-                flushOnParagraph: true,
-              },
-              typingSignaler,
-              onChunk: async (chunk: StreamChunk) => {
-                try {
-                  const prefix = chunk.isComplete ? "✅" : "⏳ Progress...";
-                  await this.sock.sendMessage(from, {
-                    text: `${prefix}\n\`\`\`\n${chunk.text}\n\`\`\``,
-                  });
-                  logger.debug(`[PIPELINE] Sent chunk: ${chunk.text.length} chars`);
-                } catch (error) {
-                  logger.debug(`Failed to send chunk: ${error}`);
-                }
-              },
-            });
-
-            // Start heartbeat to send periodic updates every 25 seconds
-            heartbeatInterval = setInterval(async () => {
-              const elapsed = Math.floor((Date.now() - taskStartTime) / 1000);
-              try {
-                await this.sock.sendMessage(from, {
-                  text: `⏳ Still working... (${elapsed}s elapsed)`,
-                });
-                logger.debug(`[HEARTBEAT] Sent periodic update at ${elapsed}s`);
-              } catch (error) {
-                logger.debug(`Failed to send heartbeat: ${error}`);
-              }
-            }, 25000);
+            active.heartbeatInterval = setInterval(async () => {
+              if (active.aborted) return;
+              await typingSignaler.signalTyping();
+            }, 3000);
 
             try {
               const response = await this.agent.processMessage(
@@ -207,29 +153,30 @@ export class WhatsAppBot {
                   text,
                   timestamp: new Date(messageTimestamp * 1000),
                 },
-                async (chunk: string) => {
-                  // Process through pipeline
-                  await pipeline.processText(chunk);
+                async (_chunk: string) => {
+                  if (!active.aborted) await typingSignaler.signalTyping();
                 },
               );
 
-              // Clear heartbeat
-              if (heartbeatInterval) {
-                clearInterval(heartbeatInterval);
-              }
+              if (active.aborted) continue;
 
-              // Flush pipeline
-              await pipeline.flush({ force: true });
-
-              await this.sock.sendMessage(from, { text: response }, { quoted: msg });
-              logger.debug(`Replied: ${response}`);
-            } catch (error) {
-              // Clear heartbeat on error
-              if (heartbeatInterval) {
-                clearInterval(heartbeatInterval);
-              }
+              if (active.heartbeatInterval) clearInterval(active.heartbeatInterval);
+              this.activeRequests.delete(from);
               await typingSignaler.stopTyping();
-              throw error;
+
+              await this.sendLongMessage(from, response, msg);
+            } catch (error) {
+              if (active.aborted) continue;
+
+              if (active.heartbeatInterval) clearInterval(active.heartbeatInterval);
+              this.activeRequests.delete(from);
+              await typingSignaler.stopTyping();
+
+              const isAbort = error instanceof Error && error.message.includes("aborted");
+              if (isAbort) continue;
+
+              const errMsg = `Error: ${error instanceof Error ? error.message : "Unknown error"}`;
+              await this.sock.sendMessage(from, { text: errMsg }, { quoted: msg });
             }
           } catch (error) {
             logger.error("Error processing message", error);
@@ -238,4 +185,39 @@ export class WhatsAppBot {
       },
     );
   }
+
+  private async sendLongMessage(
+    jid: string,
+    text: string,
+    quotedMsg: WAMessage,
+  ): Promise<void> {
+    if (text.length <= MAX_WA_LENGTH) {
+      await this.sock.sendMessage(jid, { text }, { quoted: quotedMsg });
+      return;
+    }
+    const parts = splitMessage(text, MAX_WA_LENGTH);
+    for (let i = 0; i < parts.length; i++) {
+      if (i === 0) {
+        await this.sock.sendMessage(jid, { text: parts[i] }, { quoted: quotedMsg });
+      } else {
+        await this.sock.sendMessage(jid, { text: parts[i] });
+      }
+    }
+  }
+}
+
+function splitMessage(text: string, max: number): string[] {
+  const parts: string[] = [];
+  let remaining = text;
+  while (remaining.length > 0) {
+    if (remaining.length <= max) {
+      parts.push(remaining);
+      break;
+    }
+    let breakAt = remaining.lastIndexOf("\n", max);
+    if (breakAt < max / 2) breakAt = max;
+    parts.push(remaining.slice(0, breakAt));
+    remaining = remaining.slice(breakAt);
+  }
+  return parts;
 }

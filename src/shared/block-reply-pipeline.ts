@@ -1,8 +1,3 @@
-/**
- * Block Reply Pipeline - manages intelligent streaming of CLI output
- * Inspired by OpenClaw's BlockReplyPipeline
- */
-
 import { BlockChunker } from "./block-chunker";
 import { normalizeStreamOutput } from "./stream-normalizer";
 import type { BlockChunkingConfig, StreamChunk } from "./streaming-types";
@@ -17,87 +12,55 @@ export interface BlockReplyPipelineConfig {
 export class BlockReplyPipeline {
   private chunker: BlockChunker;
   private config: BlockReplyPipelineConfig;
-  private sentChunks: Set<string> = new Set();
-  private lastChunkTime: number = 0;
-  private minChunkInterval: number = 2000; // Minimum 2 seconds between chunks
+  private accumulatedText: string = "";
 
   constructor(config: BlockReplyPipelineConfig) {
     this.config = config;
     this.chunker = new BlockChunker(config.chunking);
   }
 
-  /**
-   * Process incoming text from CLI
-   */
   async processText(text: string): Promise<void> {
-    // Normalize the text
     const normalized = normalizeStreamOutput(text);
-    if (normalized.skip) {
-      return;
-    }
+    if (normalized.skip) return;
 
-    // Signal typing
+    this.accumulatedText += normalized.text;
+
     await this.config.typingSignaler.signalTextDelta(normalized.text);
 
-    // Add to chunker
     const chunks = this.chunker.addText(normalized.text);
 
-    // Send chunks that are ready
     for (const chunkText of chunks) {
-      await this.sendChunk(chunkText, false);
+      await this.sendChunk(false);
     }
   }
 
-  /**
-   * Flush remaining buffer
-   */
-  async flush(options: { force?: boolean } = {}): Promise<void> {
-    const remaining = this.chunker.flush();
-    if (remaining) {
-      await this.sendChunk(remaining, true);
+  async flush(): Promise<void> {
+    this.chunker.flush();
+    if (this.accumulatedText.trim()) {
+      await this.sendChunk(true);
     }
-
-    // Stop typing indicator
     await this.config.typingSignaler.stopTyping();
   }
 
-  /**
-   * Send a chunk to the platform
-   */
-  private async sendChunk(text: string, isComplete: boolean): Promise<void> {
-    // Create chunk key to prevent duplicates
-    const chunkKey = `${text.slice(0, 50)}_${text.length}`;
-    if (this.sentChunks.has(chunkKey)) {
-      return;
-    }
+  getAccumulatedText(): string {
+    return this.accumulatedText;
+  }
 
-    // Respect minimum interval between chunks
-    const now = Date.now();
-    if (!isComplete && now - this.lastChunkTime < this.minChunkInterval) {
-      return;
-    }
-
+  private async sendChunk(isComplete: boolean): Promise<void> {
     const chunk: StreamChunk = {
-      text,
-      timestamp: now,
+      text: this.accumulatedText,
+      timestamp: Date.now(),
       isComplete,
     };
 
     try {
       await this.config.onChunk(chunk);
-      this.sentChunks.add(chunkKey);
-      this.lastChunkTime = now;
     } catch (error) {
-      // Log error but don't throw - streaming should be resilient
-      console.error("Failed to send chunk:", error);
+      // Streaming should be resilient
     }
   }
 
-  /**
-   * Reset the pipeline
-   */
   reset(): void {
-    this.sentChunks.clear();
-    this.lastChunkTime = 0;
+    this.accumulatedText = "";
   }
 }
