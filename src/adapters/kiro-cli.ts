@@ -8,8 +8,7 @@ export class KiroAdapter extends BaseAdapter {
       cliCommand: "kiro-cli",
       displayName: "Kiro CLI",
       installUrl: "https://kiro.dev/cli/",
-      installInstructions:
-        "Install it with:\n  curl -fsSL https://cli.kiro.dev/install | bash",
+      installInstructions: "Install it with:\n  curl -fsSL https://cli.kiro.dev/install | bash",
       statusKeywords: ["kiro"],
       stdinMode: "pipe",
     };

@@ -23,9 +23,7 @@ export abstract class BaseAdapter implements IDEAdapter {
 
   protected abstract getConfig(): AdapterConfig;
 
-  protected abstract buildArgs(
-    fullInstruction: string,
-  ): string[];
+  protected abstract buildArgs(fullInstruction: string): string[];
 
   protected abstract getStatusText(): string;
 
