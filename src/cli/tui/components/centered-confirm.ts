@@ -10,7 +10,6 @@ export async function showCenteredConfirm(options: CenteredConfirmOptions): Prom
   return new Promise((resolve) => {
     const defaultValue = options.default !== undefined ? options.default : true;
 
-    // Left-aligned message
     const fullMessage = `${options.message} ${chalk.gray(`(${defaultValue ? "Y/n" : "y/N"})`)}: `;
     process.stdout.write(fullMessage);
 
@@ -19,34 +18,28 @@ export async function showCenteredConfirm(options: CenteredConfirmOptions): Prom
       process.stdin.setRawMode(true);
     }
 
+    const cleanup = () => {
+      if (process.stdin.isTTY) {
+        process.stdin.setRawMode(false);
+      }
+      process.stdin.removeListener("keypress", onKeypress);
+      process.stdin.pause();
+    };
+
     const onKeypress = (str: string, key: any) => {
       if (key.ctrl && key.name === "c") {
-        if (process.stdin.isTTY) {
-          process.stdin.setRawMode(false);
-        }
+        cleanup();
         process.exit(0);
       } else if (key.name === "return") {
-        if (process.stdin.isTTY) {
-          process.stdin.setRawMode(false);
-        }
-        process.stdin.removeListener("keypress", onKeypress);
-        process.stdin.pause();
-        console.log(); // New line
+        cleanup();
+        console.log();
         resolve(defaultValue);
       } else if (str === "y" || str === "Y") {
-        if (process.stdin.isTTY) {
-          process.stdin.setRawMode(false);
-        }
-        process.stdin.removeListener("keypress", onKeypress);
-        process.stdin.pause();
+        cleanup();
         console.log(chalk.green("Yes"));
         resolve(true);
       } else if (str === "n" || str === "N") {
-        if (process.stdin.isTTY) {
-          process.stdin.setRawMode(false);
-        }
-        process.stdin.removeListener("keypress", onKeypress);
-        process.stdin.pause();
+        cleanup();
         console.log(chalk.red("No"));
         resolve(false);
       }

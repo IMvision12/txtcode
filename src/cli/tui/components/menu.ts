@@ -20,36 +20,40 @@ export async function showMenu(options: MenuOptions): Promise<string> {
     let selectedIndex = 0;
     const terminalWidth = getTerminalWidth();
 
+    const longestChoice = Math.max(
+      ...options.items.map((item) => {
+        const plainText = item.name.replace(/\x1b\[[0-9;]*m/g, "");
+        return plainText.length;
+      }),
+    );
+    const menuWidth = longestChoice + 4;
+    const leftPadding = Math.max(0, Math.floor((terminalWidth - menuWidth) / 2));
+
     const renderMenuItems = () => {
-      // Find the longest choice text to determine menu width
-      const longestChoice = Math.max(
-        ...options.items.map((item) => {
-          const plainText = item.name.replace(/\x1b\[[0-9;]*m/g, "");
-          return plainText.length;
-        }),
-      );
-
-      const menuWidth = longestChoice + 4; // Add space for bullet and arrow
-      const leftPadding = Math.max(0, Math.floor((terminalWidth - menuWidth) / 2));
-
       options.items.forEach((item, index) => {
         const isSelected = index === selectedIndex;
         const bullet = isSelected ? chalk.green("● ") : chalk.gray("○ ");
         const arrow = isSelected ? chalk.cyan("→ ") : "  ";
         const text = isSelected ? chalk.cyan(item.name) : item.name;
 
-        // Clear the line and write new content
-        process.stdout.write("\x1b[2K"); // Clear entire line
+        process.stdout.write("\x1b[2K");
         console.log(" ".repeat(leftPadding) + arrow + bullet + text);
       });
     };
 
-    const renderFullMenu = () => {
+    const render = (init: boolean) => {
+      if (init) {
+        process.stdout.write("\x1b[?1049h");
+      }
+      process.stdout.write("\x1b[H");
+      process.stdout.write("\x1b[?25l");
+
       if (options.onRender) {
         options.onRender();
       }
 
       if (options.title) {
+        process.stdout.write("\x1b[2K");
         console.log(centerText(chalk.cyan(options.title), terminalWidth));
         console.log();
       }
@@ -60,38 +64,38 @@ export async function showMenu(options: MenuOptions): Promise<string> {
         console.log();
         options.onRenderFooter();
       }
+
+      process.stdout.write("\x1b[?25h");
     };
 
-    // Initial render
-    renderFullMenu();
+    const cleanup = () => {
+      process.stdout.write("\x1b[?1049l");
+      if (process.stdin.isTTY) {
+        process.stdin.setRawMode(false);
+      }
+      process.stdin.removeListener("keypress", onKeypress);
+      process.stdin.pause();
+    };
+
+    render(true);
 
     readline.emitKeypressEvents(process.stdin);
     if (process.stdin.isTTY) {
       process.stdin.setRawMode(true);
     }
 
-    const onKeypress = (str: string, key: any) => {
+    const onKeypress = (_str: string, key: any) => {
       if (key.name === "up") {
         selectedIndex = selectedIndex > 0 ? selectedIndex - 1 : options.items.length - 1;
-        // Clear screen and re-render everything
-        console.clear();
-        renderFullMenu();
+        render(false);
       } else if (key.name === "down") {
         selectedIndex = selectedIndex < options.items.length - 1 ? selectedIndex + 1 : 0;
-        // Clear screen and re-render everything
-        console.clear();
-        renderFullMenu();
+        render(false);
       } else if (key.name === "return") {
-        if (process.stdin.isTTY) {
-          process.stdin.setRawMode(false);
-        }
-        process.stdin.removeListener("keypress", onKeypress);
-        process.stdin.pause();
+        cleanup();
         resolve(options.items[selectedIndex].value);
       } else if (key.ctrl && key.name === "c") {
-        if (process.stdin.isTTY) {
-          process.stdin.setRawMode(false);
-        }
+        cleanup();
         process.exit(0);
       }
     };

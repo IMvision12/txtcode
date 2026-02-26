@@ -10,20 +10,17 @@ export async function interactiveMode(): Promise<void> {
   let running = true;
 
   while (running) {
-    // Check configuration status
+    console.clear();
+
     const config = loadConfig();
     const isConfigured = config !== null;
 
-    // Show main menu
     const action = await showMainMenu({ isConfigured });
-
-    console.log(); // Add spacing
 
     try {
       switch (action) {
         case "auth":
           await authCommand();
-          await pressAnyKey();
           break;
 
         case "start":

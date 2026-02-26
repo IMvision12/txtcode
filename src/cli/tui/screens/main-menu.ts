@@ -3,8 +3,8 @@ import path from "path";
 import chalk from "chalk";
 import { renderBanner, getBannerHeight } from "../components/banner";
 import {
-  centerText,
   centerLog,
+  getTerminalHeight,
   getTerminalWidth,
   calculateVerticalPadding,
 } from "../components/centered-text";
@@ -21,23 +21,11 @@ function getVersion(): string {
   }
 }
 
-// Get current working directory
-function getCurrentDirectory(): string {
-  return process.cwd();
-}
-
-// Get terminal height
-function getTerminalHeight(): number {
-  return process.stdout.rows || 24;
-}
-
 export interface MainMenuOptions {
   isConfigured: boolean;
 }
 
 export async function showMainMenu(options: MainMenuOptions): Promise<string> {
-  const terminalWidth = getTerminalWidth();
-
   // Build menu items based on configuration status
   const menuItems: MenuItem[] = [];
 
@@ -99,9 +87,7 @@ export async function showMainMenu(options: MainMenuOptions): Promise<string> {
     title: "What would you like to do? (Use arrow keys)",
     items: menuItems,
     onRender: () => {
-      console.clear();
-
-      // Add vertical padding
+      // Add vertical padding (no console.clear — the menu component handles cursor positioning)
       for (let i = 0; i < topPadding; i++) {
         console.log();
       }
@@ -131,7 +117,7 @@ export async function showMainMenu(options: MainMenuOptions): Promise<string> {
 
       // Show directory on left and version on right at the absolute bottom
       const version = getVersion();
-      const directory = getCurrentDirectory();
+      const directory = process.cwd();
       const termWidth = getTerminalWidth();
 
       const leftText = chalk.gray(directory);
@@ -145,9 +131,6 @@ export async function showMainMenu(options: MainMenuOptions): Promise<string> {
       console.log(leftText + " ".repeat(spacing) + rightText);
     },
   });
-
-  // After menu selection, show footer before returning
-  // (This won't be visible as the menu clears, so we need a different approach)
 
   return action;
 }

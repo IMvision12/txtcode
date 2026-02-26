@@ -21,6 +21,18 @@ const CONFIG_DIR = path.join(os.homedir(), ".txtcode");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 const WA_AUTH_DIR = path.join(CONFIG_DIR, ".wacli_auth");
 
+const noop = () => {};
+const silentLogger = {
+  level: "silent" as const,
+  fatal: noop,
+  error: noop,
+  warn: noop,
+  info: noop,
+  debug: noop,
+  trace: noop,
+  child: () => silentLogger,
+} as any;
+
 // Validate API key
 function validateApiKeyFormat(apiKey: string): { valid: boolean; error?: string } {
   const trimmed = apiKey.trim();
@@ -92,48 +104,14 @@ async function authenticateWhatsApp(): Promise<void> {
       sock = makeWASocket({
         auth: {
           creds: state.creds,
-          keys: makeCacheableSignalKeyStore(state.keys, {
-            level: "silent",
-            fatal: () => {},
-            error: () => {},
-            warn: () => {},
-            info: () => {},
-            debug: () => {},
-            trace: () => {},
-            child: () => ({
-              level: "silent",
-              fatal: () => {},
-              error: () => {},
-              warn: () => {},
-              info: () => {},
-              debug: () => {},
-              trace: () => {},
-            }),
-          } as any),
+          keys: makeCacheableSignalKeyStore(state.keys, silentLogger),
         },
         version,
         printQRInTerminal: false,
         browser: ["TxtCode", "CLI", "1.0.0"],
         syncFullHistory: false,
         markOnlineOnConnect: false,
-        logger: {
-          level: "silent",
-          fatal: () => {},
-          error: () => {},
-          warn: () => {},
-          info: () => {},
-          debug: () => {},
-          trace: () => {},
-          child: () => ({
-            level: "silent",
-            fatal: () => {},
-            error: () => {},
-            warn: () => {},
-            info: () => {},
-            debug: () => {},
-            trace: () => {},
-          }),
-        } as any,
+        logger: silentLogger,
       });
 
       let hasShownQR = false;
@@ -232,24 +210,7 @@ async function authenticateWhatsApp(): Promise<void> {
             const retrySock = makeWASocket({
               auth: newState,
               printQRInTerminal: false,
-              logger: {
-                level: "silent",
-                fatal: () => {},
-                error: () => {},
-                warn: () => {},
-                info: () => {},
-                debug: () => {},
-                trace: () => {},
-                child: () => ({
-                  level: "silent",
-                  fatal: () => {},
-                  error: () => {},
-                  warn: () => {},
-                  info: () => {},
-                  debug: () => {},
-                  trace: () => {},
-                }),
-              } as any,
+              logger: silentLogger,
             });
 
             retrySock.ev.on("creds.update", newSaveCreds);
@@ -790,27 +751,17 @@ export async function authCommand() {
     console.log(chalk.white(`  ${label}: ${provider.provider} (${provider.model})`));
   });
 
-  console.log(chalk.cyan("\nNext steps:"));
-  console.log(chalk.white("  1. Run: " + chalk.bold("txtcode start")));
-
-  if (platform === "telegram") {
-    console.log(chalk.white("  2. Message your Telegram bot"));
-  } else if (platform === "discord") {
-    console.log(chalk.white("  2. Invite bot to your server and mention it"));
-  } else if (platform === "whatsapp") {
-    console.log(chalk.white("  2. Send a message from your authorized number"));
-  }
-
-  console.log(chalk.white("  3. Start coding from your phone!\n"));
+  console.log(
+    chalk.cyan("\nRun ") +
+      chalk.bold("txtcode") +
+      chalk.cyan(" and choose ") +
+      chalk.bold("Start Agent") +
+      chalk.cyan(" to begin.\n"),
+  );
 
   if (configuredProviders.length > 1) {
     console.log(chalk.gray("  Use /switch to change between your configured providers\n"));
   }
-
-  // Force exit to ensure terminal closes (WhatsApp socket may have lingering listeners)
-  setTimeout(() => {
-    process.exit(0);
-  }, 100);
 }
 
 export function loadConfig(): any {

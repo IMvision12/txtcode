@@ -217,7 +217,7 @@ async function configureProject(config: any) {
 
 function viewConfig(config: any) {
   console.log();
-  centerLog(chalk.cyan("� Current Configuration"));
+  centerLog(chalk.cyan("Current Configuration"));
   console.log();
   centerLog(chalk.white("Platform: ") + chalk.yellow(config.platform));
   centerLog(chalk.white("IDE Type: ") + chalk.yellow(config.ideType));
