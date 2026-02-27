@@ -176,6 +176,32 @@
       "requiresToken": true,
       "tokenPrompt": "Enter Supabase Access Token:",
       "keychainKey": "mcp-supabase"
+    },
+    {
+      "id": "circleci",
+      "name": "CircleCI",
+      "description": "Build logs, flaky tests, pipeline status, config validation, rerun workflows",
+      "category": "developer",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@circleci/mcp-server-circleci@latest"],
+      "requiresToken": true,
+      "tokenPrompt": "Enter CircleCI Personal API Token:",
+      "tokenEnvKey": "CIRCLECI_TOKEN",
+      "keychainKey": "mcp-circleci"
+    },
+    {
+      "id": "postman",
+      "name": "Postman",
+      "description": "Collections, workspaces, environments, API specs, monitors, code generation",
+      "category": "developer",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@postman/postman-mcp-server"],
+      "requiresToken": true,
+      "tokenPrompt": "Enter Postman API Key:",
+      "tokenEnvKey": "POSTMAN_API_KEY",
+      "keychainKey": "mcp-postman"
     }
   ],
   "categories": {
