@@ -20,6 +20,14 @@ export class AgentCore {
     this.loadAuthorizedUser();
   }
 
+  async init(): Promise<void> {
+    await this.router.initMCP();
+  }
+
+  async shutdown(): Promise<void> {
+    await this.router.shutdownMCP();
+  }
+
   private loadAuthorizedUser() {
     try {
       const fs = require("fs");

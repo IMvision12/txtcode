@@ -1,0 +1,187 @@
+{
+  "servers": [
+    {
+      "id": "github",
+      "name": "GitHub",
+      "description": "Repos, issues, PRs, code search, Actions (73 tools)",
+      "category": "developer",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "requiresToken": true,
+      "tokenPrompt": "Enter GitHub Personal Access Token:",
+      "tokenEnvKey": "GITHUB_PERSONAL_ACCESS_TOKEN",
+      "keychainKey": "mcp-github"
+    },
+    {
+      "id": "brave-search",
+      "name": "Brave Search",
+      "description": "Web, image, video, and news search via Brave",
+      "category": "developer",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "requiresToken": true,
+      "tokenPrompt": "Enter Brave Search API Key:",
+      "tokenEnvKey": "BRAVE_API_KEY",
+      "keychainKey": "mcp-brave-search"
+    },
+    {
+      "id": "puppeteer",
+      "name": "Puppeteer",
+      "description": "Browser automation, screenshots, form filling, JS execution",
+      "category": "developer",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
+      "requiresToken": false,
+      "keychainKey": "mcp-puppeteer"
+    },
+    {
+      "id": "postgres",
+      "name": "PostgreSQL",
+      "description": "Read-only SQL queries and schema inspection",
+      "category": "database",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres"],
+      "requiresToken": true,
+      "tokenPrompt": "Enter PostgreSQL connection string (e.g. postgresql://user:pass@localhost/db):",
+      "tokenEnvKey": "POSTGRES_CONNECTION_STRING",
+      "keychainKey": "mcp-postgres",
+      "tokenIsArg": true
+    },
+    {
+      "id": "mongodb",
+      "name": "MongoDB",
+      "description": "CRUD operations, indexes, vector search, Atlas management",
+      "category": "database",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "mongodb-mcp-server"],
+      "requiresToken": true,
+      "tokenPrompt": "Enter MongoDB connection string (e.g. mongodb://localhost:27017/mydb):",
+      "tokenEnvKey": "MONGODB_URI",
+      "keychainKey": "mcp-mongodb"
+    },
+    {
+      "id": "redis",
+      "name": "Redis",
+      "description": "Data structures, caching, vectors, pub/sub",
+      "category": "database",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@redis/mcp-server"],
+      "requiresToken": true,
+      "tokenPrompt": "Enter Redis connection URL (e.g. redis://localhost:6379):",
+      "tokenEnvKey": "REDIS_URL",
+      "keychainKey": "mcp-redis"
+    },
+    {
+      "id": "elasticsearch",
+      "name": "Elasticsearch",
+      "description": "Index management, search queries, cluster operations",
+      "category": "database",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@elastic/mcp-server-elasticsearch"],
+      "requiresToken": true,
+      "tokenPrompt": "Enter Elasticsearch URL (e.g. https://localhost:9200):",
+      "tokenEnvKey": "ES_URL",
+      "keychainKey": "mcp-elasticsearch",
+      "additionalTokens": [
+        {
+          "tokenPrompt": "Enter Elasticsearch API Key:",
+          "tokenEnvKey": "ES_API_KEY",
+          "keychainKey": "mcp-elasticsearch-apikey"
+        }
+      ]
+    },
+    {
+      "id": "aws",
+      "name": "AWS",
+      "description": "S3, Lambda, EKS, CDK, CloudFormation, and 60+ AWS services",
+      "category": "cloud",
+      "transport": "stdio",
+      "command": "uvx",
+      "args": ["awslabs.core-mcp-server@latest"],
+      "requiresToken": true,
+      "tokenPrompt": "Enter AWS Access Key ID:",
+      "tokenEnvKey": "AWS_ACCESS_KEY_ID",
+      "keychainKey": "mcp-aws-access-key",
+      "additionalTokens": [
+        {
+          "tokenPrompt": "Enter AWS Secret Access Key:",
+          "tokenEnvKey": "AWS_SECRET_ACCESS_KEY",
+          "keychainKey": "mcp-aws-secret-key"
+        },
+        {
+          "tokenPrompt": "Enter AWS Region (e.g. us-east-1):",
+          "tokenEnvKey": "AWS_REGION",
+          "keychainKey": "mcp-aws-region"
+        }
+      ]
+    },
+    {
+      "id": "gcp",
+      "name": "Google Cloud",
+      "description": "BigQuery, GKE, Compute Engine, Cloud Storage, Firebase",
+      "category": "cloud",
+      "transport": "http",
+      "url": "https://cloud.google.com/mcp",
+      "requiresToken": true,
+      "tokenPrompt": "Enter Google Cloud Access Token:",
+      "keychainKey": "mcp-gcp"
+    },
+    {
+      "id": "cloudflare",
+      "name": "Cloudflare",
+      "description": "Workers, R2, DNS, Zero Trust, 2500+ API endpoints",
+      "category": "cloud",
+      "transport": "http",
+      "url": "https://api.cloudflare.com/mcp",
+      "requiresToken": true,
+      "tokenPrompt": "Enter Cloudflare API Token:",
+      "keychainKey": "mcp-cloudflare"
+    },
+    {
+      "id": "vercel",
+      "name": "Vercel",
+      "description": "Deployments, domains, environment variables, logs",
+      "category": "cloud",
+      "transport": "http",
+      "url": "https://mcp.vercel.com",
+      "requiresToken": true,
+      "tokenPrompt": "Enter Vercel Access Token:",
+      "keychainKey": "mcp-vercel"
+    },
+    {
+      "id": "atlassian",
+      "name": "Atlassian",
+      "description": "Jira issues, Confluence pages, Compass components",
+      "category": "productivity",
+      "transport": "http",
+      "url": "https://mcp.atlassian.com/v1/mcp",
+      "requiresToken": true,
+      "tokenPrompt": "Enter Atlassian API Token:",
+      "keychainKey": "mcp-atlassian"
+    },
+    {
+      "id": "supabase",
+      "name": "Supabase",
+      "description": "Postgres, Auth, Storage, Edge Functions",
+      "category": "database",
+      "transport": "http",
+      "url": "https://mcp.supabase.com/mcp",
+      "requiresToken": true,
+      "tokenPrompt": "Enter Supabase Access Token:",
+      "keychainKey": "mcp-supabase"
+    }
+  ],
+  "categories": {
+    "developer": "Developer Tools",
+    "database": "Databases",
+    "cloud": "Cloud & Infrastructure",
+    "productivity": "Productivity"
+  }
+}
