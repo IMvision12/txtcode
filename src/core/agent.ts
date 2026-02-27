@@ -511,7 +511,7 @@ Commands:
 /cancel - Cancel the current running command
 /switch - Switch Primary LLM or Coding Adapter
 /cli-model - Change the model used by the current coding adapter
-/status - Check IDE connection
+/status - Check adapter connection
 /help - Show this message
 
 Chat Mode (default):

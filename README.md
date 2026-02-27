@@ -15,9 +15,9 @@
 <br />
 <br />
 
-**Code from anywhere. Control your IDE from any messaging app.**
+**Code from anywhere. Control your coding CLI from any messaging app.**
 
-Send a WhatsApp message. Watch your IDE write code.
+Send a WhatsApp message. Watch your coding agent write code.
 
 **txtcode** bridges messaging apps to AI coding assistants, giving you full remote control over your development environment from your phone, tablet, or any device with a chat app.
 
@@ -31,7 +31,7 @@ Send a WhatsApp message. Watch your IDE write code.
 
 ## Why txtcode?
 
-You're on the couch, on the train, or away from your desk but you need to fix a bug, run tests, or scaffold a feature. With **txtcode**, your phone becomes a remote control for your IDE:
+You're on the couch, on the train, or away from your desk but you need to fix a bug, run tests, or scaffold a feature. With **txtcode**, your phone becomes a remote control for your coding CLI:
 
 1. **Text your AI** from WhatsApp, Telegram, Discord, Slack, Teams, or Signal
 2. **It writes code** using Claude Code, Cursor, Codex, Gemini CLI, or other adapters
@@ -49,7 +49,7 @@ No port forwarding. No VPN. Just message and code.
 
 ### Messaging-First
 
-Connect via **6 platforms** : WhatsApp, Telegram, Discord, Slack, Microsoft Teams, and Signal. First user to message is auto-authorized.
+Connect via **6 platforms** : WhatsApp, Telegram, Discord, Slack, Microsoft Teams, and Signal.
 
 ### 9 AI Providers
 
@@ -57,7 +57,7 @@ Anthropic, OpenAI, Google Gemini, Mistral, Moonshot, MiniMax, xAI Grok, HuggingF
 
 ### 7 Coding Adapters
 
-Claude Code, Cursor CLI, OpenAI Codex, Gemini CLI, Kiro CLI, OpenCode, and Ollama (local/free). Full IDE control in `/code` mode.
+Claude Code, Cursor CLI, OpenAI Codex, Gemini CLI, Kiro CLI, OpenCode, and Ollama (local/free). Full coding CLI control in `/code` mode.
 
 </td>
 <td width="50%">
@@ -137,7 +137,7 @@ All providers support tool calling and LLM can invoke any built-in tool or conne
 
 ## Coding Adapters
 
-Use `/code` mode to route messages directly to a coding adapter with full IDE control.
+Use `/code` mode to route messages directly to a coding adapter with full coding CLI control.
 
 | Adapter                | Backend        | CLI Required | Notes                       |
 | :--------------------- | :------------- | :----------- | :-------------------------- |
@@ -222,7 +222,7 @@ Send these commands in any messaging app while connected:
 | Command      | Description                                                                    |
 | :----------- | :----------------------------------------------------------------------------- |
 | `/chat`      | Switch to **Chat mode** to send messages to primary LLM with tools _(default)_ |
-| `/code`      | Switch to **Code mode** to send messages to coding adapter (full IDE control)  |
+| `/code`      | Switch to **Code mode** to send messages to coding adapter (full CLI control)  |
 | `/switch`    | Switch primary LLM provider or coding adapter on the fly                       |
 | `/cli-model` | Change the model used by the current coding adapter                            |
 | `/cancel`    | Cancel the currently running command                                           |
@@ -238,7 +238,7 @@ Config is stored at **`~/.txtcode/config.json`**. API keys and tokens are stored
 To modify settings, select **Configuration** from the main menu. Options include:
 
 - Change Messaging Platform
-- Change IDE Type
+- Change Coding CLI Type
 - Change AI Provider
 - Manage MCP Servers (add/remove/enable/disable)
 - Change Project Path

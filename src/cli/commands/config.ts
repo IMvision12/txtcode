@@ -35,7 +35,7 @@ export async function configCommand() {
     message: "Select what to configure: (Use arrow keys)",
     choices: [
       { name: "Change Messaging Platform", value: "platform" },
-      { name: "Change IDE Type", value: "ide" },
+      { name: "Change Coding CLI Type", value: "ide" },
       { name: "Change AI Provider", value: "ai" },
       { name: "Manage MCP Servers", value: "mcp" },
       { name: "Change Project Path", value: "project" },
@@ -112,11 +112,11 @@ async function configurePlatform(config: Record<string, unknown>) {
 
 async function configureIDE(config: Record<string, unknown>) {
   console.log();
-  centerLog(chalk.cyan("🤖 IDE Configuration"));
+  centerLog(chalk.cyan("🤖 Coding CLI Configuration"));
   console.log();
 
   const ideType = await showCenteredList({
-    message: "Select IDE type: (Use arrow keys)",
+    message: "Select coding CLI type: (Use arrow keys)",
     choices: [
       { name: "Claude Code (Official - Anthropic API)", value: "claude-code" },
       { name: "Cursor CLI (Headless)", value: "cursor" },
@@ -130,7 +130,7 @@ async function configureIDE(config: Record<string, unknown>) {
 
   config.ideType = ideType;
 
-  // Ask for model based on IDE type
+  // Ask for model based on CLI type
   if (ideType === "claude-code") {
     const model = await showCenteredInput({
       message: "Claude model (sonnet, opus, haiku):",
@@ -150,7 +150,7 @@ async function configureIDE(config: Record<string, unknown>) {
 
   saveConfig(config);
   console.log();
-  centerLog(chalk.green("✅ IDE configuration updated!"));
+  centerLog(chalk.green("✅ Coding CLI configuration updated!"));
   console.log();
 }
 
@@ -223,7 +223,7 @@ function viewConfig(config: Record<string, unknown>) {
   centerLog(chalk.cyan("Current Configuration"));
   console.log();
   centerLog(chalk.white("Platform: ") + chalk.yellow(String(config.platform)));
-  centerLog(chalk.white("IDE Type: ") + chalk.yellow(String(config.ideType)));
+  centerLog(chalk.white("Coding CLI: ") + chalk.yellow(String(config.ideType)));
   centerLog(chalk.white("AI Provider: ") + chalk.yellow(String(config.aiProvider)));
 
   if (config.projectPath) {

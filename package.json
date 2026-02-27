@@ -1,7 +1,7 @@
 {
   "name": "txtcode",
   "version": "0.1.0",
-  "description": "Remote IDE control via WhatsApp/Telegram/Discord/Slack/Teams/Signal - Code from anywhere using AI-powered messaging",
+  "description": "Remote coding CLI control via WhatsApp/Telegram/Discord/Slack/Teams/Signal - Code from anywhere using AI-powered messaging",
   "keywords": [
     "ai",
     "claude",
@@ -9,8 +9,8 @@
     "code-assistant",
     "discord",
     "gemini",
-    "ide",
-    "messaging-ide",
+    "coding-cli",
+    "messaging-cli",
     "microsoft-teams",
     "mobile-coding",
     "openai",

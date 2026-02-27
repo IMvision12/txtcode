@@ -241,7 +241,7 @@ export async function authCommand() {
 
   console.log(chalk.blue.bold("TxtCode Authentication"));
   console.log();
-  console.log(chalk.gray("Configure your TxtCode CLI for remote IDE control"));
+  console.log(chalk.gray("Configure your TxtCode CLI for remote coding CLI control"));
   console.log();
 
   // Check for existing configuration

@@ -80,7 +80,7 @@ export async function startCommand(_options: { daemon?: boolean }) {
 
   logger.info(chalk.blue.bold("\nStarting TxtCode Agent\n"));
   logger.info(chalk.cyan(`Platform: ${config.platform}`));
-  logger.info(chalk.cyan(`IDE: ${config.ideType}\n`));
+  logger.info(chalk.cyan(`Coding CLI: ${config.ideType}\n`));
 
   const apiKey = await getApiKey(config.aiProvider);
   if (!apiKey) {
