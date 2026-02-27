@@ -41,7 +41,7 @@ No port forwarding. No VPN. Just message and code.
 
 ---
 
-## Features
+## ✨ Features
 
 <table>
 <tr>
@@ -80,7 +80,7 @@ Per-session logs accessible from the TUI. Follow live, view by index, auto-prune
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 **Requires Node.js 20+ and npm 10+.**
 
@@ -102,7 +102,7 @@ That's it. The interactive menu guides you through everything authentication, co
 
 ---
 
-## Supported Platforms
+## 📝 Supported Platforms
 
 | Platform | Transport | Setup |
 | :--- | :--- | :--- |
@@ -115,7 +115,7 @@ That's it. The interactive menu guides you through everything authentication, co
 
 ---
 
-## AI Providers
+## 🤖 AI Providers
 
 txtcode supports **9 LLM providers** for chat mode. Configure one or more during setup and hot-switch with `/switch`.
 
@@ -135,7 +135,7 @@ All providers support tool calling and LLM can invoke any built-in tool or conne
 
 ---
 
-## Coding Adapters
+## 💻 Coding Adapters
 
 Use `/code` mode to route messages directly to a coding adapter with full coding CLI control.
 
@@ -151,7 +151,7 @@ Use `/code` mode to route messages directly to a coding adapter with full coding
 
 ---
 
-## Built-in Tools
+## 🛠️ Built-in Tools
 
 The primary LLM in chat mode has access to **9 built-in tools** that it can call autonomously:
 
@@ -169,7 +169,7 @@ The primary LLM in chat mode has access to **9 built-in tools** that it can call
 
 ---
 
-## MCP Servers
+## 📟 MCP Servers
 
 txtcode integrates with the **Model Context Protocol** to connect external tool servers. Configure during initial setup or later via **Configuration** &rarr; **Manage MCP Servers** in the TUI.
 
@@ -215,7 +215,7 @@ txtcode integrates with the **Model Context Protocol** to connect external tool 
 
 ---
 
-## Chat Commands
+## 💬 Chat Commands
 
 Send these commands in any messaging app while connected:
 
@@ -231,7 +231,7 @@ Send these commands in any messaging app while connected:
 
 ---
 
-## Configuration
+## ⚙️ Configuration
 
 Config is stored at **`~/.txtcode/config.json`**. API keys and tokens are stored in your OS keychain (via `keytar`), never in the config file.
 
@@ -246,7 +246,7 @@ To modify settings, select **Configuration** from the main menu. Options include
 
 ---
 
-## Logs
+## 🏷️ Logs
 
 - **Location:** `~/.txtcode/logs/`
 - **Format:** `session-YYYY-MM-DD-HHmmss.log` (one per agent session)
