@@ -191,11 +191,21 @@ function authenticateWhatsApp(): Promise<void> {
 
             closeSock(sock);
 
+            await new Promise((r) => setTimeout(r, 2000));
+
             const { state: newState, saveCreds: newSaveCreds } =
               await useMultiFileAuthState(WA_AUTH_DIR);
+            const retryVersion = await fetchLatestBaileysVersion();
             const retrySock = makeWASocket({
-              auth: newState,
+              auth: {
+                creds: newState.creds,
+                keys: makeCacheableSignalKeyStore(newState.keys, silentLogger),
+              },
+              version: retryVersion.version,
               printQRInTerminal: false,
+              browser: ["txtcode", "CLI", "0.1.0"],
+              syncFullHistory: false,
+              markOnlineOnConnect: false,
               logger: silentLogger,
             });
 
