@@ -214,8 +214,7 @@ export class SignalBot {
       await fetch(`${this.signalCliUrl}/v1/receive/${this.registeredNumber}`, {
         method: "GET",
       });
-    } catch {
-    }
+    } catch {}
 
     const server = http.createServer(async (req, res) => {
       if (req.url === "/api/signal/webhook" && req.method === "POST") {
@@ -267,8 +266,7 @@ export class SignalBot {
             logger.error("Error processing polled Signal message", error);
           }
         }
-      } catch {
-      }
+      } catch {}
     }, pollInterval);
   }
 }

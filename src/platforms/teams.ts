@@ -30,8 +30,7 @@ function adaptRequest(req: http.IncomingMessage): Record<string, unknown> {
       let parsed: unknown = {};
       try {
         parsed = JSON.parse(body);
-      } catch {
-      }
+      } catch {}
       resolve({
         body: parsed,
         headers: req.headers,

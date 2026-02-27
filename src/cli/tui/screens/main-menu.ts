@@ -75,12 +75,7 @@ export async function showMainMenu(options: MainMenuOptions): Promise<string> {
   });
 
   const contentHeight =
-    getBannerHeight() +
-    1 +
-    (options.isConfigured ? 1 : 2) +
-    1 +
-    1 +
-    menuItems.length;
+    getBannerHeight() + 1 + (options.isConfigured ? 1 : 2) + 1 + 1 + menuItems.length;
 
   const topPadding = calculateVerticalPadding(contentHeight);
 

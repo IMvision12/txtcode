@@ -25,7 +25,6 @@ export function showMessage(
   console.log();
 }
 
-
 export async function pressAnyKey(message: string = "Press Enter to continue..."): Promise<void> {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   return new Promise((resolve) => {

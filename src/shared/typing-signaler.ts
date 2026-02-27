@@ -1,10 +1,7 @@
 export interface TypingSignaler {
-
   signalTyping(): Promise<void>;
 
-
   signalTextDelta(text: string): Promise<void>;
-
 
   stopTyping(): Promise<void>;
 }
@@ -22,7 +19,6 @@ export class NoOpTypingSignaler implements TypingSignaler {
     // No-op
   }
 }
-
 
 export class DiscordTypingSignaler implements TypingSignaler {
   private channel: unknown;
@@ -60,7 +56,6 @@ export class DiscordTypingSignaler implements TypingSignaler {
   }
 }
 
-
 export class TelegramTypingSignaler implements TypingSignaler {
   private ctx: unknown;
   private lastTypingSignal: number = 0;
@@ -89,8 +84,7 @@ export class TelegramTypingSignaler implements TypingSignaler {
     await this.signalTyping();
   }
 
-  async stopTyping(): Promise<void> {
-  }
+  async stopTyping(): Promise<void> {}
 }
 
 export class SlackTypingSignaler implements TypingSignaler {

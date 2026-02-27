@@ -830,8 +830,7 @@ export async function authCommand() {
       fs.chmodSync(CONFIG_DIR, 0o700);
       fs.chmodSync(CONFIG_FILE, 0o600);
     }
-  } catch {
-  }
+  } catch {}
 
   console.log(chalk.green("\nAuthentication successful!"));
   console.log(chalk.gray(`\nConfiguration saved to: ${CONFIG_FILE}`));

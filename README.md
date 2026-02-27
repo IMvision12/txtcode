@@ -104,14 +104,14 @@ That's it. The interactive menu guides you through everything authentication, co
 
 ## 📝 Supported Platforms
 
-| Platform | Transport | Setup |
-| :--- | :--- | :--- |
-| ![WhatsApp](https://img.shields.io/badge/WhatsApp-25D366?style=flat&logo=whatsapp&logoColor=white) | QR code pairing | Scan QR in terminal on first run |
-| ![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=flat&logo=telegram&logoColor=white) | Bot API | Create bot via [@BotFather](https://t.me/BotFather), paste token |
-| ![Discord](https://img.shields.io/badge/Discord-5865F2?style=flat&logo=discord&logoColor=white) | Bot gateway | Create app at [discord.com/developers](https://discord.com/developers), paste bot token |
-| ![Slack](https://img.shields.io/badge/Slack-4A154B?style=flat&logo=slack&logoColor=white) | Socket Mode | Create app at [api.slack.com](https://api.slack.com/apps), enable Socket Mode |
-| ![Teams](https://img.shields.io/badge/Microsoft_Teams-6264A7?style=flat&logo=microsoftteams&logoColor=white) | Bot Framework | Register bot at [dev.teams.microsoft.com](https://dev.teams.microsoft.com/bots) |
-| ![Signal](https://img.shields.io/badge/Signal-3A76F0?style=flat&logo=signal&logoColor=white) | signal-cli REST | Run [signal-cli-rest-api](https://github.com/bbernhard/signal-cli-rest-api) via Docker |
+| Platform                                                                                                     | Transport       | Setup                                                                                   |
+| :----------------------------------------------------------------------------------------------------------- | :-------------- | :-------------------------------------------------------------------------------------- |
+| ![WhatsApp](https://img.shields.io/badge/WhatsApp-25D366?style=flat&logo=whatsapp&logoColor=white)           | QR code pairing | Scan QR in terminal on first run                                                        |
+| ![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=flat&logo=telegram&logoColor=white)           | Bot API         | Create bot via [@BotFather](https://t.me/BotFather), paste token                        |
+| ![Discord](https://img.shields.io/badge/Discord-5865F2?style=flat&logo=discord&logoColor=white)              | Bot gateway     | Create app at [discord.com/developers](https://discord.com/developers), paste bot token |
+| ![Slack](https://img.shields.io/badge/Slack-4A154B?style=flat&logo=slack&logoColor=white)                    | Socket Mode     | Create app at [api.slack.com](https://api.slack.com/apps), enable Socket Mode           |
+| ![Teams](https://img.shields.io/badge/Microsoft_Teams-6264A7?style=flat&logo=microsoftteams&logoColor=white) | Bot Framework   | Register bot at [dev.teams.microsoft.com](https://dev.teams.microsoft.com/bots)         |
+| ![Signal](https://img.shields.io/badge/Signal-3A76F0?style=flat&logo=signal&logoColor=white)                 | signal-cli REST | Run [signal-cli-rest-api](https://github.com/bbernhard/signal-cli-rest-api) via Docker  |
 
 ---
 
