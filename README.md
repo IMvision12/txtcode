@@ -305,7 +305,3 @@ Verbose and debug output goes to the log file; the terminal shows only key statu
 </details>
 
 ---
-
-## License
-
-Apache-2.0
