@@ -22,12 +22,25 @@
     "text-based-coding",
     "whatsapp"
   ],
-  "license": "MIT",
-  "author": "",
+  "homepage": "https://github.com/IMvision12/txtcode#readme",
+  "bugs": {
+    "url": "https://github.com/IMvision12/txtcode/issues"
+  },
+  "license": "Apache-2.0",
+  "author": "Gitesh Chawda (IMvision12)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/IMvision12/txtcode.git"
+  },
   "bin": {
     "txtcode": "dist/cli/index.js"
   },
-  "main": "dist/index.js",
+  "files": [
+    "dist/",
+    "LICENSE",
+    "README.md"
+  ],
+  "main": "dist/cli/index.js",
   "scripts": {
     "build": "tsc && npm run copy-data",
     "copy-data": "node -e \"require('fs').cpSync('src/data', 'dist/data', {recursive: true})\"",
@@ -37,7 +50,7 @@
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "prepublishOnly": "npm run build",
-    "start": "node dist/cli.js",
+    "start": "node dist/cli/index.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -51,9 +64,7 @@
     "chalk": "^4.1.2",
     "discord.js": "^14.25.1",
     "dotenv": "^16.3.1",
-    "gradient-string": "^3.0.0",
     "keytar": "^7.9.0",
-    "link-preview-js": "^3.2.0",
     "openai": "^6.19.0",
     "qrcode-terminal": "^0.12.0",
     "telegraf": "^4.15.0"
@@ -66,9 +77,7 @@
     "typescript": "^5.3.3",
     "vitest": "^4.0.18"
   },
-  "preferGlobal": true,
   "engines": {
-    "node": ">=20.0.0",
-    "npm": ">=10.0.0"
+    "node": ">=20.0.0"
   }
 }

@@ -92,7 +92,23 @@ export class MCPBridge {
 
     await client.connect(transport);
 
-    const toolsResult = await client.listTools();
+    let toolsResult: { tools: MCPToolSchema[] };
+    try {
+      toolsResult = await client.listTools();
+    } catch (error) {
+      try {
+        await client.close();
+      } catch {
+        // Best-effort cleanup
+      }
+      try {
+        await transport.close();
+      } catch {
+        // Best-effort cleanup
+      }
+      throw error;
+    }
+
     const tools: MCPToolAdapter[] = toolsResult.tools.map(
       (mcpTool) => new MCPToolAdapter(config.id, mcpTool, client),
     );
@@ -126,6 +142,11 @@ export class MCPBridge {
       return;
     }
 
+    try {
+      await conn.client.close();
+    } catch {
+      // Best-effort client cleanup
+    }
     try {
       await conn.transport.close();
     } catch (error) {

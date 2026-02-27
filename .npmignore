@@ -10,6 +10,7 @@ tsconfig.json
 .env.*
 
 # Test files
+test/
 tests/
 __tests__/
 *.test.ts
@@ -20,6 +21,13 @@ __tests__/
 .oxlintrc.json
 .detect-secrets.cfg
 .secrets.baseline
+vitest.config.ts
+
+# Assets (README images)
+assets/
+
+# Coverage
+coverage/
 
 # Git
 .git/

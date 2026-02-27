@@ -1,8 +1,12 @@
 node_modules/
 dist/
 .env
+.env.*
 .wacli_auth/
 .wwebjs_auth/
 .wwebjs_cache/
 *.log
+*.tsbuildinfo
+coverage/
 .DS_Store
+Thumbs.db

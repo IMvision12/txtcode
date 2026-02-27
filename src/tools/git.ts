@@ -25,7 +25,7 @@ function runGit(
         resolve({
           stdout: stdout?.toString() ?? "",
           stderr: stderr?.toString() ?? "",
-          code: err ? ((err as { code?: number }).code ?? 1) : 0,
+          code: err ? ((err as { status?: number }).status ?? 1) : 0,
         });
       },
     );
@@ -138,7 +138,7 @@ export class GitTool implements Tool {
         }
       }
 
-      if (action === "reset" && extraArgs.includes("--hard") && !force) {
+      if (action === "reset" && extraArgs.includes("--hard")) {
         return {
           toolCallId: "",
           output: `Blocked: "reset --hard" will discard changes. Set force=true to proceed.`,
