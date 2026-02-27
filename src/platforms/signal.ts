@@ -207,6 +207,7 @@ export class SignalBot {
         `Cannot connect to signal-cli-rest-api at ${this.signalCliUrl}. ` +
           `Make sure signal-cli-rest-api is running. ` +
           `Error: ${error instanceof Error ? error.message : String(error)}`,
+        { cause: error },
       );
     }
 
