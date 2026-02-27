@@ -3,6 +3,9 @@ import {
   NoOpTypingSignaler,
   DiscordTypingSignaler,
   TelegramTypingSignaler,
+  SlackTypingSignaler,
+  TeamsTypingSignaler,
+  SignalTypingSignaler,
   WhatsAppTypingSignaler,
 } from "../../src/shared/typing-signaler";
 
@@ -84,6 +87,152 @@ describe("TelegramTypingSignaler", () => {
     };
     const signaler = new TelegramTypingSignaler(ctx);
     await signaler.stopTyping();
+  });
+});
+
+describe("SlackTypingSignaler", () => {
+  it("all methods resolve without error (no-op)", async () => {
+    const signaler = new SlackTypingSignaler();
+    await signaler.signalTyping();
+    await signaler.signalTextDelta("hello");
+    await signaler.stopTyping();
+  });
+});
+
+describe("TeamsTypingSignaler", () => {
+  it("sends typing activity on signalTyping", async () => {
+    const context = { sendActivity: vi.fn().mockResolvedValue(undefined) };
+    const signaler = new TeamsTypingSignaler(context);
+
+    await signaler.signalTyping();
+    expect(context.sendActivity).toHaveBeenCalledWith({ type: "typing" });
+  });
+
+  it("throttles to 2s interval", async () => {
+    const context = { sendActivity: vi.fn().mockResolvedValue(undefined) };
+    const signaler = new TeamsTypingSignaler(context);
+
+    await signaler.signalTyping();
+    await signaler.signalTyping();
+
+    expect(context.sendActivity).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores errors from sendActivity", async () => {
+    const context = { sendActivity: vi.fn().mockRejectedValue(new Error("fail")) };
+    const signaler = new TeamsTypingSignaler(context);
+
+    await expect(signaler.signalTyping()).resolves.not.toThrow();
+  });
+
+  it("signalTextDelta delegates to signalTyping", async () => {
+    const context = { sendActivity: vi.fn().mockResolvedValue(undefined) };
+    const signaler = new TeamsTypingSignaler(context);
+
+    await signaler.signalTextDelta("hello");
+    expect(context.sendActivity).toHaveBeenCalledWith({ type: "typing" });
+  });
+
+  it("stopTyping resolves without error", async () => {
+    const context = { sendActivity: vi.fn().mockResolvedValue(undefined) };
+    const signaler = new TeamsTypingSignaler(context);
+    await signaler.stopTyping();
+  });
+});
+
+describe("SignalTypingSignaler", () => {
+  it("calls fetch with PUT on signalTyping", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const signaler = new SignalTypingSignaler(
+      "http://localhost:8080",
+      "+1234567890",
+      "+0987654321",
+    );
+
+    await signaler.signalTyping();
+    expect(mockFetch).toHaveBeenCalledWith(
+      "http://localhost:8080/v1/typing-indicator/+1234567890",
+      expect.objectContaining({
+        method: "PUT",
+        body: JSON.stringify({ recipient: "+0987654321" }),
+      }),
+    );
+
+    vi.unstubAllGlobals();
+  });
+
+  it("throttles to 3s interval", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const signaler = new SignalTypingSignaler(
+      "http://localhost:8080",
+      "+1234567890",
+      "+0987654321",
+    );
+
+    await signaler.signalTyping();
+    await signaler.signalTyping();
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+
+    vi.unstubAllGlobals();
+  });
+
+  it("calls fetch with DELETE on stopTyping", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const signaler = new SignalTypingSignaler(
+      "http://localhost:8080",
+      "+1234567890",
+      "+0987654321",
+    );
+
+    await signaler.stopTyping();
+    expect(mockFetch).toHaveBeenCalledWith(
+      "http://localhost:8080/v1/typing-indicator/+1234567890",
+      expect.objectContaining({
+        method: "DELETE",
+        body: JSON.stringify({ recipient: "+0987654321" }),
+      }),
+    );
+
+    vi.unstubAllGlobals();
+  });
+
+  it("ignores errors from fetch", async () => {
+    const mockFetch = vi.fn().mockRejectedValue(new Error("network error"));
+    vi.stubGlobal("fetch", mockFetch);
+
+    const signaler = new SignalTypingSignaler(
+      "http://localhost:8080",
+      "+1234567890",
+      "+0987654321",
+    );
+
+    await expect(signaler.signalTyping()).resolves.not.toThrow();
+    await expect(signaler.stopTyping()).resolves.not.toThrow();
+
+    vi.unstubAllGlobals();
+  });
+
+  it("signalTextDelta delegates to signalTyping", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const signaler = new SignalTypingSignaler(
+      "http://localhost:8080",
+      "+1234567890",
+      "+0987654321",
+    );
+
+    await signaler.signalTextDelta("hello");
+    expect(mockFetch).toHaveBeenCalled();
+
+    vi.unstubAllGlobals();
   });
 });
 
