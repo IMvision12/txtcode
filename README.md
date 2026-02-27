@@ -31,7 +31,7 @@ Send a WhatsApp message. Watch your coding agent write code.
 
 ## Why txtcode?
 
-You're on the couch, on the train, or away from your desk but you need to fix a bug, run tests, or scaffold a feature. With **txtcode**, your phone becomes a remote control for your coding CLI:
+Code without a keyboard. Send a message from your phone, and **txtcode** dispatches it to an AI coding agent running back at your desk. Describe a bug fix in WhatsApp, telegram, discord or signal and watch Claude Code patch it or Ask for tests, get them written by Codex. No laptop required.:
 
 1. **Text your AI** from WhatsApp, Telegram, Discord, Slack, Teams, or Signal
 2. **It writes code** using Claude Code, Cursor, Codex, Gemini CLI, or other adapters
