@@ -1,196 +1,266 @@
 <div align="center">
   <img src="assets/logo.jpg" alt="txtcode" width="450" />
-</div>
 
-<br>
-<p align="center">
-  <a href="https://www.npmjs.com/package/txtcode"><img src="https://img.shields.io/npm/v/txtcode?color=blue" alt="npm version" /></a>
-  <a href="https://www.npmjs.com/package/txtcode"><img src="https://img.shields.io/npm/dm/txtcode" alt="downloads" /></a>
-  <a href="https://github.com/yourusername/txtcode/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="license" /></a>
-  <img src="https://img.shields.io/badge/node-%3E%3D18-brightgreen" alt="node version" />
-</p>
+<br />
+<br />
+
+<a href="https://www.npmjs.com/package/txtcode"><img src="https://img.shields.io/npm/v/txtcode?color=blue&style=for-the-badge" alt="npm version" /></a>
+&nbsp;
+<a href="https://www.npmjs.com/package/txtcode"><img src="https://img.shields.io/npm/dm/txtcode?style=for-the-badge" alt="downloads" /></a>
+&nbsp;
+<a href="https://github.com/nicholasgriffintn/txtcode/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-green?style=for-the-badge" alt="license" /></a>
+&nbsp;
+<img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen?style=for-the-badge" alt="node version" />
+
+<br />
+<br />
+
+**Code from anywhere. Control your IDE from any messaging app.**
+
+Send a WhatsApp message. Watch your IDE write code.
+
+**txtcode** bridges messaging apps to AI coding assistants, giving you full remote control over your development environment from your phone, tablet, or any device with a chat app.
 
 <br />
 
-**Control your IDE from your phone.** Use WhatsApp, Telegram, or Discord to send natural-language instructions to AI coding assistants and run commands on your machine.
+<img src="assets/terminal.png" alt="txtcode terminal interface" width="800" />
 
-<div align="center">
-  <img src="assets/terminal.png" alt="txtcode terminal interface" width="800" />
 </div>
 
 ---
 
-## Contents
 
-- [Features](#features)
-- [Installation](#installation)
-- [Quick start](#quick-start)
-- [Commands](#commands)
-- [Configuration](#configuration)
-- [Supported platforms & IDEs](#supported-platforms--ides)
-- [Environment variables](#environment-variables)
-- [Usage examples](#usage-examples)
-- [Logs](#logs)
-- [Troubleshooting](#troubleshooting)
-- [Development](#development)
+## Why txtcode?
+
+You're on the couch, on the train, or away from your desk &mdash; but you need to fix a bug, run tests, or scaffold a feature. With **txtcode**, your phone becomes a remote control for your IDE:
+
+1. **Text your AI** from WhatsApp, Telegram, Discord, Slack, Teams, or Signal
+2. **It writes code** using Claude Code, Cursor, Codex, Gemini CLI, or other adapters
+3. **You stay in control** with mode switching, tool calling, and session logs
+
+No port forwarding. No VPN. Just message and code.
 
 ---
 
 ## Features
 
-- **Messaging-first** — Use WhatsApp, Telegram, or Discord as your remote control
-- **Multiple AI backends** — Anthropic (Claude), OpenAI (GPT), Google (Gemini), OpenRouter
-- **Multiple coding adapters** — Claude Code, OpenAI Codex, Gemini CLI, Kiro CLI, Ollama (local)
-- **Chat vs Code modes** — `/chat` for general LLM + tools, `/code` for full IDE adapter
-- **Session logs** — Per-session log files with `txtcode logs`
-- **Single-user auth** — First user to connect is authorized; reset with `txtcode reset`
+<table>
+<tr>
+<td width="50%">
+
+### Messaging-First
+Connect via **6 platforms** &mdash; WhatsApp, Telegram, Discord, Slack, Microsoft Teams, and Signal. First user to message is auto-authorized.
+
+### 9 AI Providers
+Anthropic, OpenAI, Google Gemini, Mistral, Moonshot, MiniMax, xAI Grok, HuggingFace, and OpenRouter. Hot-switch between them with `/switch`.
+
+### 7 Coding Adapters
+Claude Code, Cursor CLI, OpenAI Codex, Gemini CLI, Kiro CLI, OpenCode, and Ollama (local/free). Full IDE control in `/code` mode.
+
+</td>
+<td width="50%">
+
+### 9 Built-in Tools
+Terminal, process manager, git, file search, HTTP client, environment variables, network diagnostics, cron jobs, and system info &mdash; all callable by the LLM.
+
+### 13 MCP Servers
+Connect GitHub, Brave Search, Puppeteer, PostgreSQL, MongoDB, Redis, Elasticsearch, AWS, GCP, Cloudflare, Vercel, Atlassian, and Supabase as external tools via the Model Context Protocol.
+
+### Session Logging
+Per-session logs accessible from the TUI. Follow live, view by index, auto-pruned after 7 days.
+
+</td>
+</tr>
+</table>
 
 ---
 
-## Installation
+## Quick Start
 
-**Requires Node.js 18+.**
+**Requires Node.js 20+ and npm 10+.**
 
 ```bash
+# Install globally
 npm install -g txtcode
+
+# Launch the interactive TUI
+txtcode
 ```
 
 Or run without installing:
 
 ```bash
-npx txtcode auth
-npx txtcode start
+npx txtcode
 ```
 
----
-
-## Quick start
-
-| Step           | Command / action                                                                   |
-| -------------- | ---------------------------------------------------------------------------------- |
-| 1. Configure   | `txtcode auth` — pick platform, AI provider, and coding adapter                    |
-| 2. Start agent | `txtcode start`                                                                    |
-| 3. Connect     | **WhatsApp:** scan QR in terminal. **Telegram/Discord:** use bot token from config |
-| 4. Use         | Send messages. Use `/code` for IDE adapter, `/chat` for primary LLM (default).     |
-
-<details>
-<summary><strong>First-time auth flow (expand)</strong></summary>
-
-- Choose **messaging platform**: WhatsApp, Telegram, or Discord
-- Choose **AI provider** for chat mode: Anthropic, OpenAI, Google, or OpenRouter
-- Choose **coding adapter** for code mode: Claude Code, OpenAI Codex, Gemini CLI, Kiro CLI, or Ollama Claude Code
-- Set API keys and project path when prompted
-- Config is saved to `~/.txtcode/config.json`
-
-</details>
+That's it. The interactive menu guides you through everything &mdash; authentication, configuration, starting the agent, viewing logs, and more. No subcommands to memorize.
 
 ---
 
-## Commands
+## Supported Platforms
 
-| Command                  | Description                                                       |
-| ------------------------ | ----------------------------------------------------------------- |
-| `txtcode auth`           | First-time setup: platform, AI provider, coding adapter, API keys |
-| `txtcode start`          | Start the agent (option: `--daemon`)                              |
-| `txtcode config`         | Change settings without full auth                                 |
-| `txtcode status`         | Show connection and adapter status                                |
-| `txtcode logs [session]` | List or view session logs (see [Logs](#logs))                     |
-| `txtcode reset`          | Clear authorized user so the next user can claim access           |
-| `txtcode logout`         | WhatsApp: delete session (re-auth with new QR)                    |
-| `txtcode hard-reset`     | Remove all config and auth data in `~/.txtcode`                   |
-| `txtcode stop`           | Stop the agent                                                    |
-| `txtcode --help`         | Show help                                                         |
-| `txtcode --version`      | Show version                                                      |
-
-<details>
-<summary><strong>Logs command options (expand)</strong></summary>
-
-- `txtcode logs` — List session log files (newest first)
-- `txtcode logs 1` — View session by index (e.g. latest = 1)
-- `txtcode logs -f` — Follow latest session log (like `tail -f`)
-- `txtcode logs -n 100` — Show last 100 lines (default 50)
-- `txtcode logs --clear` — Delete all session log files
-
-Logs live in `~/.txtcode/logs/`. Old sessions are pruned after 7 days.
-
-</details>
+| Platform | Transport | Setup |
+|:---|:---|:---|
+| **WhatsApp** | QR code pairing | Scan QR in terminal on first run |
+| **Telegram** | Bot API | Create bot via [@BotFather](https://t.me/BotFather), paste token |
+| **Discord** | Bot gateway | Create app at [discord.com/developers](https://discord.com/developers), paste bot token |
+| **Slack** | Socket Mode | Create app at [api.slack.com](https://api.slack.com/apps), enable Socket Mode |
+| **Microsoft Teams** | Bot Framework | Register bot at [dev.teams.microsoft.com](https://dev.teams.microsoft.com/bots) |
+| **Signal** | signal-cli REST | Run [signal-cli-rest-api](https://github.com/bbernhard/signal-cli-rest-api) via Docker |
 
 ---
+
+## AI Providers
+
+txtcode supports **9 LLM providers** for chat mode. Configure one or more during setup and hot-switch with `/switch`.
+
+| Provider | Example Models | Notes |
+|:---|:---|:---|
+| **Anthropic** | `claude-sonnet-4-6`, `claude-opus-4-6` | Claude family |
+| **OpenAI** | `gpt-5.2`, `o4-mini`, `gpt-4o` | GPT and o-series |
+| **Google Gemini** | `gemini-2.5-pro`, `gemini-2.5-flash` | Gemini family |
+| **Mistral** | `mistral-large-latest`, `codestral-latest` | Mistral + Codestral |
+| **Moonshot (Kimi)** | `kimi-k2.5`, `moonshot-v1-128k` | Long-context models |
+| **MiniMax** | `MiniMax-M2.5`, `MiniMax-M2.1` | MiniMax family |
+| **xAI (Grok)** | `grok-4`, `grok-3-fast` | Grok family |
+| **HuggingFace** | *Discovered at runtime* | Inference Providers API |
+| **OpenRouter** | *Discovered at runtime* | Unified API for 100+ models |
+
+All providers support tool calling &mdash; the LLM can invoke any built-in tool or connected MCP server.
+
+---
+
+## Coding Adapters
+
+Use `/code` mode to route messages directly to a coding adapter with full IDE control.
+
+| Adapter | Backend | CLI Required | Notes |
+|:---|:---|:---|:---|
+| **Claude Code** | Anthropic API | `claude` | Official Claude CLI |
+| **Cursor CLI** | Cursor | `cursor` | Headless Cursor |
+| **OpenAI Codex** | OpenAI API | `codex` | OpenAI's coding agent |
+| **Gemini CLI** | Google AI API | `gemini` | Google's CLI |
+| **Kiro CLI** | AWS | `kiro-cli` | AWS Kiro subscription |
+| **OpenCode** | Multi-provider | `opencode` | Open-source, multi-provider |
+| **Ollama Claude Code** | Local (Ollama) | `ollama` | Free, no API key needed |
+
+---
+
+## Built-in Tools
+
+The primary LLM in chat mode has access to **9 built-in tools** that it can call autonomously:
+
+| Tool | Capabilities |
+|:---|:---|
+| **Terminal** | Execute shell commands with timeout and output capture |
+| **Process** | Manage background processes &mdash; list, poll, stream logs, kill, send input |
+| **Git** | Full git operations (blocks force-push and credential config for safety) |
+| **Search** | File and content search across the project |
+| **HTTP** | Make HTTP requests (GET, POST, PUT, DELETE, PATCH, HEAD). Blocks cloud metadata endpoints |
+| **Env** | Get, set, list, and delete environment variables. Masks sensitive values |
+| **Network** | Ping, DNS lookup, reachability checks, port scanning |
+| **Cron** | Create, list, and manage cron jobs |
+| **Sysinfo** | CPU, memory, disk, uptime, OS details |
+
+---
+
+## MCP Servers
+
+txtcode integrates with the **Model Context Protocol** to connect external tool servers. Configure during initial setup or later via **Configuration** &rarr; **Manage MCP Servers** in the TUI.
+
+### Developer Tools
+
+| Server | Transport | Description |
+|:---|:---|:---|
+| **GitHub** | stdio | Repos, issues, PRs, code search, Actions |
+| **Brave Search** | stdio | Web, image, video, and news search |
+| **Puppeteer** | stdio | Browser automation, screenshots, form filling |
+
+### Databases
+
+| Server | Transport | Description |
+|:---|:---|:---|
+| **PostgreSQL** | stdio | Read-only SQL queries and schema inspection |
+| **MongoDB** | stdio | CRUD, indexes, vector search, Atlas management |
+| **Redis** | stdio | Data structures, caching, vectors, pub/sub |
+| **Elasticsearch** | stdio | Index management, search queries, cluster ops |
+| **Supabase** | HTTP | Postgres, Auth, Storage, Edge Functions |
+
+### Cloud
+
+| Server | Transport | Description |
+|:---|:---|:---|
+| **AWS** | stdio | S3, Lambda, EKS, CDK, CloudFormation, 60+ services |
+| **Google Cloud** | HTTP | BigQuery, GKE, Compute, Storage, Firebase |
+| **Cloudflare** | HTTP | Workers, R2, DNS, Zero Trust, 2500+ endpoints |
+| **Vercel** | HTTP | Deployments, domains, env vars, logs |
+
+### Productivity
+
+| Server | Transport | Description |
+|:---|:---|:---|
+| **Atlassian** | HTTP | Jira issues, Confluence pages, Compass components |
+
+> **stdio** = local process, **HTTP** = remote Streamable HTTP endpoint. You can also add custom MCP servers via **Configuration** &rarr; **Manage MCP Servers**.
+
+---
+
+## Chat Commands
+
+Send these commands in any messaging app while connected:
+
+| Command | Description |
+|:---|:---|
+| `/chat` | Switch to **Chat mode** &mdash; messages go to primary LLM with tools *(default)* |
+| `/code` | Switch to **Code mode** &mdash; messages go to coding adapter (full IDE control) |
+| `/switch` | Switch primary LLM provider or coding adapter on the fly |
+| `/cli-model` | Change the model used by the current coding adapter |
+| `/cancel` | Cancel the currently running command |
+| `/status` | Show adapter connection and current configuration |
+| `/help` | Show available commands |
+
+---
+
 
 ## Configuration
 
-Stored in **`~/.txtcode/config.json`**. Edit manually or run:
+Config is stored at **`~/.txtcode/config.json`**. API keys and tokens are stored in your OS keychain (via `keytar`), never in the config file.
 
-```bash
-txtcode config
-```
+To modify settings, select **Configuration** from the main menu. Options include:
 
-Use **Code mode** (`/code`) to send messages to your coding adapter (e.g. Claude Code, Codex). Use **Chat mode** (`/chat`, default) to talk to the primary LLM with tool support (e.g. terminal, process management).
-
----
-
-## Supported platforms & IDEs
-
-**Messaging:** WhatsApp · Telegram · Discord
-
-**Coding adapters (code mode):**
-
-| Adapter            | Backend        | Notes                                 |
-| ------------------ | -------------- | ------------------------------------- |
-| Claude Code        | Anthropic API  | Official Claude CLI                   |
-| OpenAI Codex       | OpenAI API     | Model in `~/.codex/config.toml`       |
-| Gemini CLI         | Google AI API  | `gemini` CLI, optional `GEMINI_MODEL` |
-| Kiro CLI           | AWS            | Kiro subscription                     |
-| Ollama Claude Code | Local (Ollama) | Free, no API key                      |
-
-**Chat mode providers:** Anthropic, OpenAI, Google (Gemini), OpenRouter
+- Change Messaging Platform
+- Change IDE Type
+- Change AI Provider
+- Manage MCP Servers (add/remove/enable/disable)
+- Change Project Path
+- View Current Config
 
 ---
 
-## Environment variables
+## Environment Variables
 
-Optional overrides (also set via `txtcode config`):
+Optional overrides (also configurable through the TUI):
 
-| Variable             | Purpose                                                                     |
-| -------------------- | --------------------------------------------------------------------------- |
-| `AI_PROVIDER`        | `anthropic` \| `openai` \| `gemini` \| `openrouter`                         |
-| `AI_API_KEY`         | API key for the chosen provider                                             |
-| `AI_MODEL`           | Model id (e.g. `claude-sonnet-4`, `gpt-4o`)                                 |
-| `IDE_TYPE`           | `claude-code` \| `codex` \| `gemini-code` \| `kiro` \| `ollama-claude-code` |
-| `PROJECT_PATH`       | Working directory for the coding adapter (default: current dir)             |
-| `CLAUDE_MODEL`       | Claude model for Claude Code adapter                                        |
-| `GEMINI_MODEL`       | Model for Gemini CLI                                                        |
-| `OLLAMA_MODEL`       | Model for Ollama adapter (e.g. `gpt-oss:20b`)                               |
-| `OPENROUTER_API_KEY` | Required when `AI_PROVIDER=openrouter`                                      |
-
----
-
-## Usage examples
-
-Once connected, send plain text or use commands:
-
-**Switch modes**
-
-- ` /code` — All messages go to coding adapter
-- ` /chat` — All messages go to primary LLM (default)
-- `status` or `/status` — Adapter/connection status
-- `help` or `/help` — In-chat help
-
-**Natural language (code or chat)**
-
-- _"Create a React component UserProfile with name and email props"_
-- _"Fix the auth bug in src/auth.ts where login fails"_
-- _"Add error handling to all API routes"_
-- _"Run the tests and paste the output"_
+| Variable | Purpose |
+|:---|:---|
+| `AI_PROVIDER` | Provider ID (e.g. `anthropic`, `openai`, `gemini`, `mistral`, `xai`) |
+| `AI_API_KEY` | API key for the chosen provider |
+| `AI_MODEL` | Model ID (e.g. `claude-sonnet-4-6`, `gpt-5.2`, `gemini-2.5-pro`) |
+| `IDE_TYPE` | Adapter ID (e.g. `claude-code`, `codex`, `cursor`, `gemini-code`) |
+| `PROJECT_PATH` | Working directory for the coding adapter |
+| `CLAUDE_MODEL` | Model override for Claude Code adapter |
+| `GEMINI_MODEL` | Model override for Gemini CLI adapter |
+| `OLLAMA_MODEL` | Model override for Ollama adapter |
+| `OPENROUTER_API_KEY` | Required when `AI_PROVIDER=openrouter` |
 
 ---
 
 ## Logs
 
 - **Location:** `~/.txtcode/logs/`
-- **Naming:** `session-YYYY-MM-DD-HHmmss.log` (one file per `txtcode start`)
-- **Cleanup:** Files older than 7 days are removed automatically.
-- **View:** `txtcode logs` to list, `txtcode logs 1` to open latest, `txtcode logs -f` to follow.
+- **Format:** `session-YYYY-MM-DD-HHmmss.log` (one per agent session)
+- **Cleanup:** Files older than 7 days are pruned automatically
+- **View:** Select **View Logs** from the main menu to browse, view by index, or follow live
 
 Verbose and debug output goes to the log file; the terminal shows only key status lines.
 
@@ -199,78 +269,56 @@ Verbose and debug output goes to the log file; the terminal shows only key statu
 ## Troubleshooting
 
 <details>
-<summary><strong>Command not found: txtcode</strong></summary>
+<summary><b>Command not found: txtcode</b></summary>
 
-- Restart the terminal after `npm install -g txtcode`
-- Ensure global bin is in PATH: `npm config get prefix`
-
-</details>
-
-<details>
-<summary><strong>WhatsApp QR / connection</strong></summary>
-
-- Use a stable connection; try `txtcode logout` then `txtcode start` to get a new QR
-- Session is stored under `~/.txtcode`; don’t delete it if you want to keep the same number
+- Restart your terminal after `npm install -g txtcode`
+- Ensure the global bin directory is in your PATH: `npm config get prefix`
 
 </details>
 
 <details>
-<summary><strong>Telegram / Discord not responding</strong></summary>
+<summary><b>WhatsApp QR / connection issues</b></summary>
 
-- Confirm bot token in `~/.txtcode/config.json` or `txtcode config`
-- For Telegram: ensure the bot is not blocked and you’ve started a chat with it
+- Use a stable internet connection
+- Select **Logout** from the main menu, then **Start Agent** again to get a fresh QR
+- Session is stored under `~/.txtcode`; don't delete it to keep the same linked device
 
 </details>
 
 <details>
-<summary><strong>AI or adapter errors</strong></summary>
+<summary><b>Telegram / Discord / Slack not responding</b></summary>
 
-- Check API keys and credits for the chosen provider
-- Code mode: ensure the CLI for your adapter is installed and in PATH (e.g. `claude`, `codex`, `gemini`, `kiro-cli`, `ollama`)
-- Run `txtcode status` to see current adapter and connection
-- Check `txtcode logs` or `~/.txtcode/logs/` for detailed errors
+- Confirm bot token via **Configuration** &rarr; **View Current Config**
+- **Telegram:** ensure the bot is not blocked and you've started a chat with it
+- **Discord:** ensure MESSAGE CONTENT INTENT is enabled in the developer portal
+- **Slack:** ensure Socket Mode is enabled and event subscriptions are configured
+
+</details>
+
+<details>
+<summary><b>AI or adapter errors</b></summary>
+
+- Check API keys and credits for your provider
+- Code mode: ensure the CLI for your adapter is installed and in PATH (`claude`, `codex`, `gemini`, `kiro-cli`, `ollama`, `cursor`, `opencode`)
+- Check adapter and connection state via the main menu
+- Select **View Logs** or check `~/.txtcode/logs/` for detailed errors
+
+</details>
+
+<details>
+<summary><b>MCP server connection failures</b></summary>
+
+- **stdio servers:** ensure the required npm package is installed (e.g. `npx @modelcontextprotocol/server-github`)
+- **HTTP servers:** verify the token is correct via **Configuration** &rarr; **Manage MCP Servers**
+- Check **View Logs** for specific error messages
 
 </details>
 
 ---
 
-## Development
 
-```bash
-git clone https://github.com/yourusername/txtcode.git
-cd txtcode
-npm install
-npm run build
-npm link
-```
-
-Then run `txtcode` from anywhere (or `node dist/cli/index.js` from the repo).
-
----
-
-## Security
-
-This project uses `detect-secrets` for automated secret detection in CI/CD.
-
-Run locally:
-
-```bash
-pip install detect-secrets==1.5.0
-python -m detect_secrets scan --baseline .secrets.baseline \
-  --exclude-files "(^|/)(dist/|node_modules/|package-lock\.json$|\.detect-secrets\.cfg$)" \
-  --exclude-lines "AI_API_KEY=|OPENROUTER_API_KEY=|CLAUDE_MODEL=|GEMINI_MODEL=|apiKey:|botToken:|apiKeyEnv:|\"apiKeyEnv\"|=== \"string\""
-```
-
-If the scan finds new secrets, review them interactively:
-
-```bash
-python -m detect_secrets audit .secrets.baseline
-```
-
-Mark false positives as verified, then commit the updated `.secrets.baseline`.
-
----
 
 ## License
 
-MIT
+Apache-2.0
+
