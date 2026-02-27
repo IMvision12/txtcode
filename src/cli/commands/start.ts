@@ -129,7 +129,7 @@ export async function startCommand(_options: { daemon?: boolean }) {
   process.env.IDE_PORT = String(config.idePort);
   process.env.AI_API_KEY = apiKey;
   process.env.AI_PROVIDER = config.aiProvider;
-  process.env.AI_MODEL = config.aiModel;
+  process.env.AI_MODEL = config.aiModel || "";
   process.env.PROJECT_PATH = config.projectPath || process.cwd();
   process.env.OLLAMA_MODEL = config.ollamaModel || "gpt-oss:20b";
   process.env.CLAUDE_MODEL = config.claudeModel || "sonnet";

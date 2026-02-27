@@ -16,11 +16,15 @@ export class ToolRegistry {
   }
 
   removeMCPTools(prefix: string): void {
+    const toRemove: string[] = [];
     for (const name of this.mcpToolNames) {
       if (name.startsWith(prefix + "_")) {
-        this.tools.delete(name);
-        this.mcpToolNames.delete(name);
+        toRemove.push(name);
       }
+    }
+    for (const name of toRemove) {
+      this.tools.delete(name);
+      this.mcpToolNames.delete(name);
     }
   }
 

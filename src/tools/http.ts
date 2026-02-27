@@ -3,11 +3,43 @@ import { Tool, ToolDefinition, ToolResult } from "./types";
 const DEFAULT_TIMEOUT_MS = 30_000;
 const MAX_BODY_SIZE = 50_000;
 
-const BLOCKED_HOSTS = new Set([
-  "169.254.169.254", // AWS/GCP/Azure metadata
-  "metadata.google.internal",
-  "metadata.internal",
-]);
+const BLOCKED_HOSTS = new Set(["169.254.169.254", "metadata.google.internal", "metadata.internal"]);
+
+function isBlockedHost(hostname: string): boolean {
+  if (BLOCKED_HOSTS.has(hostname)) {
+    return true;
+  }
+
+  const lower = hostname.toLowerCase();
+
+  // Block localhost variants
+  if (
+    lower === "localhost" ||
+    lower === "127.0.0.1" ||
+    lower === "[::1]" ||
+    lower === "0.0.0.0" ||
+    lower === "[::ffff:127.0.0.1]"
+  ) {
+    return true;
+  }
+
+  // Block link-local / metadata IP ranges
+  if (lower.startsWith("169.254.") || lower.includes("169.254.169.254")) {
+    return true;
+  }
+
+  // Block IPv6-mapped metadata
+  if (lower.includes("::ffff:169.254.") || lower.includes("::ffff:a9fe")) {
+    return true;
+  }
+
+  // Block cloud metadata hostnames via subdomain
+  if (lower.endsWith(".internal") || lower.includes("metadata")) {
+    return true;
+  }
+
+  return false;
+}
 
 export class HttpTool implements Tool {
   name = "http";
@@ -69,7 +101,7 @@ export class HttpTool implements Tool {
       return { toolCallId: "", output: `Error: invalid URL: ${url}`, isError: true };
     }
 
-    if (BLOCKED_HOSTS.has(parsedUrl.hostname)) {
+    if (isBlockedHost(parsedUrl.hostname)) {
       return {
         toolCallId: "",
         output: `Blocked: requests to ${parsedUrl.hostname} are not allowed (cloud metadata security).`,
@@ -96,6 +128,7 @@ export class HttpTool implements Tool {
         method,
         headers,
         signal: controller.signal,
+        redirect: "manual",
       };
 
       if (body && !["GET", "HEAD", "OPTIONS"].includes(method)) {

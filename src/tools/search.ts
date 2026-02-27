@@ -175,13 +175,22 @@ export class SearchTool implements Tool {
     include: string,
   ): ToolResult {
     let regex: RegExp;
-    try {
-      regex = new RegExp(pattern, caseSensitive ? "g" : "gi");
-    } catch {
+    const hasNestedQuantifiers =
+      /(\+|\*|\{)\??[^)]*(\+|\*|\{)/.test(pattern) || /\(([^)]*\|){10,}/.test(pattern);
+    if (hasNestedQuantifiers) {
       regex = new RegExp(
         pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
         caseSensitive ? "g" : "gi",
       );
+    } else {
+      try {
+        regex = new RegExp(pattern, caseSensitive ? "g" : "gi");
+      } catch {
+        regex = new RegExp(
+          pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+          caseSensitive ? "g" : "gi",
+        );
+      }
     }
 
     const matches: string[] = [];

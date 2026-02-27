@@ -29,7 +29,6 @@ Send a WhatsApp message. Watch your IDE write code.
 
 ---
 
-
 ## Why txtcode?
 
 You're on the couch, on the train, or away from your desk but you need to fix a bug, run tests, or scaffold a feature. With **txtcode**, your phone becomes a remote control for your IDE:
@@ -49,24 +48,30 @@ No port forwarding. No VPN. Just message and code.
 <td width="50%">
 
 ### Messaging-First
+
 Connect via **6 platforms** : WhatsApp, Telegram, Discord, Slack, Microsoft Teams, and Signal. First user to message is auto-authorized.
 
 ### 9 AI Providers
+
 Anthropic, OpenAI, Google Gemini, Mistral, Moonshot, MiniMax, xAI Grok, HuggingFace, and OpenRouter. Hot-switch between them with `/switch`.
 
 ### 7 Coding Adapters
+
 Claude Code, Cursor CLI, OpenAI Codex, Gemini CLI, Kiro CLI, OpenCode, and Ollama (local/free). Full IDE control in `/code` mode.
 
 </td>
 <td width="50%">
 
 ### 9 Built-in Tools
+
 Terminal, process manager, git, file search, HTTP client, environment variables, network diagnostics, cron jobs, and system info all callable by the LLM.
 
 ### 13 MCP Servers
+
 Connect GitHub, Brave Search, Puppeteer, PostgreSQL, MongoDB, Redis, Elasticsearch, AWS, GCP, Cloudflare, Vercel, Atlassian, and Supabase as external tools via the Model Context Protocol.
 
 ### Session Logging
+
 Per-session logs accessible from the TUI. Follow live, view by index, auto-pruned after 7 days.
 
 </td>
@@ -99,14 +104,14 @@ That's it. The interactive menu guides you through everything authentication, co
 
 ## Supported Platforms
 
-| Platform | Transport | Setup |
-|:---|:---|:---|
-| **WhatsApp** | QR code pairing | Scan QR in terminal on first run |
-| **Telegram** | Bot API | Create bot via [@BotFather](https://t.me/BotFather), paste token |
-| **Discord** | Bot gateway | Create app at [discord.com/developers](https://discord.com/developers), paste bot token |
-| **Slack** | Socket Mode | Create app at [api.slack.com](https://api.slack.com/apps), enable Socket Mode |
-| **Microsoft Teams** | Bot Framework | Register bot at [dev.teams.microsoft.com](https://dev.teams.microsoft.com/bots) |
-| **Signal** | signal-cli REST | Run [signal-cli-rest-api](https://github.com/bbernhard/signal-cli-rest-api) via Docker |
+| Platform            | Transport       | Setup                                                                                   |
+| :------------------ | :-------------- | :-------------------------------------------------------------------------------------- |
+| **WhatsApp**        | QR code pairing | Scan QR in terminal on first run                                                        |
+| **Telegram**        | Bot API         | Create bot via [@BotFather](https://t.me/BotFather), paste token                        |
+| **Discord**         | Bot gateway     | Create app at [discord.com/developers](https://discord.com/developers), paste bot token |
+| **Slack**           | Socket Mode     | Create app at [api.slack.com](https://api.slack.com/apps), enable Socket Mode           |
+| **Microsoft Teams** | Bot Framework   | Register bot at [dev.teams.microsoft.com](https://dev.teams.microsoft.com/bots)         |
+| **Signal**          | signal-cli REST | Run [signal-cli-rest-api](https://github.com/bbernhard/signal-cli-rest-api) via Docker  |
 
 ---
 
@@ -114,17 +119,17 @@ That's it. The interactive menu guides you through everything authentication, co
 
 txtcode supports **9 LLM providers** for chat mode. Configure one or more during setup and hot-switch with `/switch`.
 
-| Provider | Example Models | Notes |
-|:---|:---|:---|
-| **Anthropic** | `claude-sonnet-4-6`, `claude-opus-4-6` | Claude family |
-| **OpenAI** | `gpt-5.2`, `o4-mini`, `gpt-4o` | GPT and o-series |
-| **Google Gemini** | `gemini-2.5-pro`, `gemini-2.5-flash` | Gemini family |
-| **Mistral** | `mistral-large-latest`, `codestral-latest` | Mistral + Codestral |
-| **Moonshot (Kimi)** | `kimi-k2.5`, `moonshot-v1-128k` | Long-context models |
-| **MiniMax** | `MiniMax-M2.5`, `MiniMax-M2.1` | MiniMax family |
-| **xAI (Grok)** | `grok-4`, `grok-3-fast` | Grok family |
-| **HuggingFace** | *Discovered at runtime* | Inference Providers API |
-| **OpenRouter** | *Discovered at runtime* | Unified API for 100+ models |
+| Provider            | Example Models                             | Notes                       |
+| :------------------ | :----------------------------------------- | :-------------------------- |
+| **Anthropic**       | `claude-sonnet-4-6`, `claude-opus-4-6`     | Claude family               |
+| **OpenAI**          | `gpt-5.2`, `o4-mini`, `gpt-4o`             | GPT and o-series            |
+| **Google Gemini**   | `gemini-2.5-pro`, `gemini-2.5-flash`       | Gemini family               |
+| **Mistral**         | `mistral-large-latest`, `codestral-latest` | Mistral + Codestral         |
+| **Moonshot (Kimi)** | `kimi-k2.5`, `moonshot-v1-128k`            | Long-context models         |
+| **MiniMax**         | `MiniMax-M2.5`, `MiniMax-M2.1`             | MiniMax family              |
+| **xAI (Grok)**      | `grok-4`, `grok-3-fast`                    | Grok family                 |
+| **HuggingFace**     | _Discovered at runtime_                    | Inference Providers API     |
+| **OpenRouter**      | _Discovered at runtime_                    | Unified API for 100+ models |
 
 All providers support tool calling and LLM can invoke any built-in tool or connected MCP server.
 
@@ -134,15 +139,15 @@ All providers support tool calling and LLM can invoke any built-in tool or conne
 
 Use `/code` mode to route messages directly to a coding adapter with full IDE control.
 
-| Adapter | Backend | CLI Required | Notes |
-|:---|:---|:---|:---|
-| **Claude Code** | Anthropic API | `claude` | Official Claude CLI |
-| **Cursor CLI** | Cursor | `cursor` | Headless Cursor |
-| **OpenAI Codex** | OpenAI API | `codex` | OpenAI's coding agent |
-| **Gemini CLI** | Google AI API | `gemini` | Google's CLI |
-| **Kiro CLI** | AWS | `kiro-cli` | AWS Kiro subscription |
-| **OpenCode** | Multi-provider | `opencode` | Open-source, multi-provider |
-| **Ollama Claude Code** | Local (Ollama) | `ollama` | Free, no API key needed |
+| Adapter                | Backend        | CLI Required | Notes                       |
+| :--------------------- | :------------- | :----------- | :-------------------------- |
+| **Claude Code**        | Anthropic API  | `claude`     | Official Claude CLI         |
+| **Cursor CLI**         | Cursor         | `cursor`     | Headless Cursor             |
+| **OpenAI Codex**       | OpenAI API     | `codex`      | OpenAI's coding agent       |
+| **Gemini CLI**         | Google AI API  | `gemini`     | Google's CLI                |
+| **Kiro CLI**           | AWS            | `kiro-cli`   | AWS Kiro subscription       |
+| **OpenCode**           | Multi-provider | `opencode`   | Open-source, multi-provider |
+| **Ollama Claude Code** | Local (Ollama) | `ollama`     | Free, no API key needed     |
 
 ---
 
@@ -150,17 +155,17 @@ Use `/code` mode to route messages directly to a coding adapter with full IDE co
 
 The primary LLM in chat mode has access to **9 built-in tools** that it can call autonomously:
 
-| Tool | Capabilities |
-|:---|:---|
-| **Terminal** | Execute shell commands with timeout and output capture |
-| **Process** | Manage background processes: list, poll, stream logs, kill, send input |
-| **Git** | Full git operations (blocks force-push and credential config for safety) |
-| **Search** | File and content search across the project |
-| **HTTP** | Make HTTP requests (GET, POST, PUT, DELETE, PATCH, HEAD). Blocks cloud metadata endpoints |
-| **Env** | Get, set, list, and delete environment variables. Masks sensitive values |
-| **Network** | Ping, DNS lookup, reachability checks, port scanning |
-| **Cron** | Create, list, and manage cron jobs |
-| **Sysinfo** | CPU, memory, disk, uptime, OS details |
+| Tool         | Capabilities                                                                              |
+| :----------- | :---------------------------------------------------------------------------------------- |
+| **Terminal** | Execute shell commands with timeout and output capture                                    |
+| **Process**  | Manage background processes: list, poll, stream logs, kill, send input                    |
+| **Git**      | Full git operations (blocks force-push and credential config for safety)                  |
+| **Search**   | File and content search across the project                                                |
+| **HTTP**     | Make HTTP requests (GET, POST, PUT, DELETE, PATCH, HEAD). Blocks cloud metadata endpoints |
+| **Env**      | Get, set, list, and delete environment variables. Masks sensitive values                  |
+| **Network**  | Ping, DNS lookup, reachability checks, port scanning                                      |
+| **Cron**     | Create, list, and manage cron jobs                                                        |
+| **Sysinfo**  | CPU, memory, disk, uptime, OS details                                                     |
 
 ---
 
@@ -170,36 +175,36 @@ txtcode integrates with the **Model Context Protocol** to connect external tool 
 
 ### Developer Tools
 
-| Server | Transport | Description |
-|:---|:---|:---|
-| **GitHub** | stdio | Repos, issues, PRs, code search, Actions |
-| **Brave Search** | stdio | Web, image, video, and news search |
-| **Puppeteer** | stdio | Browser automation, screenshots, form filling |
+| Server           | Transport | Description                                   |
+| :--------------- | :-------- | :-------------------------------------------- |
+| **GitHub**       | stdio     | Repos, issues, PRs, code search, Actions      |
+| **Brave Search** | stdio     | Web, image, video, and news search            |
+| **Puppeteer**    | stdio     | Browser automation, screenshots, form filling |
 
 ### Databases
 
-| Server | Transport | Description |
-|:---|:---|:---|
-| **PostgreSQL** | stdio | Read-only SQL queries and schema inspection |
-| **MongoDB** | stdio | CRUD, indexes, vector search, Atlas management |
-| **Redis** | stdio | Data structures, caching, vectors, pub/sub |
-| **Elasticsearch** | stdio | Index management, search queries, cluster ops |
-| **Supabase** | HTTP | Postgres, Auth, Storage, Edge Functions |
+| Server            | Transport | Description                                    |
+| :---------------- | :-------- | :--------------------------------------------- |
+| **PostgreSQL**    | stdio     | Read-only SQL queries and schema inspection    |
+| **MongoDB**       | stdio     | CRUD, indexes, vector search, Atlas management |
+| **Redis**         | stdio     | Data structures, caching, vectors, pub/sub     |
+| **Elasticsearch** | stdio     | Index management, search queries, cluster ops  |
+| **Supabase**      | HTTP      | Postgres, Auth, Storage, Edge Functions        |
 
 ### Cloud
 
-| Server | Transport | Description |
-|:---|:---|:---|
-| **AWS** | stdio | S3, Lambda, EKS, CDK, CloudFormation, 60+ services |
-| **Google Cloud** | HTTP | BigQuery, GKE, Compute, Storage, Firebase |
-| **Cloudflare** | HTTP | Workers, R2, DNS, Zero Trust, 2500+ endpoints |
-| **Vercel** | HTTP | Deployments, domains, env vars, logs |
+| Server           | Transport | Description                                        |
+| :--------------- | :-------- | :------------------------------------------------- |
+| **AWS**          | stdio     | S3, Lambda, EKS, CDK, CloudFormation, 60+ services |
+| **Google Cloud** | HTTP      | BigQuery, GKE, Compute, Storage, Firebase          |
+| **Cloudflare**   | HTTP      | Workers, R2, DNS, Zero Trust, 2500+ endpoints      |
+| **Vercel**       | HTTP      | Deployments, domains, env vars, logs               |
 
 ### Productivity
 
-| Server | Transport | Description |
-|:---|:---|:---|
-| **Atlassian** | HTTP | Jira issues, Confluence pages, Compass components |
+| Server        | Transport | Description                                       |
+| :------------ | :-------- | :------------------------------------------------ |
+| **Atlassian** | HTTP      | Jira issues, Confluence pages, Compass components |
 
 > **stdio** = local process, **HTTP** = remote Streamable HTTP endpoint. You can also add custom MCP servers via **Configuration** &rarr; **Manage MCP Servers**.
 
@@ -209,18 +214,17 @@ txtcode integrates with the **Model Context Protocol** to connect external tool 
 
 Send these commands in any messaging app while connected:
 
-| Command | Description |
-|:---|:---|
-| `/chat` | Switch to **Chat mode** to send messages to primary LLM with tools *(default)* |
-| `/code` | Switch to **Code mode** to send messages to coding adapter (full IDE control) |
-| `/switch` | Switch primary LLM provider or coding adapter on the fly |
-| `/cli-model` | Change the model used by the current coding adapter |
-| `/cancel` | Cancel the currently running command |
-| `/status` | Show adapter connection and current configuration |
-| `/help` | Show available commands |
+| Command      | Description                                                                    |
+| :----------- | :----------------------------------------------------------------------------- |
+| `/chat`      | Switch to **Chat mode** to send messages to primary LLM with tools _(default)_ |
+| `/code`      | Switch to **Code mode** to send messages to coding adapter (full IDE control)  |
+| `/switch`    | Switch primary LLM provider or coding adapter on the fly                       |
+| `/cli-model` | Change the model used by the current coding adapter                            |
+| `/cancel`    | Cancel the currently running command                                           |
+| `/status`    | Show adapter connection and current configuration                              |
+| `/help`      | Show available commands                                                        |
 
 ---
-
 
 ## Configuration
 
@@ -298,9 +302,6 @@ Verbose and debug output goes to the log file; the terminal shows only key statu
 
 ---
 
-
-
 ## License
 
 Apache-2.0
-

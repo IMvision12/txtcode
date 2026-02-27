@@ -13,7 +13,7 @@ function runCommand(
       resolve({
         stdout: stdout?.toString() ?? "",
         stderr: stderr?.toString() ?? "",
-        code: err ? ((err as { code?: number }).code ?? 1) : 0,
+        code: err ? ((err as { status?: number }).status ?? 1) : 0,
       });
     });
   });
@@ -259,8 +259,27 @@ export class CronTool implements Tool {
     }
 
     if (isWindows) {
-      const schtasksArgs = ["/create", "/tn", name, "/tr", command];
+      const ALLOWED_SCHTASKS_FLAGS = new Set([
+        "/sc",
+        "/st",
+        "/sd",
+        "/ed",
+        "/mo",
+        "/d",
+        "/m",
+        "/ri",
+      ]);
       const scheduleParts = schedule.split(/\s+/);
+      for (const part of scheduleParts) {
+        if (part.startsWith("/") && !ALLOWED_SCHTASKS_FLAGS.has(part.toLowerCase())) {
+          return {
+            toolCallId: "",
+            output: `Blocked: schedule flag "${part}" is not allowed. Allowed flags: ${[...ALLOWED_SCHTASKS_FLAGS].join(", ")}`,
+            isError: true,
+          };
+        }
+      }
+      const schtasksArgs = ["/create", "/tn", name, "/tr", command];
       schtasksArgs.push(...scheduleParts);
       schtasksArgs.push("/f");
 
@@ -331,7 +350,8 @@ export class CronTool implements Tool {
     }
 
     const lines = existing.stdout.split("\n");
-    const filtered = lines.filter((line) => !line.includes(name));
+    const commentTag = `# ${name}`;
+    const filtered = lines.filter((line) => !line.endsWith(commentTag));
 
     if (filtered.length === lines.length) {
       return { toolCallId: "", output: `No crontab entry matching "${name}".`, isError: false };

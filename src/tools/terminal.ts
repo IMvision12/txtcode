@@ -39,10 +39,6 @@ function resolveShell(): { shell: string; buildArgs: (cmd: string) => string[] }
   const isWindows = process.platform === "win32";
 
   if (isWindows) {
-    const _pwsh = process.env.COMSPEC?.toLowerCase().includes("powershell")
-      ? process.env.COMSPEC
-      : null;
-
     // Prefer PowerShell (pwsh/powershell), fall back to cmd.exe
     for (const candidate of ["pwsh.exe", "powershell.exe"]) {
       try {

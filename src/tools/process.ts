@@ -158,10 +158,10 @@ export class ProcessTool implements Tool {
 
     const running = getSession(sessionId);
     if (running) {
-      const _truncNote = running.truncated ? "\n(output was truncated)" : "";
+      const truncNote = running.truncated ? "\n(output was truncated)" : "";
       return {
         toolCallId: "",
-        output: running.aggregated || "(no output yet)",
+        output: (running.aggregated || "(no output yet)") + truncNote,
         isError: false,
         metadata: { totalChars: running.totalOutputChars, truncated: running.truncated },
       };
@@ -195,14 +195,21 @@ export class ProcessTool implements Tool {
     }
 
     if (running.child) {
+      const childRef = running.child;
       try {
-        killProcessTree(running.child, 3000);
+        killProcessTree(childRef, 3000);
         setTimeout(() => {
-          if (!running.exited && running.child) {
-            forceKillProcess(running.child);
+          try {
+            if (!running.exited && childRef.pid) {
+              forceKillProcess(childRef);
+            }
+          } catch {
+            // Process may have already exited
           }
         }, 3000);
-      } catch {}
+      } catch {
+        // Best-effort kill
+      }
     }
 
     const killMsg =
@@ -271,6 +278,14 @@ export class ProcessTool implements Tool {
   private actionRemove(sessionId?: string): ToolResult {
     if (!sessionId) {
       return { toolCallId: "", output: "Error: session_id is required for remove.", isError: true };
+    }
+    const running = getSession(sessionId);
+    if (running?.child) {
+      try {
+        killProcessTree(running.child, 3000);
+      } catch {
+        // Best-effort kill before removal
+      }
     }
     deleteSession(sessionId);
     return { toolCallId: "", output: `Session ${sessionId} removed.`, isError: false };

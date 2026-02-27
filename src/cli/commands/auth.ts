@@ -813,9 +813,15 @@ export async function authCommand() {
       await setBotToken("signal-phone", signalPhoneNumber);
       await setBotToken("signal-api-url", signalCliRestUrl);
     }
-  } catch {
+  } catch (keychainError) {
     console.log(chalk.red("\n[ERROR] Failed to store credentials in keychain"));
-    console.log(chalk.yellow("Falling back to encrypted file storage...\n"));
+    console.log(chalk.yellow("Credentials will be unavailable until keychain access is restored."));
+    console.log(
+      chalk.gray(
+        `Details: ${keychainError instanceof Error ? keychainError.message : String(keychainError)}`,
+      ),
+    );
+    console.log(chalk.gray("Re-run 'txtcode' → 'Authenticate' to retry.\n"));
   }
 
   // Build providers object dynamically

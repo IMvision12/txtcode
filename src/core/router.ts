@@ -186,6 +186,9 @@ export class Router {
   }
 
   async shutdownMCP(): Promise<void> {
+    for (const serverId of this.mcpBridge.getConnectedServerIds()) {
+      this.toolRegistry.removeMCPTools(serverId);
+    }
     await this.mcpBridge.disconnectAll();
   }
 
@@ -313,10 +316,7 @@ export class Router {
 
       return result;
     } finally {
-      // Clear abort controller after command completes
-      if (this.currentAbortController && !signal.aborted) {
-        this.currentAbortController = null;
-      }
+      this.currentAbortController = null;
     }
   }
 
