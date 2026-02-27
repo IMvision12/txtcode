@@ -66,9 +66,9 @@ Claude Code, Cursor CLI, OpenAI Codex, Gemini CLI, Kiro CLI, OpenCode, and Ollam
 
 Terminal, process manager, git, file search, HTTP client, environment variables, network diagnostics, cron jobs, and system info all callable by the LLM.
 
-### 13 MCP Servers
+### 15 MCP Servers
 
-Connect GitHub, Brave Search, Puppeteer, PostgreSQL, MongoDB, Redis, Elasticsearch, AWS, GCP, Cloudflare, Vercel, Atlassian, and Supabase as external tools via the Model Context Protocol.
+Connect GitHub, Brave Search, Puppeteer, PostgreSQL, MongoDB, Redis, Elasticsearch, AWS, GCP, Cloudflare, Vercel, Atlassian, Supabase, CircleCI, and Postman as external tools via the Model Context Protocol.
 
 ### Session Logging
 
@@ -175,11 +175,13 @@ txtcode integrates with the **Model Context Protocol** to connect external tool 
 
 ### Developer Tools
 
-| Server           | Transport | Description                                   |
-| :--------------- | :-------- | :-------------------------------------------- |
-| **GitHub**       | stdio     | Repos, issues, PRs, code search, Actions      |
-| **Brave Search** | stdio     | Web, image, video, and news search            |
-| **Puppeteer**    | stdio     | Browser automation, screenshots, form filling |
+| Server           | Transport | Description                                              |
+| :--------------- | :-------- | :------------------------------------------------------- |
+| **GitHub**       | stdio     | Repos, issues, PRs, code search, Actions                 |
+| **Brave Search** | stdio     | Web, image, video, and news search                       |
+| **Puppeteer**    | stdio     | Browser automation, screenshots, form filling            |
+| **CircleCI**     | stdio     | Build logs, flaky tests, pipeline status, rerun workflows |
+| **Postman**      | stdio     | Collections, workspaces, API specs, code generation       |
 
 ### Databases
 

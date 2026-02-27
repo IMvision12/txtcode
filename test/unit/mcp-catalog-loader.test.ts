@@ -16,11 +16,11 @@ describe("MCP Catalog Loader", () => {
 
     expect(catalog.servers).toBeDefined();
     expect(Array.isArray(catalog.servers)).toBe(true);
-    expect(catalog.servers.length).toBe(13);
+    expect(catalog.servers.length).toBe(15);
     expect(catalog.categories).toBeDefined();
   });
 
-  it("returns all 13 expected servers", () => {
+  it("returns all 15 expected servers", () => {
     const catalog = loadMCPServersCatalog();
     const ids = catalog.servers.map((s) => s.id);
 
@@ -37,6 +37,8 @@ describe("MCP Catalog Loader", () => {
     expect(ids).toContain("vercel");
     expect(ids).toContain("atlassian");
     expect(ids).toContain("supabase");
+    expect(ids).toContain("circleci");
+    expect(ids).toContain("postman");
   });
 
   it("stdio servers have command field", () => {
