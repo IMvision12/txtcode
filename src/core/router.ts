@@ -15,17 +15,19 @@ import { processWithOpenAI } from "../providers/openai";
 import { processWithOpenRouter } from "../providers/openrouter";
 import { processWithXAI } from "../providers/xai";
 import { logger } from "../shared/logger";
-import { IDEAdapter, ModelInfo } from "../shared/types";
+import { IDEAdapter, MCPServerEntry, ModelInfo } from "../shared/types";
 import { CronTool } from "../tools/cron";
 import { EnvTool } from "../tools/env";
 import { GitTool } from "../tools/git";
 import { HttpTool } from "../tools/http";
+import { MCPBridge, MCPServerConfig } from "../tools/mcp-bridge";
 import { NetworkTool } from "../tools/network";
 import { ProcessTool } from "../tools/process";
 import { ToolRegistry } from "../tools/registry";
 import { SearchTool } from "../tools/search";
 import { SysinfoTool } from "../tools/sysinfo";
 import { TerminalTool } from "../tools/terminal";
+import { loadMCPServersCatalog } from "../utils/mcp-catalog-loader";
 import { ContextManager } from "./context-manager";
 
 export const AVAILABLE_ADAPTERS = [
@@ -47,6 +49,7 @@ export class Router {
   private contextManager: ContextManager;
   private pendingHandoff: string | null = null;
   private currentAbortController: AbortController | null = null;
+  private mcpBridge: MCPBridge;
 
   constructor() {
     this.provider = process.env.AI_PROVIDER || "anthropic";
@@ -64,6 +67,7 @@ export class Router {
     this.toolRegistry.register(new CronTool());
     this.toolRegistry.register(new SysinfoTool());
 
+    this.mcpBridge = new MCPBridge();
     this.contextManager = new ContextManager();
 
     const ideType = process.env.IDE_TYPE || "";
@@ -71,6 +75,108 @@ export class Router {
     this.contextManager.setCurrentAdapter(ideType);
     this.adapter = this.createAdapter(ideType);
     this.restoreAdapterModel(ideType);
+  }
+
+  async initMCP(): Promise<void> {
+    const mcpServers = this.loadMCPConfig();
+    if (!mcpServers || mcpServers.length === 0) return;
+
+    const catalog = loadMCPServersCatalog();
+    const catalogMap = new Map(catalog.servers.map((s) => [s.id, s]));
+
+    const results: string[] = [];
+
+    for (const entry of mcpServers) {
+      if (!entry.enabled) continue;
+
+      try {
+        const catalogEntry = catalogMap.get(entry.id);
+        const serverConfig = this.buildMCPServerConfig(entry, catalogEntry);
+
+        const tools = await this.mcpBridge.connect(serverConfig);
+        this.toolRegistry.registerMCPTools(tools);
+        results.push(`${entry.id}: ${tools.length} tools`);
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        logger.debug(`MCP server "${entry.id}" failed to connect: ${msg}`);
+      }
+    }
+
+    if (results.length > 0) {
+      logger.info(`MCP servers connected (${results.join(", ")})`);
+      logger.info(`Total tools: ${this.toolRegistry.getMCPToolCount()} MCP + built-in`);
+    }
+  }
+
+  private buildMCPServerConfig(
+    entry: MCPServerEntry,
+    catalogEntry?: { keychainKey?: string; tokenEnvKey?: string; additionalTokens?: Array<{ keychainKey: string; tokenEnvKey: string }> },
+  ): MCPServerConfig {
+    const config: MCPServerConfig = {
+      id: entry.id,
+      name: entry.id,
+      transport: entry.transport,
+    };
+
+    if (entry.transport === "stdio") {
+      config.command = entry.command;
+
+      const resolvedArgs = (entry.args || []).map((arg) => {
+        const keychainMatch = arg.match(/^__KEYCHAIN:(.+)__$/);
+        if (keychainMatch) {
+          return process.env[`MCP_TOKEN_${entry.id.toUpperCase().replace(/-/g, "_")}`] || arg;
+        }
+        return arg;
+      });
+      config.args = resolvedArgs;
+
+      const env: Record<string, string> = { ...entry.env };
+      if (catalogEntry?.tokenEnvKey) {
+        const envKey = `MCP_TOKEN_${entry.id.toUpperCase().replace(/-/g, "_")}`;
+        const token = process.env[envKey];
+        if (token) {
+          env[catalogEntry.tokenEnvKey] = token;
+        }
+      }
+      if (catalogEntry?.additionalTokens) {
+        for (const additional of catalogEntry.additionalTokens) {
+          const envKey = `MCP_TOKEN_${additional.keychainKey.toUpperCase().replace(/-/g, "_")}`;
+          const token = process.env[envKey];
+          if (token) {
+            env[additional.tokenEnvKey] = token;
+          }
+        }
+      }
+      config.env = env;
+    } else {
+      config.url = entry.url;
+
+      const tokenEnvKey = `MCP_TOKEN_${entry.id.toUpperCase().replace(/-/g, "_")}`;
+      const token = process.env[tokenEnvKey];
+      if (token) {
+        config.headers = { Authorization: `Bearer ${token}` };
+      }
+    }
+
+    return config;
+  }
+
+  private loadMCPConfig(): MCPServerEntry[] | null {
+    try {
+      const fs = require("fs");
+      const path = require("path");
+      const os = require("os");
+      const configPath = path.join(os.homedir(), ".txtcode", "config.json");
+      if (!fs.existsSync(configPath)) return null;
+      const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+      return config.mcpServers || null;
+    } catch {
+      return null;
+    }
+  }
+
+  async shutdownMCP(): Promise<void> {
+    await this.mcpBridge.disconnectAll();
   }
 
   private createAdapter(ideType: string): IDEAdapter {

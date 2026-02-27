@@ -4,6 +4,16 @@ export interface Message {
   timestamp: Date;
 }
 
+export interface MCPServerEntry {
+  id: string;
+  transport: "stdio" | "http";
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+  url?: string;
+  enabled: boolean;
+}
+
 export interface Config {
   aiProvider: string;
   aiModel?: string;
@@ -25,6 +35,7 @@ export interface Config {
   adapterModels?: {
     [adapterName: string]: string;
   };
+  mcpServers?: MCPServerEntry[];
 }
 
 export interface ModelInfo {

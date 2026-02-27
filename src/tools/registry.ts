@@ -2,9 +2,30 @@ import { Tool, ToolCall, ToolDefinition, ToolResult, ParameterProperty } from ".
 
 export class ToolRegistry {
   private tools: Map<string, Tool> = new Map();
+  private mcpToolNames: Set<string> = new Set();
 
   register(tool: Tool): void {
     this.tools.set(tool.name, tool);
+  }
+
+  registerMCPTools(tools: Tool[]): void {
+    for (const tool of tools) {
+      this.tools.set(tool.name, tool);
+      this.mcpToolNames.add(tool.name);
+    }
+  }
+
+  removeMCPTools(prefix: string): void {
+    for (const name of this.mcpToolNames) {
+      if (name.startsWith(prefix + "_")) {
+        this.tools.delete(name);
+        this.mcpToolNames.delete(name);
+      }
+    }
+  }
+
+  getMCPToolCount(): number {
+    return this.mcpToolNames.size;
   }
 
   getDefinitions(): ToolDefinition[] {

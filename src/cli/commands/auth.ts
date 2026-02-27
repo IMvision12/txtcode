@@ -14,7 +14,9 @@ import {
   discoverOpenRouterModels,
 } from "../../utils/model-discovery-util";
 import { loadModelsCatalog } from "../../utils/models-catalog-loader";
+import { loadMCPServersCatalog, type MCPCatalogServer } from "../../utils/mcp-catalog-loader";
 import { showCenteredList, showCenteredInput, showCenteredConfirm } from "../tui";
+import type { MCPServerEntry } from "../../shared/types";
 
 const CONFIG_DIR = path.join(os.homedir(), ".txtcode");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
@@ -548,6 +550,9 @@ export async function authCommand() {
   console.log(chalk.green(`✅ Configured ${configuredProviders.length} provider(s)`));
   console.log();
 
+  // Step 2.5: MCP Servers (optional)
+  const mcpServerEntries = await configureMCPServers();
+
   // Step 3: Messaging Platform
   const platform = await showCenteredList({
     message: "Select messaging platform: (Use arrow keys)",
@@ -835,6 +840,9 @@ export async function authCommand() {
     idePort: 3000,
     authorizedUser: "", // Will be set on first message
     configuredAt: new Date().toISOString(),
+
+    // MCP servers (tokens in keychain)
+    mcpServers: mcpServerEntries,
   };
 
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
@@ -870,6 +878,14 @@ export async function authCommand() {
     console.log(chalk.white(`  ${label}: ${provider.provider} (${provider.model})`));
   });
 
+  if (mcpServerEntries.length > 0) {
+    console.log(chalk.cyan("\nMCP Servers:"));
+    mcpServerEntries.forEach((server) => {
+      const status = server.enabled ? chalk.green("enabled") : chalk.gray("disabled");
+      console.log(chalk.white(`  ${server.id} (${server.transport}) - ${status}`));
+    });
+  }
+
   console.log(
     chalk.cyan("\nRun ") +
       chalk.bold("txtcode") +
@@ -881,6 +897,135 @@ export async function authCommand() {
   if (configuredProviders.length > 1) {
     console.log(chalk.gray("  Use /switch to change between your configured providers\n"));
   }
+}
+
+async function configureMCPServers(): Promise<MCPServerEntry[]> {
+  const catalog = loadMCPServersCatalog();
+  if (!catalog || catalog.servers.length === 0) {
+    return [];
+  }
+
+  console.log(chalk.cyan("MCP Servers (optional)"));
+  console.log();
+  console.log(chalk.gray("Connect external tools to your AI provider (GitHub, databases, cloud, etc.)"));
+  console.log();
+
+  const categoryNames = catalog.categories as Record<string, string>;
+  const serversByCategory = new Map<string, MCPCatalogServer[]>();
+  for (const server of catalog.servers) {
+    const cat = server.category || "other";
+    if (!serversByCategory.has(cat)) {
+      serversByCategory.set(cat, []);
+    }
+    serversByCategory.get(cat)!.push(server);
+  }
+
+  const selectedServers: MCPCatalogServer[] = [];
+  const selectedIds = new Set<string>();
+
+  let continueSelecting = true;
+  while (continueSelecting) {
+    const choices: Array<{ name: string; value: string }> = [
+      { name: "Configure later", value: "__SKIP__" },
+    ];
+
+    if (selectedServers.length > 0) {
+      choices[0] = { name: `← Done (${selectedServers.length} selected)`, value: "__SKIP__" };
+    }
+
+    for (const [category, servers] of serversByCategory) {
+      const label = categoryNames[category] || category;
+      for (const server of servers) {
+        if (selectedIds.has(server.id)) continue;
+        const transportTag = server.transport === "http" ? " [remote]" : "";
+        choices.push({
+          name: `[${label}] ${server.name} - ${server.description}${transportTag}`,
+          value: server.id,
+        });
+      }
+    }
+
+    if (choices.length === 1) {
+      console.log(chalk.yellow("\nAll available MCP servers have been selected.\n"));
+      break;
+    }
+
+    const selected = await showCenteredList({
+      message: selectedServers.length > 0
+        ? `Add another MCP server: (Use arrow keys)`
+        : `Select MCP server to connect: (Use arrow keys)`,
+      choices,
+      pageSize: 10,
+    });
+
+    if (selected === "__SKIP__") {
+      if (selectedServers.length === 0) {
+        console.log();
+        console.log(chalk.gray("You can configure MCP servers anytime from 'txtcode config' → 'Manage MCP Servers'."));
+        console.log();
+      }
+      continueSelecting = false;
+      break;
+    }
+
+    const server = catalog.servers.find((s) => s.id === selected);
+    if (!server) continue;
+
+    selectedIds.add(server.id);
+
+    if (server.requiresToken) {
+      console.log();
+      const token = await showCenteredInput({
+        message: server.tokenPrompt || `Enter token for ${server.name}:`,
+        password: true,
+        validate: (input) => input.length > 0 || "Token/credential is required",
+      });
+      await setBotToken(server.keychainKey, token);
+
+      if (server.additionalTokens) {
+        for (const additional of server.additionalTokens) {
+          console.log();
+          const additionalToken = await showCenteredInput({
+            message: additional.tokenPrompt,
+            password: !additional.tokenPrompt.toLowerCase().includes("region"),
+            validate: (input) => input.length > 0 || "This field is required",
+          });
+          await setBotToken(additional.keychainKey, additionalToken);
+        }
+      }
+    }
+
+    selectedServers.push(server);
+    console.log(chalk.green(`  Added: ${server.name}`));
+  }
+
+  if (selectedServers.length > 0) {
+    console.log();
+    console.log(chalk.green(`✅ Configured ${selectedServers.length} MCP server(s)`));
+    console.log();
+  }
+
+  return selectedServers.map((server): MCPServerEntry => {
+    const entry: MCPServerEntry = {
+      id: server.id,
+      transport: server.transport,
+      enabled: true,
+    };
+
+    if (server.transport === "stdio") {
+      entry.command = server.command;
+      entry.args = server.args ? [...server.args] : undefined;
+
+      if (server.tokenIsArg && server.keychainKey) {
+        entry.args = entry.args || [];
+        entry.args.push(`__KEYCHAIN:${server.keychainKey}__`);
+      }
+    } else {
+      entry.url = server.url;
+    }
+
+    return entry;
+  });
 }
 
 export function loadConfig(): Record<string, unknown> | null {
