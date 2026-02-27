@@ -128,12 +128,12 @@ export class SlackBot {
       const taskStartTime = Date.now();
 
       try {
-        const result = await client.chat.postMessage({
+        const ts = await this.postSlackMessage(client, {
           channel,
           text: "Working on your request...",
           thread_ts: msg.ts as string,
         });
-        active.progressMessageTs = result.ts || null;
+        active.progressMessageTs = ts || null;
         lastEditText = "Working on your request...";
       } catch (error) {
         logger.debug(`Failed to send initial message: ${error}`);
@@ -235,7 +235,7 @@ export class SlackBot {
                 text: fallback,
               });
             } else {
-              await client.chat.postMessage({
+              await this.postSlackMessage(client, {
                 channel,
                 text: fallback,
                 thread_ts: msg.ts as string,
@@ -276,6 +276,16 @@ export class SlackBot {
     });
   }
 
+  private async postSlackMessage(
+    client: InstanceType<typeof App>["client"],
+    opts: { channel: string; text: string; thread_ts?: string },
+  ): Promise<string | undefined> {
+    // Wrapper to avoid oxlint false-positive (unicorn/require-post-message-target-origin)
+    // which confuses Slack's chat.postMessage with window.postMessage
+    const result = await client.chat.postMessage(opts); // eslint-disable-line unicorn/require-post-message-target-origin
+    return result.ts;
+  }
+
   private async sendLongMessage(
     client: InstanceType<typeof App>["client"],
     channel: string,
@@ -283,12 +293,12 @@ export class SlackBot {
     threadTs?: string,
   ): Promise<void> {
     if (text.length <= MAX_SLACK_LENGTH) {
-      await client.chat.postMessage({ channel, text, thread_ts: threadTs });
+      await this.postSlackMessage(client, { channel, text, thread_ts: threadTs });
       return;
     }
     const parts = splitMessage(text, MAX_SLACK_LENGTH);
     for (const part of parts) {
-      await client.chat.postMessage({ channel, text: part, thread_ts: threadTs });
+      await this.postSlackMessage(client, { channel, text: part, thread_ts: threadTs });
     }
   }
 
