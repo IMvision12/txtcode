@@ -2,11 +2,11 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import chalk from "chalk";
+import type { MCPServerEntry } from "../../shared/types";
 import { setBotToken } from "../../utils/keychain";
 import { loadMCPServersCatalog } from "../../utils/mcp-catalog-loader";
 import { centerLog, showCenteredList, showCenteredInput, showCenteredConfirm } from "../tui";
 import { loadConfig } from "./auth";
-import type { MCPServerEntry } from "../../shared/types";
 
 const CONFIG_DIR = path.join(os.homedir(), ".txtcode");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");

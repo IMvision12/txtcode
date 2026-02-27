@@ -110,7 +110,11 @@ export class Router {
 
   private buildMCPServerConfig(
     entry: MCPServerEntry,
-    catalogEntry?: { keychainKey?: string; tokenEnvKey?: string; additionalTokens?: Array<{ keychainKey: string; tokenEnvKey: string }> },
+    catalogEntry?: {
+      keychainKey?: string;
+      tokenEnvKey?: string;
+      additionalTokens?: Array<{ keychainKey: string; tokenEnvKey: string }>;
+    },
   ): MCPServerConfig {
     const config: MCPServerConfig = {
       id: entry.id,

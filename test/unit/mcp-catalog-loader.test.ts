@@ -1,9 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
 import fs from "fs";
-import {
-  loadMCPServersCatalog,
-  clearMCPCatalogCache,
-} from "../../src/utils/mcp-catalog-loader";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { loadMCPServersCatalog, clearMCPCatalogCache } from "../../src/utils/mcp-catalog-loader";
 
 vi.mock("../../src/shared/logger", () => ({
   logger: { debug: vi.fn(), info: vi.fn(), error: vi.fn() },

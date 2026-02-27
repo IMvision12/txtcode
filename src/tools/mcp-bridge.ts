@@ -1,5 +1,5 @@
-import { Client, StdioClientTransport, StreamableHTTPClientTransport } from "./mcp-sdk";
 import { logger } from "../shared/logger";
+import { Client, StdioClientTransport, StreamableHTTPClientTransport } from "./mcp-sdk";
 import { Tool, ToolDefinition, ToolResult, ParameterProperty, ParameterType } from "./types";
 
 interface MCPTransport {
@@ -87,10 +87,7 @@ export class MCPBridge {
         requestInit.headers = config.headers;
       }
 
-      transport = new StreamableHTTPClientTransport(
-        new URL(config.url),
-        { requestInit },
-      );
+      transport = new StreamableHTTPClientTransport(new URL(config.url), { requestInit });
     }
 
     await client.connect(transport);
@@ -102,9 +99,7 @@ export class MCPBridge {
 
     this.connections.set(config.id, { client, transport, tools, config });
 
-    logger.debug(
-      `MCP server "${config.name}" connected: ${tools.length} tool(s) discovered`,
-    );
+    logger.debug(`MCP server "${config.name}" connected: ${tools.length} tool(s) discovered`);
 
     return tools;
   }

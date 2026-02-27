@@ -1,18 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const {
-  mockConnect,
-  mockListTools,
-  mockCallTool,
-  mockClose,
-  mockTransportClose,
-} = vi.hoisted(() => ({
-  mockConnect: vi.fn(),
-  mockListTools: vi.fn(),
-  mockCallTool: vi.fn(),
-  mockClose: vi.fn(),
-  mockTransportClose: vi.fn(),
-}));
+const { mockConnect, mockListTools, mockCallTool, mockClose, mockTransportClose } = vi.hoisted(
+  () => ({
+    mockConnect: vi.fn(),
+    mockListTools: vi.fn(),
+    mockCallTool: vi.fn(),
+    mockClose: vi.fn(),
+    mockTransportClose: vi.fn(),
+  }),
+);
 
 vi.mock("../../src/shared/logger", () => ({
   logger: { debug: vi.fn(), info: vi.fn(), error: vi.fn() },
@@ -31,7 +27,10 @@ vi.mock("../../src/tools/mcp-sdk", () => ({
   },
   StreamableHTTPClientTransport: class {
     close = mockTransportClose;
-    constructor(public url: URL, public opts?: unknown) {}
+    constructor(
+      public url: URL,
+      public opts?: unknown,
+    ) {}
   },
 }));
 
@@ -368,9 +367,7 @@ describe("MCPToolAdapter", () => {
 
     it("JSON-stringifies non-text content", async () => {
       mockClient.callTool.mockResolvedValue({
-        content: [
-          { type: "image", data: "base64data", mimeType: "image/png" },
-        ],
+        content: [{ type: "image", data: "base64data", mimeType: "image/png" }],
       });
 
       const result = await adapter.execute({});

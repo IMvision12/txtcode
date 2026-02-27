@@ -8,15 +8,15 @@ import makeWASocket, {
 } from "@whiskeysockets/baileys";
 import chalk from "chalk";
 import qrcode from "qrcode-terminal";
+import type { MCPServerEntry } from "../../shared/types";
 import { setApiKey, setBotToken } from "../../utils/keychain";
+import { loadMCPServersCatalog, type MCPCatalogServer } from "../../utils/mcp-catalog-loader";
 import {
   discoverHuggingFaceModels,
   discoverOpenRouterModels,
 } from "../../utils/model-discovery-util";
 import { loadModelsCatalog } from "../../utils/models-catalog-loader";
-import { loadMCPServersCatalog, type MCPCatalogServer } from "../../utils/mcp-catalog-loader";
 import { showCenteredList, showCenteredInput, showCenteredConfirm } from "../tui";
-import type { MCPServerEntry } from "../../shared/types";
 
 const CONFIG_DIR = path.join(os.homedir(), ".txtcode");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
@@ -907,7 +907,9 @@ async function configureMCPServers(): Promise<MCPServerEntry[]> {
 
   console.log(chalk.cyan("MCP Servers (optional)"));
   console.log();
-  console.log(chalk.gray("Connect external tools to your AI provider (GitHub, databases, cloud, etc.)"));
+  console.log(
+    chalk.gray("Connect external tools to your AI provider (GitHub, databases, cloud, etc.)"),
+  );
   console.log();
 
   const categoryNames = catalog.categories as Record<string, string>;
@@ -951,9 +953,10 @@ async function configureMCPServers(): Promise<MCPServerEntry[]> {
     }
 
     const selected = await showCenteredList({
-      message: selectedServers.length > 0
-        ? `Add another MCP server: (Use arrow keys)`
-        : `Select MCP server to connect: (Use arrow keys)`,
+      message:
+        selectedServers.length > 0
+          ? `Add another MCP server: (Use arrow keys)`
+          : `Select MCP server to connect: (Use arrow keys)`,
       choices,
       pageSize: 10,
     });
@@ -961,7 +964,11 @@ async function configureMCPServers(): Promise<MCPServerEntry[]> {
     if (selected === "__SKIP__") {
       if (selectedServers.length === 0) {
         console.log();
-        console.log(chalk.gray("You can configure MCP servers anytime from 'txtcode config' → 'Manage MCP Servers'."));
+        console.log(
+          chalk.gray(
+            "You can configure MCP servers anytime from 'txtcode config' → 'Manage MCP Servers'.",
+          ),
+        );
         console.log();
       }
       continueSelecting = false;

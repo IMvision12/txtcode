@@ -34,10 +34,7 @@ describe("ToolRegistry MCP methods", () => {
 
   describe("registerMCPTools", () => {
     it("registers multiple MCP tools at once", () => {
-      const tools = [
-        makeFakeTool("github_create_issue"),
-        makeFakeTool("github_list_repos"),
-      ];
+      const tools = [makeFakeTool("github_create_issue"), makeFakeTool("github_list_repos")];
 
       registry.registerMCPTools(tools);
       expect(registry.getMCPToolCount()).toBe(2);
