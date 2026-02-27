@@ -1,3 +1,4 @@
+import http from "http";
 import {
   ActivityTypes,
   CloudAdapter,
@@ -10,7 +11,6 @@ import { BlockReplyPipeline } from "../shared/block-reply-pipeline";
 import { logger } from "../shared/logger";
 import type { StreamChunk } from "../shared/streaming-types";
 import { TeamsTypingSignaler } from "../shared/typing-signaler";
-import http from "http";
 
 const MAX_TEAMS_LENGTH = 4096;
 
@@ -334,13 +334,9 @@ export class TeamsBot {
       if (req.url === "/api/messages" && req.method === "POST") {
         const adaptedReq = await (adaptRequest(req) as unknown as Promise<Record<string, unknown>>);
         const adaptedRes = adaptResponse(res);
-        await this.adapter.process(
-          adaptedReq as never,
-          adaptedRes as never,
-          async (context) => {
-            await this.handleMessage(context);
-          },
-        );
+        await this.adapter.process(adaptedReq as never, adaptedRes as never, async (context) => {
+          await this.handleMessage(context);
+        });
       } else {
         res.writeHead(200);
         res.end("TxtCode Teams Bot is running.");

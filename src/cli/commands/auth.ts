@@ -615,9 +615,17 @@ export async function authCommand() {
     console.log();
     console.log(chalk.gray("1. Go to https://api.slack.com/apps and create a new app"));
     console.log(chalk.gray("2. Enable Socket Mode (Settings → Socket Mode)"));
-    console.log(chalk.gray("3. Add Bot Token Scopes: chat:write, channels:history, groups:history, im:history, mpim:history"));
+    console.log(
+      chalk.gray(
+        "3. Add Bot Token Scopes: chat:write, channels:history, groups:history, im:history, mpim:history",
+      ),
+    );
     console.log(chalk.gray("4. Install the app to your workspace"));
-    console.log(chalk.gray("5. Subscribe to bot events: message.channels, message.groups, message.im, message.mpim"));
+    console.log(
+      chalk.gray(
+        "5. Subscribe to bot events: message.channels, message.groups, message.im, message.mpim",
+      ),
+    );
     console.log();
 
     slackBotToken = await showCenteredInput({

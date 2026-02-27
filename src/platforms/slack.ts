@@ -235,7 +235,11 @@ export class SlackBot {
                 text: fallback,
               });
             } else {
-              await client.chat.postMessage({ channel, text: fallback, thread_ts: msg.ts as string });
+              await client.chat.postMessage({
+                channel,
+                text: fallback,
+                thread_ts: msg.ts as string,
+              });
             }
           } catch (fallbackError) {
             logger.error("Failed to send fallback message", fallbackError);

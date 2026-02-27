@@ -1,7 +1,7 @@
+import http from "http";
 import { AgentCore } from "../core/agent";
 import { logger } from "../shared/logger";
 import { SignalTypingSignaler } from "../shared/typing-signaler";
-import http from "http";
 
 const MAX_SIGNAL_LENGTH = 4096;
 
@@ -133,11 +133,7 @@ export class SignalBot {
     };
     this.activeRequests.set(from, active);
 
-    const typingSignaler = new SignalTypingSignaler(
-      this.signalCliUrl,
-      this.registeredNumber,
-      from,
-    );
+    const typingSignaler = new SignalTypingSignaler(this.signalCliUrl, this.registeredNumber, from);
 
     active.heartbeatInterval = setInterval(async () => {
       if (active.aborted) {

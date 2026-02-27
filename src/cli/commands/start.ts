@@ -63,13 +63,22 @@ export async function startCommand(_options: { daemon?: boolean }) {
   } else if (config.platform === "slack") {
     process.env.SLACK_BOT_TOKEN = await loadPlatformToken("Slack Bot", "slack-bot");
     process.env.SLACK_APP_TOKEN = await loadPlatformToken("Slack App", "slack-app");
-    process.env.SLACK_SIGNING_SECRET = await loadPlatformToken("Slack Signing Secret", "slack-signing");
+    process.env.SLACK_SIGNING_SECRET = await loadPlatformToken(
+      "Slack Signing Secret",
+      "slack-signing",
+    );
   } else if (config.platform === "teams") {
     process.env.TEAMS_APP_ID = await loadPlatformToken("Teams App ID", "teams-app-id");
-    process.env.TEAMS_APP_PASSWORD = await loadPlatformToken("Teams App Password", "teams-app-password");
+    process.env.TEAMS_APP_PASSWORD = await loadPlatformToken(
+      "Teams App Password",
+      "teams-app-password",
+    );
     process.env.TEAMS_TENANT_ID = await loadPlatformToken("Teams Tenant ID", "teams-tenant-id");
   } else if (config.platform === "signal") {
-    process.env.SIGNAL_PHONE_NUMBER = await loadPlatformToken("Signal Phone Number", "signal-phone");
+    process.env.SIGNAL_PHONE_NUMBER = await loadPlatformToken(
+      "Signal Phone Number",
+      "signal-phone",
+    );
     const signalApiUrl = (await getBotToken("signal-api-url")) || "http://localhost:8080";
     process.env.SIGNAL_CLI_REST_URL = signalApiUrl;
   }
