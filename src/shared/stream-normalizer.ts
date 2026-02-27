@@ -1,8 +1,3 @@
-/**
- * Stream output normalizer - cleans and sanitizes CLI output
- * Inspired by OpenClaw's normalizeStreamingText
- */
-
 import type { NormalizedStreamOutput } from "./streaming-types";
 
 // eslint-disable-next-line no-control-regex

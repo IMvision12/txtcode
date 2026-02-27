@@ -1,8 +1,3 @@
-/**
- * Typing indicator signaler for platforms
- * Inspired by OpenClaw's TypingSignaler
- */
-
 export interface TypingSignaler {
   /**
    * Signal that text is being generated

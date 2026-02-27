@@ -1,7 +1,3 @@
-/**
- * Streaming configuration types inspired by OpenClaw
- */
-
 export type StreamingMode = "off" | "partial" | "block" | "progress";
 
 export type ChunkBreakPreference = "paragraph" | "newline" | "sentence";
