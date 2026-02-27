@@ -555,11 +555,22 @@ export async function authCommand() {
       { name: "WhatsApp", value: "whatsapp" },
       { name: "Telegram", value: "telegram" },
       { name: "Discord", value: "discord" },
+      { name: "Slack", value: "slack" },
+      { name: "Microsoft Teams", value: "teams" },
+      { name: "Signal", value: "signal" },
     ],
   });
 
   let telegramToken = "";
   let discordToken = "";
+  let slackBotToken = "";
+  let slackAppToken = "";
+  let slackSigningSecret = "";
+  let teamsAppId = "";
+  let teamsAppPassword = "";
+  let teamsTenantId = "";
+  let signalPhoneNumber = "";
+  let signalCliRestUrl = "";
 
   // Complete messaging platform auth immediately
   if (platform === "telegram") {
@@ -598,6 +609,110 @@ export async function authCommand() {
     console.log();
     console.log(chalk.green("Discord bot configured"));
     console.log();
+  } else if (platform === "slack") {
+    console.log();
+    console.log(chalk.cyan("Slack Bot Setup"));
+    console.log();
+    console.log(chalk.gray("1. Go to https://api.slack.com/apps and create a new app"));
+    console.log(chalk.gray("2. Enable Socket Mode (Settings → Socket Mode)"));
+    console.log(
+      chalk.gray(
+        "3. Add Bot Token Scopes: chat:write, channels:history, groups:history, im:history, mpim:history",
+      ),
+    );
+    console.log(chalk.gray("4. Install the app to your workspace"));
+    console.log(
+      chalk.gray(
+        "5. Subscribe to bot events: message.channels, message.groups, message.im, message.mpim",
+      ),
+    );
+    console.log();
+
+    slackBotToken = await showCenteredInput({
+      message: "Enter Slack Bot Token (xoxb-...):",
+      password: true,
+      validate: (input) => input.length > 0 || "Bot token is required",
+    });
+    console.log();
+
+    slackAppToken = await showCenteredInput({
+      message: "Enter Slack App-Level Token (xapp-...):",
+      password: true,
+      validate: (input) => input.length > 0 || "App token is required",
+    });
+    console.log();
+
+    slackSigningSecret = await showCenteredInput({
+      message: "Enter Slack Signing Secret:",
+      password: true,
+      validate: (input) => input.length > 0 || "Signing secret is required",
+    });
+    console.log();
+    console.log(chalk.green("Slack bot configured"));
+    console.log();
+  } else if (platform === "teams") {
+    console.log();
+    console.log(chalk.cyan("Microsoft Teams Bot Setup"));
+    console.log();
+    console.log(chalk.gray("1. Go to https://dev.teams.microsoft.com/bots"));
+    console.log(chalk.gray("2. Create a new Bot registration"));
+    console.log(chalk.gray("3. Copy the App ID and generate a client secret"));
+    console.log(chalk.gray("4. Set the messaging endpoint to https://<your-domain>/api/messages"));
+    console.log();
+
+    teamsAppId = await showCenteredInput({
+      message: "Enter Teams App (Bot) ID:",
+      password: false,
+      validate: (input) => input.length > 0 || "App ID is required",
+    });
+    console.log();
+
+    teamsAppPassword = await showCenteredInput({
+      message: "Enter Teams App Password (Client Secret):",
+      password: true,
+      validate: (input) => input.length > 0 || "App password is required",
+    });
+    console.log();
+
+    teamsTenantId = await showCenteredInput({
+      message: "Enter Azure Tenant ID:",
+      password: false,
+      validate: (input) => input.length > 0 || "Tenant ID is required",
+    });
+    console.log();
+    console.log(chalk.green("Microsoft Teams bot configured"));
+    console.log();
+  } else if (platform === "signal") {
+    console.log();
+    console.log(chalk.cyan("Signal Bot Setup"));
+    console.log();
+    console.log(chalk.gray("Signal requires signal-cli-rest-api running as a companion service."));
+    console.log();
+    console.log(chalk.gray("Setup:"));
+    console.log(chalk.gray("  1. Run signal-cli-rest-api via Docker:"));
+    console.log(chalk.white("     docker run -p 8080:8080 bbernhard/signal-cli-rest-api"));
+    console.log(chalk.gray("  2. Register/link your phone number with signal-cli"));
+    console.log(chalk.gray("  3. Provide the phone number and API URL below"));
+    console.log();
+
+    signalPhoneNumber = await showCenteredInput({
+      message: "Enter Signal phone number (e.g. +1234567890):",
+      password: false,
+      validate: (input) => input.startsWith("+") || "Phone number must start with +",
+    });
+    console.log();
+
+    signalCliRestUrl = await showCenteredInput({
+      message: "Enter signal-cli-rest-api URL (default: http://localhost:8080):",
+      password: false,
+      validate: () => true,
+    });
+    if (!signalCliRestUrl.trim()) {
+      signalCliRestUrl = "http://localhost:8080";
+    }
+    console.log();
+    console.log(chalk.green("Signal bot configured"));
+    console.log();
   } else {
     console.log();
     console.log(chalk.cyan("WhatsApp Setup"));
@@ -633,6 +748,8 @@ export async function authCommand() {
         console.log(chalk.cyan("Recommended alternatives:"));
         console.log(chalk.white("  • Telegram - More stable and reliable"));
         console.log(chalk.white("  • Discord - Also very stable"));
+        console.log(chalk.white("  • Slack - Great for workspace integration"));
+        console.log(chalk.white("  • Signal - Privacy-focused alternative"));
         console.log();
         console.log(chalk.gray("Would you like to restart and choose a different platform?"));
       } else {
@@ -676,6 +793,20 @@ export async function authCommand() {
     }
     if (discordToken) {
       await setBotToken("discord", discordToken);
+    }
+    if (slackBotToken) {
+      await setBotToken("slack-bot", slackBotToken);
+      await setBotToken("slack-app", slackAppToken);
+      await setBotToken("slack-signing", slackSigningSecret);
+    }
+    if (teamsAppId) {
+      await setBotToken("teams-app-id", teamsAppId);
+      await setBotToken("teams-app-password", teamsAppPassword);
+      await setBotToken("teams-tenant-id", teamsTenantId);
+    }
+    if (signalPhoneNumber) {
+      await setBotToken("signal-phone", signalPhoneNumber);
+      await setBotToken("signal-api-url", signalCliRestUrl);
     }
   } catch {
     console.log(chalk.red("\n[ERROR] Failed to store credentials in keychain"));

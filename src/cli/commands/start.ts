@@ -1,6 +1,9 @@
 import chalk from "chalk";
 import { AgentCore } from "../../core/agent";
 import { DiscordBot } from "../../platforms/discord";
+import { SignalBot } from "../../platforms/signal";
+import { SlackBot } from "../../platforms/slack";
+import { TeamsBot } from "../../platforms/teams";
 import { TelegramBot } from "../../platforms/telegram";
 import { WhatsAppBot } from "../../platforms/whatsapp";
 import { logger } from "../../shared/logger";
@@ -8,6 +11,19 @@ import type { Config } from "../../shared/types";
 import { getApiKey, getBotToken } from "../../utils/keychain";
 import { centerLog } from "../tui";
 import { loadConfig } from "./auth";
+
+async function loadPlatformToken(name: string, keychainKey: string): Promise<string> {
+  const token = (await getBotToken(keychainKey)) || "";
+  if (!token) {
+    console.log();
+    centerLog(chalk.red(`[ERROR] Failed to retrieve ${name} token from keychain`));
+    console.log();
+    centerLog(chalk.yellow("Please run authentication"));
+    console.log();
+    process.exit(1);
+  }
+  return token;
+}
 
 export async function startCommand(_options: { daemon?: boolean }) {
   const rawConfig = loadConfig();
@@ -41,25 +57,30 @@ export async function startCommand(_options: { daemon?: boolean }) {
   let discordToken = "";
 
   if (config.platform === "telegram") {
-    telegramToken = (await getBotToken("telegram")) || "";
-    if (!telegramToken) {
-      console.log();
-      centerLog(chalk.red("[ERROR] Failed to retrieve Telegram token from keychain"));
-      console.log();
-      centerLog(chalk.yellow("Please run authentication"));
-      console.log();
-      process.exit(1);
-    }
+    telegramToken = await loadPlatformToken("Telegram", "telegram");
   } else if (config.platform === "discord") {
-    discordToken = (await getBotToken("discord")) || "";
-    if (!discordToken) {
-      console.log();
-      centerLog(chalk.red("[ERROR] Failed to retrieve Discord token from keychain"));
-      console.log();
-      centerLog(chalk.yellow("Please run authentication"));
-      console.log();
-      process.exit(1);
-    }
+    discordToken = await loadPlatformToken("Discord", "discord");
+  } else if (config.platform === "slack") {
+    process.env.SLACK_BOT_TOKEN = await loadPlatformToken("Slack Bot", "slack-bot");
+    process.env.SLACK_APP_TOKEN = await loadPlatformToken("Slack App", "slack-app");
+    process.env.SLACK_SIGNING_SECRET = await loadPlatformToken(
+      "Slack Signing Secret",
+      "slack-signing",
+    );
+  } else if (config.platform === "teams") {
+    process.env.TEAMS_APP_ID = await loadPlatformToken("Teams App ID", "teams-app-id");
+    process.env.TEAMS_APP_PASSWORD = await loadPlatformToken(
+      "Teams App Password",
+      "teams-app-password",
+    );
+    process.env.TEAMS_TENANT_ID = await loadPlatformToken("Teams Tenant ID", "teams-tenant-id");
+  } else if (config.platform === "signal") {
+    process.env.SIGNAL_PHONE_NUMBER = await loadPlatformToken(
+      "Signal Phone Number",
+      "signal-phone",
+    );
+    const signalApiUrl = (await getBotToken("signal-api-url")) || "http://localhost:8080";
+    process.env.SIGNAL_CLI_REST_URL = signalApiUrl;
   }
 
   process.env.PLATFORM = config.platform;
@@ -86,6 +107,15 @@ export async function startCommand(_options: { daemon?: boolean }) {
       await bot.start();
     } else if (config.platform === "discord") {
       const bot = new DiscordBot(agent);
+      await bot.start();
+    } else if (config.platform === "slack") {
+      const bot = new SlackBot(agent);
+      await bot.start();
+    } else if (config.platform === "teams") {
+      const bot = new TeamsBot(agent);
+      await bot.start();
+    } else if (config.platform === "signal") {
+      const bot = new SignalBot(agent);
       await bot.start();
     } else {
       logger.error("Invalid platform specified");
