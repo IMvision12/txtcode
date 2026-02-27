@@ -175,11 +175,11 @@ txtcode integrates with the **Model Context Protocol** to connect external tool 
 
 ### Developer Tools
 
-| Server           | Transport | Description                                              |
-| :--------------- | :-------- | :------------------------------------------------------- |
-| **GitHub**       | stdio     | Repos, issues, PRs, code search, Actions                 |
-| **Brave Search** | stdio     | Web, image, video, and news search                       |
-| **Puppeteer**    | stdio     | Browser automation, screenshots, form filling            |
+| Server           | Transport | Description                                               |
+| :--------------- | :-------- | :-------------------------------------------------------- |
+| **GitHub**       | stdio     | Repos, issues, PRs, code search, Actions                  |
+| **Brave Search** | stdio     | Web, image, video, and news search                        |
+| **Puppeteer**    | stdio     | Browser automation, screenshots, form filling             |
 | **CircleCI**     | stdio     | Build logs, flaky tests, pipeline status, rerun workflows |
 | **Postman**      | stdio     | Collections, workspaces, API specs, code generation       |
 
