@@ -1013,7 +1013,12 @@ async function configureMCPServers(): Promise<MCPServerEntry[]> {
     }
 
     selectedServers.push(server);
-    console.log(chalk.green(`  Added: ${server.name}`));
+    console.log();
+    console.log(chalk.white("  Connected servers:"));
+    for (const s of selectedServers) {
+      console.log(chalk.green(`    ✅ ${s.name}`));
+    }
+    console.log();
   }
 
   if (selectedServers.length > 0) {

@@ -267,20 +267,20 @@ function viewConfig(config: Record<string, unknown>) {
 
 async function configureMCP(config: Record<string, unknown>) {
   console.log();
-  centerLog(chalk.cyan("MCP Server Management"));
+  console.log(chalk.cyan("  MCP Server Management"));
   console.log();
 
   const mcpServers = ((config.mcpServers || []) as MCPServerEntry[]).slice();
 
   if (mcpServers.length > 0) {
-    centerLog(chalk.white("Currently configured:"));
+    console.log(chalk.white("  Currently configured:"));
     for (const server of mcpServers) {
       const status = server.enabled ? chalk.green("enabled") : chalk.red("disabled");
-      centerLog(chalk.gray(`  ${server.id} (${server.transport}) - ${status}`));
+      console.log(chalk.gray(`    ${server.id} (${server.transport}) – ${status}`));
     }
     console.log();
   } else {
-    centerLog(chalk.gray("No MCP servers configured yet."));
+    console.log(chalk.gray("  No MCP servers configured yet."));
     console.log();
   }
 
@@ -310,7 +310,7 @@ async function configureMCP(config: Record<string, unknown>) {
 
     if (available.length === 0) {
       console.log();
-      centerLog(chalk.yellow("All catalog servers are already configured."));
+      console.log(chalk.yellow("  All catalog servers are already configured."));
       console.log();
       return;
     }
@@ -375,7 +375,7 @@ async function configureMCP(config: Record<string, unknown>) {
     saveConfig(config);
 
     console.log();
-    centerLog(chalk.green(`Added ${server.name}`));
+    console.log(chalk.green(`  ✅ Added ${server.name}`));
     console.log();
   } else if (action === "custom") {
     console.log();
@@ -436,7 +436,7 @@ async function configureMCP(config: Record<string, unknown>) {
     saveConfig(config);
 
     console.log();
-    centerLog(chalk.green(`Added custom server: ${id.trim()}`));
+    console.log(chalk.green(`  ✅ Added custom server: ${id.trim()}`));
     console.log();
   } else if (action === "toggle") {
     const choices = mcpServers.map((s) => ({
@@ -457,7 +457,7 @@ async function configureMCP(config: Record<string, unknown>) {
 
       console.log();
       const status = server.enabled ? "enabled" : "disabled";
-      centerLog(chalk.green(`${server.id} is now ${status}`));
+      console.log(chalk.green(`  ✅ ${server.id} is now ${status}`));
       console.log();
     }
   } else if (action === "remove") {
@@ -481,7 +481,7 @@ async function configureMCP(config: Record<string, unknown>) {
       saveConfig(config);
 
       console.log();
-      centerLog(chalk.green(`Removed ${selectedId}`));
+      console.log(chalk.green(`  ✅ Removed ${selectedId}`));
       console.log();
     }
   }

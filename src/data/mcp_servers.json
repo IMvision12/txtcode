@@ -202,6 +202,43 @@
       "tokenPrompt": "Enter Postman API Key:",
       "tokenEnvKey": "POSTMAN_API_KEY",
       "keychainKey": "mcp-postman"
+    },
+    {
+      "id": "stripe",
+      "name": "Stripe",
+      "description": "Customers, payments, invoices, subscriptions, refunds, products, pricing",
+      "category": "developer",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@stripe/mcp", "--tools=all"],
+      "requiresToken": true,
+      "tokenPrompt": "Enter Stripe Secret Key (sk_...):",
+      "tokenEnvKey": "STRIPE_SECRET_KEY",
+      "keychainKey": "mcp-stripe"
+    },
+    {
+      "id": "elevenlabs",
+      "name": "ElevenLabs",
+      "description": "Text-to-speech, voice cloning, audio transcription, sound effects",
+      "category": "developer",
+      "transport": "stdio",
+      "command": "uvx",
+      "args": ["elevenlabs-mcp"],
+      "requiresToken": true,
+      "tokenPrompt": "Enter ElevenLabs API Key:",
+      "tokenEnvKey": "ELEVENLABS_API_KEY",
+      "keychainKey": "mcp-elevenlabs"
+    },
+    {
+      "id": "kaggle",
+      "name": "Kaggle",
+      "description": "Datasets, notebooks, competitions, models, benchmarks",
+      "category": "developer",
+      "transport": "http",
+      "url": "https://www.kaggle.com/mcp",
+      "requiresToken": true,
+      "tokenPrompt": "Enter Kaggle API Token (KGAT...):",
+      "keychainKey": "mcp-kaggle"
     }
   ],
   "categories": {
