@@ -27,16 +27,22 @@ async function loadPlatformToken(name: string, keychainKey: string): Promise<str
 }
 
 async function loadMCPTokens(mcpServers: MCPServerEntry[]): Promise<void> {
-  if (!mcpServers || mcpServers.length === 0) return;
+  if (!mcpServers || mcpServers.length === 0) {
+    return;
+  }
 
   const catalog = loadMCPServersCatalog();
   const catalogMap = new Map(catalog.servers.map((s) => [s.id, s]));
 
   for (const server of mcpServers) {
-    if (!server.enabled) continue;
+    if (!server.enabled) {
+      continue;
+    }
 
     const catalogEntry = catalogMap.get(server.id);
-    if (!catalogEntry) continue;
+    if (!catalogEntry) {
+      continue;
+    }
 
     if (catalogEntry.keychainKey) {
       const token = await getBotToken(catalogEntry.keychainKey);

@@ -122,7 +122,9 @@ export class MCPBridge {
 
   async disconnect(serverId: string): Promise<void> {
     const conn = this.connections.get(serverId);
-    if (!conn) return;
+    if (!conn) {
+      return;
+    }
 
     try {
       await conn.transport.close();
@@ -189,7 +191,9 @@ export class MCPToolAdapter implements Tool {
       const content = result.content as Array<{ type: string; text?: string }>;
       const output = content
         .map((item) => {
-          if (item.type === "text" && item.text) return item.text;
+          if (item.type === "text" && item.text) {
+            return item.text;
+          }
           return JSON.stringify(item);
         })
         .join("\n");

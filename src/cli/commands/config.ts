@@ -299,7 +299,9 @@ async function configureMCP(config: Record<string, unknown>) {
     ],
   });
 
-  if (action === "cancel") return;
+  if (action === "cancel") {
+    return;
+  }
 
   if (action === "add") {
     const catalog = loadMCPServersCatalog();
@@ -327,7 +329,9 @@ async function configureMCP(config: Record<string, unknown>) {
     });
 
     const server = catalog.servers.find((s) => s.id === selectedId);
-    if (!server) return;
+    if (!server) {
+      return;
+    }
 
     if (server.requiresToken) {
       console.log();
@@ -387,7 +391,9 @@ async function configureMCP(config: Record<string, unknown>) {
       message: "Server ID (short name, no spaces):",
     });
 
-    if (!id.trim()) return;
+    if (!id.trim()) {
+      return;
+    }
 
     const entry: MCPServerEntry = {
       id: id.trim(),

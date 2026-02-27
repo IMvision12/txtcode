@@ -79,7 +79,9 @@ export class Router {
 
   async initMCP(): Promise<void> {
     const mcpServers = this.loadMCPConfig();
-    if (!mcpServers || mcpServers.length === 0) return;
+    if (!mcpServers || mcpServers.length === 0) {
+      return;
+    }
 
     const catalog = loadMCPServersCatalog();
     const catalogMap = new Map(catalog.servers.map((s) => [s.id, s]));
@@ -87,7 +89,9 @@ export class Router {
     const results: string[] = [];
 
     for (const entry of mcpServers) {
-      if (!entry.enabled) continue;
+      if (!entry.enabled) {
+        continue;
+      }
 
       try {
         const catalogEntry = catalogMap.get(entry.id);
@@ -171,7 +175,9 @@ export class Router {
       const path = require("path");
       const os = require("os");
       const configPath = path.join(os.homedir(), ".txtcode", "config.json");
-      if (!fs.existsSync(configPath)) return null;
+      if (!fs.existsSync(configPath)) {
+        return null;
+      }
       const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
       return config.mcpServers || null;
     } catch {

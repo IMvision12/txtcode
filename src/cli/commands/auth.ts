@@ -938,7 +938,9 @@ async function configureMCPServers(): Promise<MCPServerEntry[]> {
     for (const [category, servers] of serversByCategory) {
       const label = categoryNames[category] || category;
       for (const server of servers) {
-        if (selectedIds.has(server.id)) continue;
+        if (selectedIds.has(server.id)) {
+          continue;
+        }
         const transportTag = server.transport === "http" ? " [remote]" : "";
         choices.push({
           name: `[${label}] ${server.name} - ${server.description}${transportTag}`,
@@ -976,7 +978,9 @@ async function configureMCPServers(): Promise<MCPServerEntry[]> {
     }
 
     const server = catalog.servers.find((s) => s.id === selected);
-    if (!server) continue;
+    if (!server) {
+      continue;
+    }
 
     selectedIds.add(server.id);
 

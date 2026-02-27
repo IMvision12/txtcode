@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { ToolRegistry } from "../../src/tools/registry";
 import type { Tool, ToolDefinition, ToolResult } from "../../src/tools/types";
 
@@ -19,7 +19,7 @@ function makeFakeTool(name: string): Tool {
         },
       };
     },
-    async execute(args: Record<string, unknown>): Promise<ToolResult> {
+    async execute(_args: Record<string, unknown>): Promise<ToolResult> {
       return { toolCallId: "", output: `executed ${name}`, isError: false };
     },
   };
