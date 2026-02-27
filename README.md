@@ -237,24 +237,6 @@ To modify settings, select **Configuration** from the main menu. Options include
 
 ---
 
-## Environment Variables
-
-Optional overrides (also configurable through the TUI):
-
-| Variable | Purpose |
-|:---|:---|
-| `AI_PROVIDER` | Provider ID (e.g. `anthropic`, `openai`, `gemini`, `mistral`, `xai`) |
-| `AI_API_KEY` | API key for the chosen provider |
-| `AI_MODEL` | Model ID (e.g. `claude-sonnet-4-6`, `gpt-5.2`, `gemini-2.5-pro`) |
-| `IDE_TYPE` | Adapter ID (e.g. `claude-code`, `codex`, `cursor`, `gemini-code`) |
-| `PROJECT_PATH` | Working directory for the coding adapter |
-| `CLAUDE_MODEL` | Model override for Claude Code adapter |
-| `GEMINI_MODEL` | Model override for Gemini CLI adapter |
-| `OLLAMA_MODEL` | Model override for Ollama adapter |
-| `OPENROUTER_API_KEY` | Required when `AI_PROVIDER=openrouter` |
-
----
-
 ## Logs
 
 - **Location:** `~/.txtcode/logs/`
