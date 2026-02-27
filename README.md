@@ -251,7 +251,6 @@ To modify settings, select **Configuration** from the main menu. Options include
 - **Location:** `~/.txtcode/logs/`
 - **Format:** `session-YYYY-MM-DD-HHmmss.log` (one per agent session)
 - **Cleanup:** Files older than 7 days are pruned automatically
-- **View:** Select **View Logs** from the main menu to browse, view by index, or follow live
 
 Verbose and debug output goes to the log file; the terminal shows only key status lines.
 
