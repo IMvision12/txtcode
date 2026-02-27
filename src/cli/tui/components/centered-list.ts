@@ -63,7 +63,6 @@ export async function showCenteredList(options: CenteredListOptions): Promise<st
       console.log();
     };
 
-    // Initial render
     renderHeader();
     renderList();
 

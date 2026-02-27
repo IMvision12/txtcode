@@ -89,7 +89,6 @@ async function configurePlatform(config: Record<string, unknown>) {
 
   config.platform = platform;
 
-  // Get tokens if needed and store in keychain
   if (platform === "telegram") {
     const token = await showCenteredInput({
       message: "Enter Telegram Bot Token:",
@@ -130,7 +129,6 @@ async function configureIDE(config: Record<string, unknown>) {
 
   config.ideType = ideType;
 
-  // Ask for model based on CLI type
   if (ideType === "claude-code") {
     const model = await showCenteredInput({
       message: "Claude model (sonnet, opus, haiku):",

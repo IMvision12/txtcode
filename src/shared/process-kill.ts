@@ -1,10 +1,5 @@
 import { ChildProcess } from "child_process";
 
-/**
- * Cross-platform process termination.
- * - Windows: uses taskkill /T /F to kill process tree, falls back to proc.kill()
- * - Unix: sends SIGTERM, escalates to SIGKILL after graceMs
- */
 export function killProcessTree(proc: ChildProcess, graceMs: number = 100): void {
   if (process.platform === "win32" && proc.pid) {
     try {
@@ -27,11 +22,6 @@ export function killProcessTree(proc: ChildProcess, graceMs: number = 100): void
   }
 }
 
-/**
- * Force-kill a process immediately (no grace period).
- * - Windows: taskkill /T /F
- * - Unix: SIGKILL
- */
 export function forceKillProcess(proc: ChildProcess): void {
   if (process.platform === "win32" && proc.pid) {
     try {

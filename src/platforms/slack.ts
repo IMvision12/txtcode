@@ -280,8 +280,6 @@ export class SlackBot {
     client: InstanceType<typeof App>["client"],
     opts: { channel: string; text: string; thread_ts?: string },
   ): Promise<string | undefined> {
-    // Wrapper to avoid oxlint false-positive (unicorn/require-post-message-target-origin)
-    // which confuses Slack's chat.postMessage with window.postMessage
     const result = await client.chat.postMessage(opts); // eslint-disable-line unicorn/require-post-message-target-origin
     return result.ts;
   }

@@ -1,4 +1,3 @@
-// Export all TUI components from a single entry point
 export * from "./components/centered-text";
 export * from "./components/banner";
 export * from "./components/menu";

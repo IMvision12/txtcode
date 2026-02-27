@@ -31,7 +31,6 @@ function adaptRequest(req: http.IncomingMessage): Record<string, unknown> {
       try {
         parsed = JSON.parse(body);
       } catch {
-        // not JSON
       }
       resolve({
         body: parsed,

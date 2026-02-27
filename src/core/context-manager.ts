@@ -26,10 +26,6 @@ export class ContextManager {
     }
   }
 
-  /**
-   * Called when switching adapters. Saves current session to disk,
-   * generates a handoff prompt, and resets in-memory history.
-   */
   handleSwitch(fromAdapter: string, toAdapter: string, trackedFiles?: TrackedFiles): string | null {
     if (this.history.length === 0) {
       logger.debug("No conversation history to transfer");
@@ -64,9 +60,6 @@ export class ContextManager {
     return prompt;
   }
 
-  /**
-   * Load the latest persisted session (for restart recovery).
-   */
   loadPreviousSession(): ContextSession | null {
     return loadLatestSession();
   }

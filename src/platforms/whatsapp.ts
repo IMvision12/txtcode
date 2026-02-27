@@ -141,7 +141,6 @@ export class WhatsAppBot {
               continue;
             }
 
-            // New code request: cancel previous in-flight request
             const prev = this.activeRequests.get(from);
             if (prev) {
               this.cleanupRequest(from);

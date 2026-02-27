@@ -18,28 +18,23 @@ export function normalizeStreamOutput(text: string | undefined): NormalizedStrea
     control: false,
   };
 
-  // Strip ANSI escape codes
   if (ANSI_REGEX.test(normalized)) {
     normalized = normalized.replace(ANSI_REGEX, "");
     stripped.ansi = true;
   }
 
-  // Strip heartbeat tokens
   if (normalized.includes(HEARTBEAT_TOKEN)) {
     normalized = normalized.replace(new RegExp(HEARTBEAT_TOKEN, "g"), "");
     stripped.heartbeat = true;
   }
 
-  // Strip control characters (except newlines and tabs)
   if (CONTROL_CHARS_REGEX.test(normalized)) {
     normalized = normalized.replace(CONTROL_CHARS_REGEX, "");
     stripped.control = true;
   }
 
-  // Trim excessive whitespace
   normalized = normalized.trim();
 
-  // Skip if empty after normalization
   if (!normalized) {
     return { text: "", skip: true, stripped };
   }
@@ -47,9 +42,6 @@ export function normalizeStreamOutput(text: string | undefined): NormalizedStrea
   return { text: normalized, skip: false, stripped };
 }
 
-/**
- * Check if text should be skipped (silent reply)
- */
 export function isSilentReply(text: string): boolean {
   const trimmed = text.trim().toLowerCase();
   return (

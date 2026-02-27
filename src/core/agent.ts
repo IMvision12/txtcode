@@ -131,7 +131,6 @@ export class AgentCore {
     const text = message.text.trim();
     const lowerText = text.toLowerCase();
 
-    // Check if user is responding to a pending /switch selection
     if (this.pendingSwitch.get(message.from)) {
       return await this.handleSwitchSelection(message.from, text);
     }
@@ -180,7 +179,6 @@ To switch to code mode, use: /code`;
     if (userMode === "code") {
       logger.debug("Routing to coding adapter (CODE mode)...");
 
-      // Abort any previous command when new message arrives
       this.router.abortCurrentCommand();
 
       try {
@@ -356,13 +354,11 @@ Reply with 1 or 2:`;
     }
 
     try {
-      // Retrieve API key from keychain
       const apiKey = await getApiKey(selectedProvider);
       if (!apiKey) {
         return `[ERROR] Failed to retrieve API key for ${selectedProvider} from keychain. Please run 'txtcode auth' to reconfigure.`;
       }
 
-      // Update config file with new active provider
       config.aiProvider = selectedProvider;
       config.aiModel = providerConfig.model;
       config.updatedAt = new Date().toISOString();
@@ -374,7 +370,6 @@ Reply with 1 or 2:`;
         return `[ERROR] Failed to save configuration: ${writeError instanceof Error ? writeError.message : "Unknown error"}`;
       }
 
-      // Update router
       this.router.updateProvider(selectedProvider, apiKey, providerConfig.model);
 
       return `✅ Primary LLM switched!

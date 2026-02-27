@@ -58,7 +58,6 @@ export class TelegramBot {
         const prev = this.activeRequests.get(from);
         this.cleanupRequest(from);
 
-        // Edit the old progress message to show cancellation
         if (prev?.progressMessageId) {
           try {
             await ctx.telegram.editMessageText(
@@ -81,11 +80,9 @@ export class TelegramBot {
         return;
       }
 
-      // New code request: cancel any previous in-flight request for this user
       const prev = this.activeRequests.get(from);
       if (prev) {
         this.cleanupRequest(from);
-        // Edit old progress message to show it was replaced
         if (prev.progressMessageId) {
           try {
             await ctx.telegram.editMessageText(

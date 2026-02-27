@@ -2,9 +2,6 @@ import readline from "readline";
 import chalk from "chalk";
 import { centerLog } from "./centered-text";
 
-/**
- * Show a centered message
- */
 export function showMessage(
   message: string,
   type: "info" | "success" | "warning" | "error" = "info",
@@ -28,9 +25,7 @@ export function showMessage(
   console.log();
 }
 
-/**
- * Press any key to continue
- */
+
 export async function pressAnyKey(message: string = "Press Enter to continue..."): Promise<void> {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   return new Promise((resolve) => {

@@ -1,17 +1,11 @@
 export interface TypingSignaler {
-  /**
-   * Signal that text is being generated
-   */
+
   signalTyping(): Promise<void>;
 
-  /**
-   * Signal text delta (for platforms that support it)
-   */
+
   signalTextDelta(text: string): Promise<void>;
 
-  /**
-   * Stop typing indicator
-   */
+
   stopTyping(): Promise<void>;
 }
 
@@ -29,9 +23,7 @@ export class NoOpTypingSignaler implements TypingSignaler {
   }
 }
 
-/**
- * Discord typing signaler
- */
+
 export class DiscordTypingSignaler implements TypingSignaler {
   private channel: unknown;
   private lastTypingSignal: number = 0;
@@ -43,7 +35,6 @@ export class DiscordTypingSignaler implements TypingSignaler {
 
   async signalTyping(): Promise<void> {
     const now = Date.now();
-    // Discord typing indicator lasts 10 seconds, refresh every 8 seconds
     if (now - this.lastTypingSignal > 8000) {
       try {
         const ch = this.channel as Record<string, unknown>;
@@ -69,9 +60,7 @@ export class DiscordTypingSignaler implements TypingSignaler {
   }
 }
 
-/**
- * Telegram typing signaler
- */
+
 export class TelegramTypingSignaler implements TypingSignaler {
   private ctx: unknown;
   private lastTypingSignal: number = 0;
@@ -82,7 +71,6 @@ export class TelegramTypingSignaler implements TypingSignaler {
 
   async signalTyping(): Promise<void> {
     const now = Date.now();
-    // Telegram typing indicator lasts 5 seconds, refresh every 4 seconds
     if (now - this.lastTypingSignal > 4000) {
       try {
         const ctx = this.ctx as {
@@ -102,15 +90,9 @@ export class TelegramTypingSignaler implements TypingSignaler {
   }
 
   async stopTyping(): Promise<void> {
-    // Telegram typing stops automatically
   }
 }
 
-/**
- * Slack typing signaler
- * Slack doesn't have a native typing indicator API for bots,
- * so this is a no-op. Message edits provide the "live" feel.
- */
 export class SlackTypingSignaler implements TypingSignaler {
   async signalTyping(): Promise<void> {
     // Slack bots cannot send typing indicators
@@ -125,9 +107,6 @@ export class SlackTypingSignaler implements TypingSignaler {
   }
 }
 
-/**
- * Microsoft Teams typing signaler
- */
 export class TeamsTypingSignaler implements TypingSignaler {
   private context: unknown;
   private lastTypingSignal: number = 0;
@@ -138,7 +117,6 @@ export class TeamsTypingSignaler implements TypingSignaler {
 
   async signalTyping(): Promise<void> {
     const now = Date.now();
-    // Teams typing indicator lasts ~3 seconds, refresh every 2 seconds
     if (now - this.lastTypingSignal > 2000) {
       try {
         const ctx = this.context as {
@@ -161,9 +139,6 @@ export class TeamsTypingSignaler implements TypingSignaler {
   }
 }
 
-/**
- * Signal typing signaler (via signal-cli-rest-api)
- */
 export class SignalTypingSignaler implements TypingSignaler {
   private signalCliUrl: string;
   private registeredNumber: string;
@@ -211,9 +186,6 @@ export class SignalTypingSignaler implements TypingSignaler {
   }
 }
 
-/**
- * WhatsApp typing signaler
- */
 export class WhatsAppTypingSignaler implements TypingSignaler {
   private sock: unknown;
   private jid: string;
@@ -226,7 +198,6 @@ export class WhatsAppTypingSignaler implements TypingSignaler {
 
   async signalTyping(): Promise<void> {
     const now = Date.now();
-    // WhatsApp typing indicator, refresh every 3 seconds
     if (now - this.lastTypingSignal > 3000) {
       try {
         const sock = this.sock as {

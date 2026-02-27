@@ -35,7 +35,6 @@ const silentLogger: BaileysLogger = {
   child: () => silentLogger,
 } as BaileysLogger;
 
-// Validate API key
 function validateApiKeyFormat(apiKey: string): { valid: boolean; error?: string } {
   const trimmed = apiKey.trim();
 
@@ -244,7 +243,6 @@ export async function authCommand() {
   console.log(chalk.gray("Configure your TxtCode CLI for remote coding CLI control"));
   console.log();
 
-  // Check for existing configuration
   const existingConfig = loadConfig();
   const existingProviders = existingConfig?.providers as
     | Record<string, { model: string }>
@@ -279,10 +277,8 @@ export async function authCommand() {
 
   const selectedProviders = new Set<string>();
 
-  // Load models catalog
   const modelsCatalog = loadModelsCatalog();
 
-  // Helper function to get all available providers dynamically from catalog
   function getAllProviders() {
     return Object.keys(modelsCatalog.providers).map((providerId) => {
       const providerData = modelsCatalog.providers[providerId];
@@ -293,7 +289,6 @@ export async function authCommand() {
     });
   }
 
-  // Helper function to configure a provider
   async function configureProvider(
     label: string,
   ): Promise<{ provider: string; apiKey: string; model: string } | null> {
@@ -302,7 +297,6 @@ export async function authCommand() {
     console.log(chalk.cyan(label));
     console.log();
 
-    // Get available providers dynamically (excluding already selected ones)
     const providers = getAllProviders();
     const availableProviders = providers.filter((p) => !selectedProviders.has(p.value));
 
@@ -310,7 +304,6 @@ export async function authCommand() {
       throw new Error("No more providers available to configure");
     }
 
-    // Add "Back" option if this is not the primary provider
     const providerChoices =
       label === "Primary AI Provider"
         ? availableProviders
@@ -321,7 +314,6 @@ export async function authCommand() {
       choices: providerChoices,
     });
 
-    // Handle back navigation
     if (providerValue === "__BACK__") {
       return null;
     }
@@ -332,9 +324,8 @@ export async function authCommand() {
       validate: (input) => input.length > 0 || "API key is required",
     });
 
-    console.log(); // Add spacing after API key input
+    console.log();
 
-    // Validate API key (just check it's not empty)
     const validation = validateApiKeyFormat(apiKey);
 
     if (!validation.valid) {
@@ -348,7 +339,6 @@ export async function authCommand() {
       });
 
       if (retry) {
-        // Retry with same provider
         return await configureProvider(label);
       } else {
         throw new Error(
@@ -357,10 +347,8 @@ export async function authCommand() {
       }
     }
 
-    // Mark this provider as selected
     selectedProviders.add(providerValue);
 
-    // Load models - use dynamic discovery for HuggingFace and OpenRouter, static catalog for others
     let modelChoices: Array<{ name: string; value: string }>;
 
     if (providerValue === "huggingface") {
@@ -439,15 +427,13 @@ export async function authCommand() {
       );
     }
 
-    // Add "Enter custom model name" option at the top
     const modelChoicesWithCustom = [
       { name: "Enter custom model name", value: "__CUSTOM__" },
       ...modelChoices,
     ];
 
-    console.log(); // Add spacing before model selection
+    console.log();
 
-    // Use pagination for OpenRouter and HuggingFace (10 items per page)
     const usePagination = providerValue === "openrouter" || providerValue === "huggingface";
 
     const selectedModel = await showCenteredList({
@@ -458,7 +444,6 @@ export async function authCommand() {
 
     let finalModel = selectedModel;
 
-    // Handle custom model entry
     if (selectedModel === "__CUSTOM__") {
       finalModel = await showCenteredInput({
         message: "Enter model name/ID:",
@@ -480,26 +465,21 @@ export async function authCommand() {
     };
   }
 
-  // Step 1: Configure Primary AI Provider (cannot go back from primary)
   let primaryProvider = await configureProvider("Primary AI Provider");
 
-  // Primary provider should never be null, but handle it just in case
   while (primaryProvider === null) {
     console.log(chalk.yellow("\nPrimary provider is required. Please select a provider.\n"));
     primaryProvider = await configureProvider("Primary AI Provider");
   }
 
-  // Collect all configured providers
   const configuredProviders: Array<{ provider: string; apiKey: string; model: string }> = [
     primaryProvider,
   ];
 
-  // Step 2: Keep asking if user wants to add more providers (unlimited)
   let continueAdding = true;
   let providerCount = 1;
 
   while (continueAdding) {
-    // Check if there are more providers available (dynamic)
     const allProviders = getAllProviders();
     const remainingProviders = allProviders.filter((p) => !selectedProviders.has(p.value));
 
@@ -525,7 +505,6 @@ export async function authCommand() {
       `Secondary AI Provider #${providerCount - 1}`,
     );
 
-    // Handle back navigation
     if (secondaryProvider === null) {
       providerCount--;
       continue;
@@ -534,7 +513,6 @@ export async function authCommand() {
     configuredProviders.push(secondaryProvider);
   }
 
-  // Validate all providers are unique (safety check)
   const allProviderNames = configuredProviders.map((p) => p.provider);
   const uniqueProviders = new Set(allProviderNames);
 
@@ -550,10 +528,8 @@ export async function authCommand() {
   console.log(chalk.green(`✅ Configured ${configuredProviders.length} provider(s)`));
   console.log();
 
-  // Step 2.5: MCP Servers (optional)
   const mcpServerEntries = await configureMCPServers();
 
-  // Step 3: Messaging Platform
   const platform = await showCenteredList({
     message: "Select messaging platform: (Use arrow keys)",
     choices: [
@@ -577,7 +553,6 @@ export async function authCommand() {
   let signalPhoneNumber = "";
   let signalCliRestUrl = "";
 
-  // Complete messaging platform auth immediately
   if (platform === "telegram") {
     console.log();
     console.log(chalk.cyan("Telegram Bot Setup"));
@@ -723,17 +698,14 @@ export async function authCommand() {
     console.log(chalk.cyan("WhatsApp Setup"));
     console.log();
 
-    // Ensure stdin is fully reset after TUI interactions
     if (process.stdin.isTTY) {
       process.stdin.setRawMode(false);
     }
     process.stdin.removeAllListeners("keypress");
     process.stdin.pause();
 
-    // Give stdin time to settle
     await new Promise((resolve) => setTimeout(resolve, 200));
 
-    // Authenticate WhatsApp immediately
     try {
       await authenticateWhatsApp();
       console.log();
@@ -743,7 +715,6 @@ export async function authCommand() {
       console.log();
       const errorMsg = error instanceof Error ? error.message : "Unknown error";
 
-      // Check if it's a 405 error
       if (errorMsg.includes("405")) {
         console.log(chalk.red(`[ERROR] WhatsApp authentication failed (Error 405)`));
         console.log();
@@ -767,7 +738,6 @@ export async function authCommand() {
     }
   }
 
-  // Step 5: Coding Adapter Selection
   const ideType = await showCenteredList({
     message: "Select coding adapter: (Use arrow keys)",
     choices: [
@@ -781,18 +751,14 @@ export async function authCommand() {
     ],
   });
 
-  // Create config directory
   if (!fs.existsSync(CONFIG_DIR)) {
     fs.mkdirSync(CONFIG_DIR, { recursive: true });
   }
-
-  // Store API keys in keychain for all configured providers
   try {
     for (const provider of configuredProviders) {
       await setApiKey(provider.provider, provider.apiKey);
     }
 
-    // Store bot tokens in keychain
     if (telegramToken) {
       await setBotToken("telegram", telegramToken);
     }
@@ -824,7 +790,6 @@ export async function authCommand() {
     console.log(chalk.gray("Re-run 'txtcode' → 'Authenticate' to retry.\n"));
   }
 
-  // Build providers object dynamically
   const providersConfig: { [key: string]: { model: string } } = {};
   for (const provider of configuredProviders) {
     providersConfig[provider.provider] = {
@@ -832,28 +797,23 @@ export async function authCommand() {
     };
   }
 
-  // Save configuration WITHOUT API keys (stored in keychain)
   const config = {
-    // Primary provider (active)
     aiProvider: primaryProvider.provider,
     aiModel: primaryProvider.model,
 
-    // All providers (models only, keys in keychain)
     providers: providersConfig,
 
     platform: platform,
     ideType: ideType,
     idePort: 3000,
-    authorizedUser: "", // Will be set on first message
+    authorizedUser: "",
     configuredAt: new Date().toISOString(),
 
-    // MCP servers (tokens in keychain)
     mcpServers: mcpServerEntries,
   };
 
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
 
-  // Set strict file permissions
   try {
     if (process.platform === "win32") {
       const { execSync } = require("child_process");
@@ -871,14 +831,12 @@ export async function authCommand() {
       fs.chmodSync(CONFIG_FILE, 0o600);
     }
   } catch {
-    // Permissions could not be set — non-critical
   }
 
   console.log(chalk.green("\nAuthentication successful!"));
   console.log(chalk.gray(`\nConfiguration saved to: ${CONFIG_FILE}`));
   console.log(chalk.cyan("\nConfigured Providers:"));
 
-  // Show all configured providers
   configuredProviders.forEach((provider, index) => {
     const label = index === 0 ? "Primary" : `Secondary ${index}`;
     console.log(chalk.white(`  ${label}: ${provider.provider} (${provider.model})`));

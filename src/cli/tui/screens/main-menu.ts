@@ -10,7 +10,6 @@ import {
 } from "../components/centered-text";
 import { showMenu, MenuItem } from "../components/menu";
 
-// Get version from package.json
 function getVersion(): string {
   try {
     const packageJsonPath = path.join(__dirname, "../../../package.json");
@@ -26,7 +25,6 @@ export interface MainMenuOptions {
 }
 
 export async function showMainMenu(options: MainMenuOptions): Promise<string> {
-  // Build menu items based on configuration status
   const menuItems: MenuItem[] = [];
 
   if (!options.isConfigured) {
@@ -76,14 +74,13 @@ export async function showMainMenu(options: MainMenuOptions): Promise<string> {
     value: "exit",
   });
 
-  // Calculate content height for vertical centering
   const contentHeight =
     getBannerHeight() +
-    1 + // spacing after banner
-    (options.isConfigured ? 1 : 2) + // warning or spacing
-    1 + // title line
-    1 + // spacing
-    menuItems.length; // menu items
+    1 +
+    (options.isConfigured ? 1 : 2) +
+    1 +
+    1 +
+    menuItems.length;
 
   const topPadding = calculateVerticalPadding(contentHeight);
 
@@ -91,16 +88,13 @@ export async function showMainMenu(options: MainMenuOptions): Promise<string> {
     title: "What would you like to do? (Use arrow keys)",
     items: menuItems,
     onRender: () => {
-      // Add vertical padding (no console.clear — the menu component handles cursor positioning)
       for (let i = 0; i < topPadding; i++) {
         console.log();
       }
 
-      // Render banner
       renderBanner();
       console.log();
 
-      // Show warning if not configured
       if (!options.isConfigured) {
         centerLog(chalk.yellow("⚠ Not configured yet"));
         console.log();
@@ -109,17 +103,14 @@ export async function showMainMenu(options: MainMenuOptions): Promise<string> {
       }
     },
     onRenderFooter: () => {
-      // Calculate how many lines to move down to reach the bottom
       const termHeight = getTerminalHeight();
       const currentLine = topPadding + contentHeight + 2; // +2 for title and spacing
       const linesToBottom = Math.max(0, termHeight - currentLine - 1);
 
-      // Move to bottom
       for (let i = 0; i < linesToBottom; i++) {
         console.log();
       }
 
-      // Show directory on left and version on right at the absolute bottom
       const version = getVersion();
       const directory = process.cwd();
       const termWidth = getTerminalWidth();
@@ -127,7 +118,6 @@ export async function showMainMenu(options: MainMenuOptions): Promise<string> {
       const leftText = chalk.gray(directory);
       const rightText = chalk.gray(`v${version}`);
 
-      // Calculate spacing to position text at edges
       const leftTextLength = directory.length;
       const rightTextLength = version.length + 1; // +1 for 'v'
       const spacing = Math.max(0, termWidth - leftTextLength - rightTextLength - 2);

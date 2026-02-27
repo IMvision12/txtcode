@@ -195,7 +195,6 @@ export class SignalBot {
     logger.info(`Signal CLI REST API: ${this.signalCliUrl}`);
     logger.info(`Registered number: ${this.registeredNumber}`);
 
-    // Verify connectivity to signal-cli-rest-api
     try {
       const healthCheck = await fetch(`${this.signalCliUrl}/v1/about`);
       if (!healthCheck.ok) {
@@ -211,13 +210,11 @@ export class SignalBot {
       );
     }
 
-    // Register webhook for incoming messages
     try {
       await fetch(`${this.signalCliUrl}/v1/receive/${this.registeredNumber}`, {
         method: "GET",
       });
     } catch {
-      // Initial receive call to flush pending messages
     }
 
     const server = http.createServer(async (req, res) => {
@@ -248,7 +245,6 @@ export class SignalBot {
       logger.info(`  http://localhost:${webhookPort}/api/signal/webhook`);
     });
 
-    // Also poll for messages as a fallback
     this.startPolling();
   }
 
@@ -272,7 +268,6 @@ export class SignalBot {
           }
         }
       } catch {
-        // Polling failure is non-critical
       }
     }, pollInterval);
   }

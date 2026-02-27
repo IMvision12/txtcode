@@ -1,7 +1,3 @@
-/**
- * Utility functions for centering text in the terminal
- */
-
 export function getTerminalWidth(): number {
   return process.stdout.columns || 80;
 }

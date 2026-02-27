@@ -225,14 +225,12 @@ export class Router {
     const handoff = this.contextManager.handleSwitch(oldAdapter, newAdapterName, trackedFiles);
     this.pendingHandoff = handoff;
 
-    // Disconnect old adapter
     try {
       await this.adapter.disconnect();
     } catch (error) {
       logger.debug(`Error disconnecting old adapter: ${error}`);
     }
 
-    // Create and set new adapter
     this.adapter = this.createAdapter(newAdapterName);
     this.currentAdapterName = newAdapterName;
     this.restoreAdapterModel(newAdapterName);
@@ -281,21 +279,17 @@ export class Router {
   }
 
   async routeToCode(instruction: string, onProgress?: (chunk: string) => void): Promise<string> {
-    // Abort any pending command
     if (this.currentAbortController) {
       logger.debug("Aborting previous command...");
       this.currentAbortController.abort();
     }
 
-    // Create new abort controller for this command
     this.currentAbortController = new AbortController();
     const signal = this.currentAbortController.signal;
 
     try {
-      // Track user message
       this.contextManager.addEntry("user", instruction);
 
-      // If there's a pending handoff, pass it as conversationHistory
       let conversationHistory: Array<{ role: "user" | "assistant"; content: string }> | undefined;
 
       if (this.pendingHandoff) {
@@ -311,7 +305,6 @@ export class Router {
         onProgress,
       );
 
-      // Track assistant response
       this.contextManager.addEntry("assistant", result);
 
       return result;
@@ -326,7 +319,6 @@ export class Router {
       this.currentAbortController.abort();
       this.currentAbortController = null;
 
-      // Also call adapter's abort method if available
       if (this.adapter.abort) {
         this.adapter.abort();
       }
@@ -350,7 +342,6 @@ export class Router {
     this.apiKey = apiKey;
     this.model = model;
 
-    // Update environment variables for consistency
     process.env.AI_PROVIDER = provider;
     process.env.AI_API_KEY = apiKey;
     process.env.AI_MODEL = model;
