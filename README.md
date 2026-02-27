@@ -32,7 +32,7 @@ Send a WhatsApp message. Watch your IDE write code.
 
 ## Why txtcode?
 
-You're on the couch, on the train, or away from your desk &mdash; but you need to fix a bug, run tests, or scaffold a feature. With **txtcode**, your phone becomes a remote control for your IDE:
+You're on the couch, on the train, or away from your desk but you need to fix a bug, run tests, or scaffold a feature. With **txtcode**, your phone becomes a remote control for your IDE:
 
 1. **Text your AI** from WhatsApp, Telegram, Discord, Slack, Teams, or Signal
 2. **It writes code** using Claude Code, Cursor, Codex, Gemini CLI, or other adapters
@@ -49,7 +49,7 @@ No port forwarding. No VPN. Just message and code.
 <td width="50%">
 
 ### Messaging-First
-Connect via **6 platforms** &mdash; WhatsApp, Telegram, Discord, Slack, Microsoft Teams, and Signal. First user to message is auto-authorized.
+Connect via **6 platforms** : WhatsApp, Telegram, Discord, Slack, Microsoft Teams, and Signal. First user to message is auto-authorized.
 
 ### 9 AI Providers
 Anthropic, OpenAI, Google Gemini, Mistral, Moonshot, MiniMax, xAI Grok, HuggingFace, and OpenRouter. Hot-switch between them with `/switch`.
@@ -61,7 +61,7 @@ Claude Code, Cursor CLI, OpenAI Codex, Gemini CLI, Kiro CLI, OpenCode, and Ollam
 <td width="50%">
 
 ### 9 Built-in Tools
-Terminal, process manager, git, file search, HTTP client, environment variables, network diagnostics, cron jobs, and system info &mdash; all callable by the LLM.
+Terminal, process manager, git, file search, HTTP client, environment variables, network diagnostics, cron jobs, and system info all callable by the LLM.
 
 ### 13 MCP Servers
 Connect GitHub, Brave Search, Puppeteer, PostgreSQL, MongoDB, Redis, Elasticsearch, AWS, GCP, Cloudflare, Vercel, Atlassian, and Supabase as external tools via the Model Context Protocol.
@@ -93,7 +93,7 @@ Or run without installing:
 npx txtcode
 ```
 
-That's it. The interactive menu guides you through everything &mdash; authentication, configuration, starting the agent, viewing logs, and more. No subcommands to memorize.
+That's it. The interactive menu guides you through everything authentication, configuration, starting the agent, viewing logs, and more. No subcommands to memorize.
 
 ---
 
@@ -126,7 +126,7 @@ txtcode supports **9 LLM providers** for chat mode. Configure one or more during
 | **HuggingFace** | *Discovered at runtime* | Inference Providers API |
 | **OpenRouter** | *Discovered at runtime* | Unified API for 100+ models |
 
-All providers support tool calling &mdash; the LLM can invoke any built-in tool or connected MCP server.
+All providers support tool calling and LLM can invoke any built-in tool or connected MCP server.
 
 ---
 
@@ -153,7 +153,7 @@ The primary LLM in chat mode has access to **9 built-in tools** that it can call
 | Tool | Capabilities |
 |:---|:---|
 | **Terminal** | Execute shell commands with timeout and output capture |
-| **Process** | Manage background processes &mdash; list, poll, stream logs, kill, send input |
+| **Process** | Manage background processes: list, poll, stream logs, kill, send input |
 | **Git** | Full git operations (blocks force-push and credential config for safety) |
 | **Search** | File and content search across the project |
 | **HTTP** | Make HTTP requests (GET, POST, PUT, DELETE, PATCH, HEAD). Blocks cloud metadata endpoints |
@@ -211,8 +211,8 @@ Send these commands in any messaging app while connected:
 
 | Command | Description |
 |:---|:---|
-| `/chat` | Switch to **Chat mode** &mdash; messages go to primary LLM with tools *(default)* |
-| `/code` | Switch to **Code mode** &mdash; messages go to coding adapter (full IDE control) |
+| `/chat` | Switch to **Chat mode** to send messages to primary LLM with tools *(default)* |
+| `/code` | Switch to **Code mode** to send messages to coding adapter (full IDE control) |
 | `/switch` | Switch primary LLM provider or coding adapter on the fly |
 | `/cli-model` | Change the model used by the current coding adapter |
 | `/cancel` | Cancel the currently running command |
