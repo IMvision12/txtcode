@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import { logger } from "../../shared/logger";
 import { showMainMenu, showGoodbyeScreen, pressAnyKey } from "../tui";
 import { authCommand, loadConfig } from "./auth";
 import { configCommand } from "./config";
@@ -6,7 +7,6 @@ import { showHelpScreen } from "./help";
 import { logsCommand } from "./logs";
 import { resetCommand, logoutCommand, hardResetCommand } from "./reset";
 import { startCommand } from "./start";
-import { logger } from "../../shared/logger";
 
 export async function interactiveMode(): Promise<void> {
   let running = true;
