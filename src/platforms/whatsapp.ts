@@ -144,7 +144,9 @@ export class WhatsAppBot {
 
         const delay = computeBackoff(this.reconnectAttempts);
         this.reconnectAttempts++;
-        logger.error(`Connection closed (code: ${statusCode}). Reconnecting in ${Math.round(delay / 1000)}s...`);
+        logger.error(
+          `Connection closed (code: ${statusCode}). Reconnecting in ${Math.round(delay / 1000)}s...`,
+        );
         await new Promise((r) => setTimeout(r, delay));
         await this.start();
       }
