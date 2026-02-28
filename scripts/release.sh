@@ -14,7 +14,7 @@ if [ -n "$(git status --porcelain)" ]; then
   error "Working directory is not clean. Commit or stash your changes first."
 fi
 
-CURRENT_VERSION=$(node -p "require('./package.json').version")
+CURRENT_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || node.exe -p "require('./package.json').version")
 info "Current version: ${CURRENT_VERSION}"
 
 echo ""
