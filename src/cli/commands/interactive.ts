@@ -6,9 +6,13 @@ import { showHelpScreen } from "./help";
 import { logsCommand } from "./logs";
 import { resetCommand, logoutCommand, hardResetCommand } from "./reset";
 import { startCommand } from "./start";
+import { logger } from "../../shared/logger";
 
 export async function interactiveMode(): Promise<void> {
   let running = true;
+
+  // Initialize logger early so logs dir is created on first run
+  logger.debug("TxtCode interactive mode started");
 
   while (running) {
     console.clear();

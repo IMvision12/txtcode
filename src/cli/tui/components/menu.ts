@@ -2,6 +2,8 @@ import * as readline from "readline";
 import chalk from "chalk";
 import { centerText, getTerminalWidth } from "./centered-text";
 
+let keypressInitialized = false;
+
 export interface MenuItem {
   name: string;
   value: string;
@@ -80,7 +82,10 @@ export async function showMenu(options: MenuOptions): Promise<string> {
 
     render(true);
 
-    readline.emitKeypressEvents(process.stdin);
+    if (!keypressInitialized) {
+      readline.emitKeypressEvents(process.stdin);
+      keypressInitialized = true;
+    }
     if (process.stdin.isTTY) {
       process.stdin.setRawMode(true);
     }

@@ -14,17 +14,24 @@ class Logger {
     if (this.initialized) {
       return;
     }
+    this.initialized = true;
     try {
+      // Ensure parent .txtcode dir exists first, then logs subdir
+      const txtcodeDir = path.join(os.homedir(), ".txtcode");
+      if (!fs.existsSync(txtcodeDir)) {
+        fs.mkdirSync(txtcodeDir, { mode: 0o700, recursive: true });
+      }
       if (!fs.existsSync(LOG_DIR)) {
         fs.mkdirSync(LOG_DIR, { recursive: true });
       }
       this.sessionFile = path.join(LOG_DIR, `session-${this.fileTimestamp()}.log`);
       this.cleanOldLogs();
       this.stream = fs.createWriteStream(this.sessionFile, { flags: "a" });
-      this.stream.on("error", () => {});
-      this.initialized = true;
+      this.stream.on("error", () => {
+        this.stream = null;
+      });
     } catch {
-      this.initialized = true;
+      // Logger should never crash the app
     }
   }
 
