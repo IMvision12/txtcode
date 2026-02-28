@@ -90,7 +90,7 @@ Per-session logs accessible from the TUI. Follow live, view by index, auto-prune
 
 ```bash
 # Install globally
-npm install -g txtcode
+npm install -g txtcode-ai
 
 # Launch the interactive TUI
 txtcode
@@ -99,7 +99,7 @@ txtcode
 Or run without installing:
 
 ```bash
-npx txtcode
+npx txtcode-ai
 ```
 
 That's it. The interactive menu guides you through everything authentication, configuration, starting the agent, viewing logs, and more. No subcommands to memorize.
