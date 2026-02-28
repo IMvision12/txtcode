@@ -5,6 +5,8 @@ import { Boom } from "@hapi/boom";
 import makeWASocket, {
   type ConnectionState,
   DisconnectReason,
+  fetchLatestBaileysVersion,
+  makeCacheableSignalKeyStore,
   useMultiFileAuthState,
   type WASocket,
   WAMessage,
@@ -63,11 +65,39 @@ export class WhatsAppBot {
       process.exit(1);
     }
 
-    const { state, saveCreds } = await useMultiFileAuthState(WA_AUTH_DIR);
+    const { state, saveCreds: _saveCreds } = await useMultiFileAuthState(WA_AUTH_DIR);
+    const saveCreds = async () => {
+      const credsPath = path.join(WA_AUTH_DIR, "creds.json");
+      const tmpPath = credsPath + "." + Date.now() + ".tmp";
+      for (let attempt = 0; attempt < 10; attempt++) {
+        try {
+          fs.writeFileSync(tmpPath, JSON.stringify(state.creds, null, 2));
+          try {
+            fs.unlinkSync(credsPath);
+          } catch {}
+          fs.renameSync(tmpPath, credsPath);
+          return;
+        } catch {
+          try {
+            fs.unlinkSync(tmpPath);
+          } catch {}
+          if (attempt < 9) await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
+        }
+      }
+      await _saveCreds();
+    };
+    const { version } = await fetchLatestBaileysVersion().catch(() => ({
+      version: undefined as unknown as [number, number, number],
+    }));
 
     this.sock = makeWASocket({
-      auth: state,
+      auth: {
+        creds: state.creds,
+        keys: makeCacheableSignalKeyStore(state.keys, silentLogger),
+      },
+      version,
       printQRInTerminal: false,
+      browser: ["TxtCode", "CLI", "1.0.0"],
       logger: silentLogger,
     });
 
@@ -77,6 +107,7 @@ export class WhatsAppBot {
       if (connection === "open") {
         logger.info("WhatsApp connected!");
         logger.info("Waiting for messages...");
+        this.sock.sendPresenceUpdate("available").catch(() => {});
       }
 
       if (connection === "close") {
