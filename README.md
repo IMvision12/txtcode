@@ -53,7 +53,11 @@ Connect via **6 platforms** : WhatsApp, Telegram, Discord, Slack, Microsoft Team
 
 ### 9 AI Providers
 
-Anthropic, OpenAI, Google Gemini, Mistral, Moonshot, MiniMax, xAI Grok, HuggingFace, and OpenRouter. Hot-switch between them with `/switch`.
+Anthropic, OpenAI, Google Gemini, Mistral, Moonshot, MiniMax, xAI Grok, HuggingFace, and OpenRouter. Instantly switch providers with `/switch` directly from your messaging app.
+
+### Hot-Switching
+
+Use `/switch` to change AI providers or coding adapters on the fly without restarting the agent perfect when you hit rate limits or want to try a different model.
 
 ### 7 Coding Adapters
 
