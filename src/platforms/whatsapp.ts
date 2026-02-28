@@ -17,6 +17,10 @@ import { WhatsAppTypingSignaler } from "../shared/typing-signaler";
 
 const WA_AUTH_DIR = path.join(os.homedir(), ".txtcode", ".wacli_auth");
 const MAX_WA_LENGTH = 4096;
+const MAX_RECONNECT_ATTEMPTS = 12;
+const RECONNECT_BASE_MS = 2000;
+const RECONNECT_MAX_MS = 30000;
+const RECONNECT_FACTOR = 1.8;
 
 const noop = () => {};
 const silentLogger = {
@@ -35,11 +39,27 @@ interface ActiveRequest {
   aborted: boolean;
 }
 
+function computeBackoff(attempt: number): number {
+  const delay = Math.min(RECONNECT_BASE_MS * Math.pow(RECONNECT_FACTOR, attempt), RECONNECT_MAX_MS);
+  const jitter = delay * 0.25 * Math.random();
+  return delay + jitter;
+}
+
+// Serialized credential save queue (prevents concurrent writes racing on Windows)
+function createCredsSaver(saveCreds: () => Promise<void>): () => void {
+  let queue: Promise<void> = Promise.resolve();
+  return () => {
+    queue = queue.then(() => saveCreds()).catch(() => {});
+  };
+}
+
 export class WhatsAppBot {
   private agent: AgentCore;
   private sock!: WASocket;
   private lastProcessedTimestamp: number = 0;
   private activeRequests: Map<string, ActiveRequest> = new Map();
+  private reconnectAttempts = 0;
+  private connectedAt = 0;
 
   constructor(agent: AgentCore) {
     this.agent = agent;
@@ -65,27 +85,9 @@ export class WhatsAppBot {
       process.exit(1);
     }
 
-    const { state, saveCreds: _saveCreds } = await useMultiFileAuthState(WA_AUTH_DIR);
-    const saveCreds = async () => {
-      const credsPath = path.join(WA_AUTH_DIR, "creds.json");
-      const tmpPath = credsPath + "." + Date.now() + ".tmp";
-      for (let attempt = 0; attempt < 10; attempt++) {
-        try {
-          fs.writeFileSync(tmpPath, JSON.stringify(state.creds, null, 2));
-          try {
-            fs.unlinkSync(credsPath);
-          } catch {}
-          fs.renameSync(tmpPath, credsPath);
-          return;
-        } catch {
-          try {
-            fs.unlinkSync(tmpPath);
-          } catch {}
-          if (attempt < 9) await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
-        }
-      }
-      await _saveCreds();
-    };
+    const { state, saveCreds } = await useMultiFileAuthState(WA_AUTH_DIR);
+    const enqueueSaveCreds = createCredsSaver(saveCreds);
+
     const { version } = await fetchLatestBaileysVersion().catch(() => ({
       version: undefined as unknown as [number, number, number],
     }));
@@ -98,8 +100,17 @@ export class WhatsAppBot {
       version,
       printQRInTerminal: false,
       browser: ["TxtCode", "CLI", "1.0.0"],
+      syncFullHistory: false,
+      markOnlineOnConnect: false,
       logger: silentLogger,
     });
+
+    // Handle WebSocket errors to prevent unhandled crashes
+    if (this.sock.ws && typeof (this.sock.ws as { on?: Function }).on === "function") {
+      (this.sock.ws as { on: Function }).on("error", (err: Error) => {
+        logger.error("WebSocket error:", err.message);
+      });
+    }
 
     this.sock.ev.on("connection.update", async (update: Partial<ConnectionState>) => {
       const { connection, lastDisconnect } = update;
@@ -107,24 +118,41 @@ export class WhatsAppBot {
       if (connection === "open") {
         logger.info("WhatsApp connected!");
         logger.info("Waiting for messages...");
+        this.connectedAt = Date.now();
+        this.reconnectAttempts = 0;
         this.sock.sendPresenceUpdate("available").catch(() => {});
       }
 
       if (connection === "close") {
-        const shouldReconnect =
-          (lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
+        const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
+        const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
 
-        if (shouldReconnect) {
-          logger.error("Connection closed. Reconnecting...");
-          await this.start();
-        } else {
+        if (!shouldReconnect) {
           logger.error("WhatsApp logged out. Run txtcode auth again.");
           process.exit(1);
         }
+
+        // Reset backoff if connection was healthy for > 60s
+        if (this.connectedAt && Date.now() - this.connectedAt > 60000) {
+          this.reconnectAttempts = 0;
+        }
+
+        if (this.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+          logger.error(`Max reconnect attempts (${MAX_RECONNECT_ATTEMPTS}) reached. Exiting.`);
+          process.exit(1);
+        }
+
+        const delay = computeBackoff(this.reconnectAttempts);
+        this.reconnectAttempts++;
+        logger.error(
+          `Connection closed (code: ${statusCode}). Reconnecting in ${Math.round(delay / 1000)}s...`,
+        );
+        await new Promise((r) => setTimeout(r, delay));
+        await this.start();
       }
     });
 
-    this.sock.ev.on("creds.update", saveCreds);
+    this.sock.ev.on("creds.update", enqueueSaveCreds);
 
     this.sock.ev.on(
       "messages.upsert",
