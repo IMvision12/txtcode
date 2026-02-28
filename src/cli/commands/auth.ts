@@ -57,7 +57,7 @@ function authenticateWhatsApp(): Promise<void> {
   const closeSock = (s: unknown, removeListeners = false) => {
     try {
       const socket = s as { ev?: { removeAllListeners: () => void }; ws?: { close: () => void } };
-      if (removeListeners) socket?.ev?.removeAllListeners();
+      if (removeListeners) {socket?.ev?.removeAllListeners();}
       socket?.ws?.close();
     } catch {
       // Ignore
