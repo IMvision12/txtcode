@@ -1,3 +1,4 @@
+import { execSync } from "child_process";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -53,7 +54,7 @@ export async function resetCommand() {
 export async function logoutCommand() {
   try {
     if (fs.existsSync(WA_AUTH_DIR)) {
-      fs.rmSync(WA_AUTH_DIR, { recursive: true, force: true });
+      forceRemove(WA_AUTH_DIR);
       console.log();
       console.log(chalk.green("  ✅ WhatsApp session deleted!"));
       console.log(chalk.cyan("  Run start to scan QR code again."));
@@ -65,8 +66,33 @@ export async function logoutCommand() {
     }
   } catch {
     console.log();
-    console.log(chalk.red("  ❌ Failed to delete session."));
+    console.log(
+      chalk.red(
+        "  ❌ Failed to delete session. Close any running txtcode processes and try again.",
+      ),
+    );
     console.log();
+  }
+}
+
+function forceRemove(target: string): void {
+  // Try Node's rmSync first
+  try {
+    fs.rmSync(target, { recursive: true, force: true, maxRetries: 5, retryDelay: 1000 });
+    return;
+  } catch {
+    // Fall through to OS-level delete
+  }
+
+  // Fallback: use OS command which handles locked files better
+  try {
+    if (process.platform === "win32") {
+      execSync(`rmdir /s /q "${target}"`, { stdio: "ignore" });
+    } else {
+      execSync(`rm -rf "${target}"`, { stdio: "ignore" });
+    }
+  } catch {
+    throw new Error(`Could not delete ${target}`);
   }
 }
 
@@ -85,31 +111,35 @@ export async function hardResetCommand() {
   });
 
   if (confirmed) {
-    let deletedItems = 0;
-
-    try {
-      if (fs.existsSync(CONFIG_DIR)) {
-        fs.rmSync(CONFIG_DIR, { recursive: true, force: true });
-        console.log();
-        console.log(chalk.green("  ✓ Deleted configuration directory"));
-        deletedItems++;
-      }
-    } catch {
-      console.log();
-      console.log(chalk.red("  ✗ Failed to delete configuration directory"));
-    }
-
-    if (deletedItems > 0) {
-      console.log();
-      console.log(chalk.green(`  ✅ Hard reset complete! Deleted ${deletedItems} item(s).`));
-      console.log();
-      console.log(chalk.cyan("  Run authentication to set up again."));
-      console.log();
-    } else {
+    if (!fs.existsSync(CONFIG_DIR)) {
       console.log();
       console.log(chalk.yellow("  ⚠️ No data found to delete."));
       console.log();
+      return;
     }
+
+    console.log();
+
+    try {
+      forceRemove(CONFIG_DIR);
+      console.log(chalk.green("  ✓ Deleted all TxtCode data (~/.txtcode)"));
+      console.log();
+      console.log(chalk.green("  ✅ Hard reset complete!"));
+      console.log();
+      console.log(chalk.cyan("  Run authentication to set up again."));
+    } catch {
+      // Check what's left
+      if (!fs.existsSync(CONFIG_DIR)) {
+        console.log(chalk.green("  ✅ Hard reset complete!"));
+        console.log();
+        console.log(chalk.cyan("  Run authentication to set up again."));
+      } else {
+        console.log(chalk.red("  ✗ Failed to delete configuration directory."));
+        console.log(chalk.yellow("    Close any running txtcode processes and try again."));
+        console.log(chalk.gray(`    Or manually delete: ${CONFIG_DIR}`));
+      }
+    }
+    console.log();
   } else {
     console.log();
     console.log(chalk.yellow("  ❌ Hard reset cancelled."));

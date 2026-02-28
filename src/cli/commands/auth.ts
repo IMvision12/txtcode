@@ -54,9 +54,11 @@ function authenticateWhatsApp(): Promise<void> {
     rejectPromise = reject;
   });
 
-  const closeSock = (s: unknown) => {
+  const closeSock = (s: unknown, removeListeners = false) => {
     try {
-      (s as { ws?: { close: () => void } })?.ws?.close();
+      const socket = s as { ev?: { removeAllListeners: () => void }; ws?: { close: () => void } };
+      if (removeListeners) socket?.ev?.removeAllListeners();
+      socket?.ws?.close();
     } catch {
       // Ignore
     }
@@ -78,6 +80,7 @@ function authenticateWhatsApp(): Promise<void> {
 
           try {
             fs.rmSync(WA_AUTH_DIR, { recursive: true, force: true });
+            await new Promise((r) => setTimeout(r, 1000));
             fs.mkdirSync(WA_AUTH_DIR, { recursive: true });
           } catch {
             console.log(chalk.yellow("Warning: Could not clear old session"));
@@ -90,12 +93,33 @@ function authenticateWhatsApp(): Promise<void> {
       console.log(chalk.gray("Initializing WhatsApp connection..."));
       console.log();
 
-      const { state, saveCreds } = await useMultiFileAuthState(WA_AUTH_DIR);
+      const { state, saveCreds: _saveCreds } = await useMultiFileAuthState(WA_AUTH_DIR);
+      const saveCreds = async () => {
+        const credsPath = path.join(WA_AUTH_DIR, "creds.json");
+        const tmpPath = credsPath + "." + Date.now() + ".tmp";
+        for (let attempt = 0; attempt < 10; attempt++) {
+          try {
+            fs.writeFileSync(tmpPath, JSON.stringify(state.creds, null, 2));
+            try {
+              fs.unlinkSync(credsPath);
+            } catch {}
+            fs.renameSync(tmpPath, credsPath);
+            return;
+          } catch {
+            try {
+              fs.unlinkSync(tmpPath);
+            } catch {}
+            if (attempt < 9) await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
+          }
+        }
+        // Last resort: try the original saveCreds
+        await _saveCreds();
+      };
       const { version } = await fetchLatestBaileysVersion();
 
       connectionTimeout = setTimeout(() => {
         if (!pairingComplete && sock) {
-          closeSock(sock);
+          closeSock(sock, true);
           if (!connectionAttempted) {
             rejectPromise(
               new Error(
@@ -142,7 +166,7 @@ function authenticateWhatsApp(): Promise<void> {
 
           connectionTimeout = setTimeout(() => {
             if (!pairingComplete) {
-              closeSock(sock);
+              closeSock(sock, true);
               rejectPromise(new Error("QR code scan timeout - Please try again"));
             }
           }, 120000);
@@ -154,7 +178,7 @@ function authenticateWhatsApp(): Promise<void> {
           console.log(chalk.green("\n[OK] WhatsApp authenticated successfully!"));
 
           setTimeout(() => {
-            closeSock(sock);
+            closeSock(sock, true);
             resolvePromise();
           }, 500);
         }
@@ -166,7 +190,7 @@ function authenticateWhatsApp(): Promise<void> {
           const errorMessage = lastDisconnect?.error?.message || "Unknown error";
 
           if (!hasShownQR) {
-            closeSock(sock);
+            closeSock(sock, true);
 
             if (statusCode === 405) {
               rejectPromise(
@@ -189,53 +213,79 @@ function authenticateWhatsApp(): Promise<void> {
               chalk.cyan("\n[INFO] WhatsApp pairing complete, restarting connection...\n"),
             );
 
-            closeSock(sock);
+            // 515 = stream replaced, normal after QR pairing.
+            // Close websocket but DON'T remove listeners yet (let creds.update finish saving)
+            closeSock(sock, false);
+            await new Promise((r) => setTimeout(r, 3000));
 
-            await new Promise((r) => setTimeout(r, 2000));
-
-            const { state: newState, saveCreds: newSaveCreds } =
-              await useMultiFileAuthState(WA_AUTH_DIR);
+            // Now remove old listeners and reconnect using the SAME in-memory state
+            // (don't re-read from disk — cached keys may not be flushed yet)
+            closeSock(sock, true);
             const retryVersion = await fetchLatestBaileysVersion();
             const retrySock = makeWASocket({
               auth: {
-                creds: newState.creds,
-                keys: makeCacheableSignalKeyStore(newState.keys, silentLogger),
+                creds: state.creds,
+                keys: makeCacheableSignalKeyStore(state.keys, silentLogger),
               },
               version: retryVersion.version,
               printQRInTerminal: false,
-              browser: ["txtcode", "CLI", "0.1.0"],
+              browser: ["TxtCode", "CLI", "1.0.0"],
               syncFullHistory: false,
               markOnlineOnConnect: false,
               logger: silentLogger,
             });
 
-            retrySock.ev.on("creds.update", newSaveCreds);
+            retrySock.ev.on("creds.update", saveCreds);
+
+            const retryTimeout = setTimeout(() => {
+              if (!pairingComplete) {
+                closeSock(retrySock, true);
+                rejectPromise(
+                  new Error("WhatsApp linking timed out after restart. Please try again."),
+                );
+              }
+            }, 30000);
 
             retrySock.ev.on("connection.update", (retryUpdate) => {
               if (retryUpdate.connection === "open") {
+                clearTimeout(retryTimeout);
                 pairingComplete = true;
                 console.log(chalk.green("[OK] WhatsApp linked successfully!\n"));
 
                 setTimeout(() => {
-                  closeSock(retrySock);
+                  closeSock(retrySock, true);
                   resolvePromise();
-                }, 500);
+                }, 1000);
               }
 
-              if (retryUpdate.connection === "close") {
-                closeSock(retrySock);
-                rejectPromise(new Error("WhatsApp authentication failed after restart"));
+              if (retryUpdate.connection === "close" && !pairingComplete) {
+                const retryStatusCode = (
+                  retryUpdate as {
+                    lastDisconnect?: { error?: { output?: { statusCode?: number } } };
+                  }
+                )?.lastDisconnect?.error?.output?.statusCode;
+                // If we get another 515, keep retrying
+                if (retryStatusCode === 515) {
+                  return;
+                }
+                clearTimeout(retryTimeout);
+                closeSock(retrySock, true);
+                rejectPromise(
+                  new Error(
+                    `WhatsApp authentication failed after restart (code: ${retryStatusCode})`,
+                  ),
+                );
               }
             });
           } else if (hasShownQR && statusCode !== 515) {
-            closeSock(sock);
+            closeSock(sock, true);
             rejectPromise(new Error(`WhatsApp authentication failed (code: ${statusCode})`));
           }
         }
       });
     } catch (error) {
       if (sock) {
-        closeSock(sock);
+        closeSock(sock, true);
       }
       rejectPromise(error instanceof Error ? error : new Error(String(error)));
     }
