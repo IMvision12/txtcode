@@ -70,9 +70,7 @@ export async function processWithAnthropic(
         return textParts.join("\n") || "No response from Claude";
       }
 
-      logger.debug(
-        `[Anthropic] Tool calls: ${toolCalls.map((t) => t.name).join(", ")}`,
-      );
+      logger.debug(`[Anthropic] Tool calls: ${toolCalls.map((t) => t.name).join(", ")}`);
 
       messages.push({ role: "assistant", content: response.content });
 

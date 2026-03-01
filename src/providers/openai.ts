@@ -64,7 +64,7 @@ export async function processWithOpenAI(
       }
 
       logger.debug(
-        `[OpenAI] Tool calls: ${assistantMsg.tool_calls.map((t) => "function" in t ? t.function.name : t.type).join(", ")}`,
+        `[OpenAI] Tool calls: ${assistantMsg.tool_calls.map((t) => ("function" in t ? t.function.name : t.type)).join(", ")}`,
       );
 
       messages.push(assistantMsg);

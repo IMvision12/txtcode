@@ -75,9 +75,7 @@ export async function processWithMiniMax(
         return textParts.join("\n") || "No response from MiniMax";
       }
 
-      logger.debug(
-        `[MiniMax] Tool calls: ${toolCalls.map((t) => t.name).join(", ")}`,
-      );
+      logger.debug(`[MiniMax] Tool calls: ${toolCalls.map((t) => t.name).join(", ")}`);
 
       messages.push({ role: "assistant", content: response.content });
 

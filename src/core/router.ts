@@ -259,7 +259,10 @@ export class Router {
       );
       return result;
     } catch (error) {
-      logger.error(`[Router] Chat failed → provider=${this.provider}, time=${Date.now() - startTime}ms`, error);
+      logger.error(
+        `[Router] Chat failed → provider=${this.provider}, time=${Date.now() - startTime}ms`,
+        error,
+      );
       throw error;
     }
   }

@@ -69,7 +69,7 @@ export async function processWithHuggingFace(
       }
 
       logger.debug(
-        `[HuggingFace] Tool calls: ${assistantMsg.tool_calls.map((t) => "function" in t ? t.function.name : t.type).join(", ")}`,
+        `[HuggingFace] Tool calls: ${assistantMsg.tool_calls.map((t) => ("function" in t ? t.function.name : t.type)).join(", ")}`,
       );
 
       messages.push(assistantMsg);

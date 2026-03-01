@@ -67,7 +67,7 @@ export async function processWithMistral(
       }
 
       logger.debug(
-        `[Mistral] Tool calls: ${assistantMsg.tool_calls.map((t) => "function" in t ? t.function.name : t.type).join(", ")}`,
+        `[Mistral] Tool calls: ${assistantMsg.tool_calls.map((t) => ("function" in t ? t.function.name : t.type)).join(", ")}`,
       );
 
       messages.push(assistantMsg);

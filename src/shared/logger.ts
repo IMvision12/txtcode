@@ -136,11 +136,12 @@ class Logger {
   }
 
   error(msg: string, err?: unknown): void {
-    const errStr = err instanceof Error
-      ? `: ${err.message}${err.stack ? `\n${err.stack}` : ""}`
-      : err
-        ? `: ${String(err)}`
-        : "";
+    const errStr =
+      err instanceof Error
+        ? `: ${err.message}${err.stack ? `\n${err.stack}` : ""}`
+        : err
+          ? `: ${String(err)}`
+          : "";
     this.writeToFile("ERROR", this.strip(msg) + errStr);
   }
 

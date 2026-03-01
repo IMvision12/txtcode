@@ -60,9 +60,7 @@ export async function processWithGemini(
         return response.text();
       }
 
-      logger.debug(
-        `[Gemini] Tool calls: ${calls.map((c) => c.name).join(", ")}`,
-      );
+      logger.debug(`[Gemini] Tool calls: ${calls.map((c) => c.name).join(", ")}`);
 
       const toolResults: FunctionResponsePart[] = [];
       for (const call of calls) {

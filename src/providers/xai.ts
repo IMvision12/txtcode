@@ -67,7 +67,7 @@ export async function processWithXAI(
       }
 
       logger.debug(
-        `[xAI] Tool calls: ${assistantMsg.tool_calls.map((t) => "function" in t ? t.function.name : t.type).join(", ")}`,
+        `[xAI] Tool calls: ${assistantMsg.tool_calls.map((t) => ("function" in t ? t.function.name : t.type)).join(", ")}`,
       );
 
       messages.push(assistantMsg);

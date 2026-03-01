@@ -71,7 +71,7 @@ export async function processWithOpenRouter(
       }
 
       logger.debug(
-        `[OpenRouter] Tool calls: ${assistantMsg.tool_calls.map((t) => "function" in t ? t.function.name : t.type).join(", ")}`,
+        `[OpenRouter] Tool calls: ${assistantMsg.tool_calls.map((t) => ("function" in t ? t.function.name : t.type)).join(", ")}`,
       );
 
       messages.push(assistantMsg);
