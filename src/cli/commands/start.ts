@@ -176,7 +176,7 @@ export async function startCommand(_options: { daemon?: boolean }) {
     }
 
     // Start bot without blocking — race with Enter key
-    const botStarted = bot.start().catch((error) => {
+    bot.start().catch((error) => {
       logger.error("Failed to start agent", error);
       process.exit(1);
     });
