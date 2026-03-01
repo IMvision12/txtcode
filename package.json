@@ -52,7 +52,9 @@
     "prepublishOnly": "npm run build",
     "start": "node dist/cli/index.js",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "docker:build": "docker build -t txtcode-ai .",
+    "docker:run": "docker run -it -v \"$(pwd)\":/workspace txtcode-ai"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",
