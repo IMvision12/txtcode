@@ -12,7 +12,7 @@ import { showMenu, MenuItem } from "../components/menu";
 
 function getVersion(): string {
   try {
-    const packageJsonPath = path.join(__dirname, "../../../package.json");
+    const packageJsonPath = path.join(__dirname, "../../../../package.json");
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
     return packageJson.version || "0.1.0";
   } catch {

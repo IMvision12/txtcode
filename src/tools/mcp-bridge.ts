@@ -1,6 +1,18 @@
+import * as fs from "fs";
+import * as path from "path";
 import { logger } from "../shared/logger";
 import { Client, StdioClientTransport, StreamableHTTPClientTransport } from "./mcp-sdk";
 import { Tool, ToolDefinition, ToolResult, ParameterProperty, ParameterType } from "./types";
+
+function getPackageVersion(): string {
+  try {
+    const packageJsonPath = path.join(__dirname, "../../package.json");
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
+    return packageJson.version || "0.1.0";
+  } catch {
+    return "0.1.0";
+  }
+}
 
 interface MCPTransport {
   start(): Promise<void>;
@@ -60,7 +72,7 @@ export class MCPBridge {
     }
 
     const client: MCPClient = new Client(
-      { name: "txtcode", version: "0.1.0" },
+      { name: "txtcode", version: getPackageVersion() },
       { capabilities: {} },
     );
 
