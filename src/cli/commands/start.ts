@@ -148,31 +148,55 @@ export async function startCommand(_options: { daemon?: boolean }) {
   process.on("SIGINT", shutdownHandler);
   process.on("SIGTERM", shutdownHandler);
 
+  // Set up Enter key listener to stop the agent
+  const waitForEnter = new Promise<void>((resolve) => {
+    process.stdin.setRawMode?.(false);
+    process.stdin.resume();
+    process.stdin.once("data", () => resolve());
+  });
+
   try {
+    let bot: { start(): Promise<void> };
+
     if (config.platform === "whatsapp") {
-      const bot = new WhatsAppBot(agent);
-      await bot.start();
+      bot = new WhatsAppBot(agent);
     } else if (config.platform === "telegram") {
-      const bot = new TelegramBot(agent);
-      await bot.start();
+      bot = new TelegramBot(agent);
     } else if (config.platform === "discord") {
-      const bot = new DiscordBot(agent);
-      await bot.start();
+      bot = new DiscordBot(agent);
     } else if (config.platform === "slack") {
-      const bot = new SlackBot(agent);
-      await bot.start();
+      bot = new SlackBot(agent);
     } else if (config.platform === "teams") {
-      const bot = new TeamsBot(agent);
-      await bot.start();
+      bot = new TeamsBot(agent);
     } else if (config.platform === "signal") {
-      const bot = new SignalBot(agent);
-      await bot.start();
+      bot = new SignalBot(agent);
     } else {
       logger.error("Invalid platform specified");
       process.exit(1);
     }
+
+    // Start bot without blocking — race with Enter key
+    bot.start().catch((error) => {
+      logger.error("Failed to start agent", error);
+      process.exit(1);
+    });
+
+    // Show message after a short delay to let the bot print its startup logs
+    setTimeout(() => {
+      console.log(chalk.gray("\nPress Enter to stop the agent...\n"));
+    }, 2000);
+
+    // Wait for user to press Enter
+    await waitForEnter;
+
+    logger.debug("User requested stop via Enter key");
+    process.stdin.pause();
+    await agent.shutdown();
+    // Return to main menu instead of exiting
+    return;
   } catch (error) {
     logger.error("Failed to start agent", error);
-    process.exit(1);
+    // Return to main menu instead of exiting
+    return;
   }
 }

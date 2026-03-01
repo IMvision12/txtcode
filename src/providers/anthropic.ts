@@ -9,6 +9,7 @@ import type {
   ToolUnion,
   ToolUseBlock,
 } from "@anthropic-ai/sdk/resources/messages/messages";
+import { logger } from "../shared/logger";
 import { ToolRegistry } from "../tools/registry";
 
 const MAX_ITERATIONS = 10;
@@ -28,6 +29,9 @@ export async function processWithAnthropic(
   model: string,
   toolRegistry?: ToolRegistry,
 ): Promise<string> {
+  const startTime = Date.now();
+  logger.debug(`[Anthropic] Request → model=${model}, prompt=${instruction.length} chars`);
+
   try {
     const anthropic = new Anthropic({ apiKey });
 
@@ -38,6 +42,7 @@ export async function processWithAnthropic(
     const messages: MessageParam[] = [{ role: "user", content: instruction }];
 
     for (let i = 0; i < MAX_ITERATIONS; i++) {
+      const iterStart = Date.now();
       const response = await anthropic.messages.create({
         model,
         max_tokens: 4096,
@@ -45,6 +50,12 @@ export async function processWithAnthropic(
         messages,
         ...(tools ? { tools } : {}),
       });
+
+      logger.debug(
+        `[Anthropic] Response ← iteration=${i + 1}, stop=${response.stop_reason}, ` +
+          `tokens=${response.usage.input_tokens}in/${response.usage.output_tokens}out, ` +
+          `time=${Date.now() - iterStart}ms`,
+      );
 
       const textParts = response.content
         .filter((block: ContentBlock): block is TextBlock => block.type === "text")
@@ -55,8 +66,11 @@ export async function processWithAnthropic(
       );
 
       if (toolCalls.length === 0 || !toolRegistry) {
+        logger.debug(`[Anthropic] Done in ${Date.now() - startTime}ms (${i + 1} iteration(s))`);
         return textParts.join("\n") || "No response from Claude";
       }
+
+      logger.debug(`[Anthropic] Tool calls: ${toolCalls.map((t) => t.name).join(", ")}`);
 
       messages.push({ role: "assistant", content: response.content });
 
@@ -76,8 +90,10 @@ export async function processWithAnthropic(
       messages.push({ role: "user", content: toolResults });
     }
 
+    logger.warn(`[Anthropic] Reached max ${MAX_ITERATIONS} iterations`);
     return "Reached maximum tool iterations.";
   } catch (error: unknown) {
+    logger.error(`[Anthropic] API error after ${Date.now() - startTime}ms`, error);
     throw new Error(
       `Anthropic API error: ${error instanceof Error ? error.message : "Unknown error"}`,
       { cause: error },
