@@ -45,6 +45,8 @@
     "build": "tsc && npm run copy-data",
     "copy-data": "node -e \"require('fs').cpSync('src/data', 'dist/data', {recursive: true})\"",
     "dev": "tsc --watch",
+    "docker:build": "docker build -t txtcode-ai .",
+    "docker:run": "docker run -it -v \"$(pwd)\":/workspace txtcode-ai",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "lint": "oxlint",
@@ -52,9 +54,7 @@
     "prepublishOnly": "npm run build",
     "start": "node dist/cli/index.js",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "docker:build": "docker build -t txtcode-ai .",
-    "docker:run": "docker run -it -v \"$(pwd)\":/workspace txtcode-ai"
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",
