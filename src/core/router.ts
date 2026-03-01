@@ -249,6 +249,22 @@ export class Router {
       return "[WARN] AI model not configured. Run: txtcode config";
     }
 
+    logger.debug(`[Router] Chat → provider=${this.provider}, model=${this.model}`);
+    const startTime = Date.now();
+
+    try {
+      const result = await this._routeToProvider(instruction);
+      logger.debug(
+        `[Router] Chat complete → provider=${this.provider}, time=${Date.now() - startTime}ms, response=${result.length} chars`,
+      );
+      return result;
+    } catch (error) {
+      logger.error(`[Router] Chat failed → provider=${this.provider}, time=${Date.now() - startTime}ms`, error);
+      throw error;
+    }
+  }
+
+  private async _routeToProvider(instruction: string): Promise<string> {
     switch (this.provider) {
       case "anthropic":
         return await processWithAnthropic(instruction, this.apiKey, this.model, this.toolRegistry);
@@ -287,6 +303,9 @@ export class Router {
     this.currentAbortController = new AbortController();
     const signal = this.currentAbortController.signal;
 
+    logger.debug(`[Router] Code → adapter=${this.currentAdapterName}`);
+    const startTime = Date.now();
+
     try {
       this.contextManager.addEntry("user", instruction);
 
@@ -306,6 +325,10 @@ export class Router {
       );
 
       this.contextManager.addEntry("assistant", result);
+
+      logger.debug(
+        `[Router] Code complete → adapter=${this.currentAdapterName}, time=${Date.now() - startTime}ms, response=${result.length} chars`,
+      );
 
       return result;
     } finally {

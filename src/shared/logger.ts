@@ -1,3 +1,4 @@
+import { execSync } from "child_process";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -5,10 +6,13 @@ import path from "path";
 export const LOG_DIR = path.join(os.homedir(), ".txtcode", "logs");
 const RETENTION_DAYS = 7;
 
+// eslint-disable-next-line no-control-regex
+const ANSI_REGEX = /\x1b\[[0-9;]*m/g;
+
 class Logger {
-  private stream: fs.WriteStream | null = null;
   private initialized = false;
   private sessionFile: string = "";
+  private fd: number | null = null;
 
   private ensureDir(): void {
     if (this.initialized) {
@@ -16,20 +20,26 @@ class Logger {
     }
     this.initialized = true;
     try {
-      // Ensure parent .txtcode dir exists first, then logs subdir
-      const txtcodeDir = path.join(os.homedir(), ".txtcode");
-      if (!fs.existsSync(txtcodeDir)) {
-        fs.mkdirSync(txtcodeDir, { mode: 0o700, recursive: true });
-      }
       if (!fs.existsSync(LOG_DIR)) {
         fs.mkdirSync(LOG_DIR, { recursive: true });
       }
+      // On Windows, reset ACLs so files are readable by the current user
+      if (process.platform === "win32") {
+        try {
+          execSync(`icacls "${LOG_DIR}" /reset /t /c /q`, { stdio: "ignore" });
+        } catch {
+          // ignore — best effort
+        }
+      }
+
       this.sessionFile = path.join(LOG_DIR, `session-${this.fileTimestamp()}.log`);
+      // Open file with shared read access so other programs (Notepad etc.) can read it
+      this.fd = fs.openSync(
+        this.sessionFile,
+        fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_APPEND,
+        0o666,
+      );
       this.cleanOldLogs();
-      this.stream = fs.createWriteStream(this.sessionFile, { flags: "a" });
-      this.stream.on("error", () => {
-        this.stream = null;
-      });
     } catch {
       // Logger should never crash the app
     }
@@ -44,12 +54,18 @@ class Logger {
           continue;
         }
         const fullPath = path.join(LOG_DIR, file);
-        const stat = fs.statSync(fullPath);
-        if (stat.mtimeMs < cutoff) {
-          fs.unlinkSync(fullPath);
+        try {
+          const stat = fs.statSync(fullPath);
+          if (stat.mtimeMs < cutoff) {
+            fs.unlinkSync(fullPath);
+          }
+        } catch {
+          // Skip files that can't be accessed
         }
       }
-    } catch {}
+    } catch {
+      // Ignore cleanup errors
+    }
   }
 
   private fileTimestamp(): string {
@@ -71,32 +87,61 @@ class Logger {
     const h = String(now.getHours()).padStart(2, "0");
     const min = String(now.getMinutes()).padStart(2, "0");
     const s = String(now.getSeconds()).padStart(2, "0");
-    return `${y}-${m}-${d} ${h}:${min}:${s}`;
+    const ms = String(now.getMilliseconds()).padStart(3, "0");
+    return `${y}-${m}-${d} ${h}:${min}:${s}.${ms}`;
+  }
+
+  private strip(msg: string): string {
+    return msg.replace(ANSI_REGEX, "");
   }
 
   private writeToFile(level: string, msg: string): void {
     this.ensureDir();
-    if (this.stream) {
+    if (this.fd === null) {
+      return;
+    }
+    try {
       const line = `[${this.timestamp()}] [${level}] ${msg}\n`;
-      this.stream.write(line);
+      fs.writeSync(this.fd, line);
+    } catch {
+      // If fd became invalid, try to reopen
+      try {
+        if (!fs.existsSync(LOG_DIR)) {
+          fs.mkdirSync(LOG_DIR, { recursive: true });
+        }
+        this.fd = fs.openSync(
+          this.sessionFile,
+          fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_APPEND,
+          0o666,
+        );
+        const line = `[${this.timestamp()}] [${level}] ${msg}\n`;
+        fs.writeSync(this.fd, line);
+      } catch {
+        // Logger should never crash the app
+      }
     }
   }
 
   info(msg: string): void {
     console.log(msg);
-    // eslint-disable-next-line no-control-regex
-    this.writeToFile("INFO", msg.replace(/\x1b\[[0-9;]*m/g, ""));
+    this.writeToFile("INFO", this.strip(msg));
   }
 
   debug(msg: string): void {
-    // eslint-disable-next-line no-control-regex
-    this.writeToFile("DEBUG", msg.replace(/\x1b\[[0-9;]*m/g, ""));
+    this.writeToFile("DEBUG", this.strip(msg));
+  }
+
+  warn(msg: string): void {
+    this.writeToFile("WARN", this.strip(msg));
   }
 
   error(msg: string, err?: unknown): void {
-    const errStr = err instanceof Error ? `: ${err.message}` : err ? `: ${String(err)}` : "";
-    // eslint-disable-next-line no-control-regex
-    this.writeToFile("ERROR", msg.replace(/\x1b\[[0-9;]*m/g, "") + errStr);
+    const errStr = err instanceof Error
+      ? `: ${err.message}${err.stack ? `\n${err.stack}` : ""}`
+      : err
+        ? `: ${String(err)}`
+        : "";
+    this.writeToFile("ERROR", this.strip(msg) + errStr);
   }
 
   getLogPath(): string {

@@ -127,10 +127,6 @@ export function logsCommand(session: string | undefined, options: LogsOptions) {
     }
 
     console.log("");
-    console.log(chalk.gray("  txtcode logs <number>   View a session"));
-    console.log(chalk.gray("  txtcode logs -f         Follow the latest session"));
-    console.log(chalk.gray("  txtcode logs --clear    Delete all logs"));
-    console.log("");
     return;
   }
 

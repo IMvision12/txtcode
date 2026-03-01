@@ -5,6 +5,7 @@ import type {
   ChatCompletionMessageParam,
   ChatCompletionTool,
 } from "openai/resources/chat/completions/completions";
+import { logger } from "../shared/logger";
 import { ToolRegistry } from "../tools/registry";
 
 const MAX_ITERATIONS = 10;
@@ -25,6 +26,9 @@ export async function processWithHuggingFace(
   model: string,
   toolRegistry?: ToolRegistry,
 ): Promise<string> {
+  const startTime = Date.now();
+  logger.debug(`[HuggingFace] Request → model=${model}, prompt=${instruction.length} chars`);
+
   try {
     // HuggingFace Inference Providers use OpenAI-compatible API
     const client = new OpenAI({
@@ -42,6 +46,7 @@ export async function processWithHuggingFace(
     ];
 
     for (let i = 0; i < MAX_ITERATIONS; i++) {
+      const iterStart = Date.now();
       const completion = await client.chat.completions.create({
         model,
         messages,
@@ -52,9 +57,20 @@ export async function processWithHuggingFace(
       const choice = completion.choices[0];
       const assistantMsg = choice.message;
 
+      logger.debug(
+        `[HuggingFace] Response ← iteration=${i + 1}, finish=${choice.finish_reason}, ` +
+          `tokens=${completion.usage?.prompt_tokens ?? "?"}in/${completion.usage?.completion_tokens ?? "?"}out, ` +
+          `time=${Date.now() - iterStart}ms`,
+      );
+
       if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0 || !toolRegistry) {
+        logger.debug(`[HuggingFace] Done in ${Date.now() - startTime}ms (${i + 1} iteration(s))`);
         return assistantMsg.content || "No response from HuggingFace";
       }
+
+      logger.debug(
+        `[HuggingFace] Tool calls: ${assistantMsg.tool_calls.map((t) => "function" in t ? t.function.name : t.type).join(", ")}`,
+      );
 
       messages.push(assistantMsg);
 
@@ -72,8 +88,10 @@ export async function processWithHuggingFace(
       }
     }
 
+    logger.warn(`[HuggingFace] Reached max ${MAX_ITERATIONS} iterations`);
     return "Reached maximum tool iterations.";
   } catch (error: unknown) {
+    logger.error(`[HuggingFace] API error after ${Date.now() - startTime}ms`, error);
     throw new Error(
       `HuggingFace API error: ${error instanceof Error ? error.message : "Unknown error"}`,
       { cause: error },

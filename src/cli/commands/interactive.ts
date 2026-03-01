@@ -1,5 +1,4 @@
 import chalk from "chalk";
-import { logger } from "../../shared/logger";
 import { showMainMenu, showGoodbyeScreen, pressAnyKey } from "../tui";
 import { authCommand, loadConfig } from "./auth";
 import { configCommand } from "./config";
@@ -10,9 +9,6 @@ import { startCommand } from "./start";
 
 export async function interactiveMode(): Promise<void> {
   let running = true;
-
-  // Initialize logger early so logs dir is created on first run
-  logger.debug("TxtCode interactive mode started");
 
   while (running) {
     console.clear();
