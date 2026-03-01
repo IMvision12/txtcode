@@ -8,5 +8,6 @@ dist/
 *.log
 *.tsbuildinfo
 coverage/
+.credentials.json
 .DS_Store
 Thumbs.db
