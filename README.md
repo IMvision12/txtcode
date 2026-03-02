@@ -4,9 +4,9 @@
 <br />
 <br />
 
-<a href="https://www.npmjs.com/package/txtcode-ai"><img src="https://img.shields.io/npm/v/txtcode?color=blue&style=for-the-badge" alt="npm version" /></a>
+<a href="https://www.npmjs.com/package/txtcode-ai"><img src="https://img.shields.io/npm/v/txtcode-ai?color=blue&style=for-the-badge" alt="npm version" /></a>
 &nbsp;
-<a href="https://www.npmjs.com/package/txtcode-ai"><img src="https://img.shields.io/npm/dm/txtcode?style=for-the-badge" alt="downloads" /></a>
+<a href="https://www.npmjs.com/package/txtcode-ai"><img src="https://img.shields.io/npm/dm/txtcode-ai?style=for-the-badge" alt="downloads" /></a>
 &nbsp;
 <a href="https://github.com/IMvision12/txtcode/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-green?style=for-the-badge" alt="license" /></a>
 &nbsp;
