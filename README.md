@@ -35,7 +35,7 @@ Code without a keyboard. Send a message from your phone, and **txtcode** dispatc
 
 1. **Text your AI** from WhatsApp, Telegram, Discord, Slack, Teams, or Signal
 2. **It writes code** using Claude Code, Cursor, Codex, Gemini CLI, or other adapters
-3. **You stay in control** with mode switching, tool calling, and session logs
+3. **You stay in control** with mode switching and session logs
 
 No port forwarding. No VPN. Just message and code.
 
@@ -65,10 +65,6 @@ Claude Code, Cursor CLI, OpenAI Codex, Gemini CLI, Kiro CLI, OpenCode, and Ollam
 
 </td>
 <td width="50%">
-
-### 9 Built-in Tools
-
-Terminal, process manager, git, file search, HTTP client, environment variables, network diagnostics, cron jobs, and system info all callable by the LLM.
 
 ### Session Logging
 
@@ -159,7 +155,7 @@ txtcode supports **9 LLM providers** for chat mode. Configure one or more during
 | **HuggingFace**     | _Discovered at runtime_                    | Inference Providers API     |
 | **OpenRouter**      | _Discovered at runtime_                    | Unified API for 100+ models |
 
-All providers support tool calling and the LLM can invoke any built-in tool.
+All providers are used in chat mode for general conversation and coding questions.
 
 ---
 
@@ -179,31 +175,13 @@ Use `/code` mode to route messages directly to a coding adapter with full coding
 
 ---
 
-## 🛠️ Built-in Tools
-
-The primary LLM in chat mode has access to **9 built-in tools** that it can call autonomously:
-
-| Tool         | Capabilities                                                                              |
-| :----------- | :---------------------------------------------------------------------------------------- |
-| **Terminal** | Execute shell commands with timeout and output capture                                    |
-| **Process**  | Manage background processes: list, poll, stream logs, kill, send input                    |
-| **Git**      | Full git operations (blocks force-push and credential config for safety)                  |
-| **Search**   | File and content search across the project                                                |
-| **HTTP**     | Make HTTP requests (GET, POST, PUT, DELETE, PATCH, HEAD). Blocks cloud metadata endpoints |
-| **Env**      | Get, set, list, and delete environment variables. Masks sensitive values                  |
-| **Network**  | Ping, DNS lookup, reachability checks, port scanning                                      |
-| **Cron**     | Create, list, and manage cron jobs                                                        |
-| **Sysinfo**  | CPU, memory, disk, uptime, OS details                                                     |
-
----
-
 ## 💬 Chat Commands
 
 Send these commands in any messaging app while connected:
 
 | Command      | Description                                                                    |
 | :----------- | :----------------------------------------------------------------------------- |
-| `/chat`      | Switch to **Chat mode** to send messages to primary LLM with tools _(default)_ |
+| `/chat`      | Switch to **Chat mode** to send messages to primary LLM _(default)_            |
 | `/code`      | Switch to **Code mode** to send messages to coding adapter (full CLI control)  |
 | `/switch`    | Switch primary LLM provider or coding adapter on the fly                       |
 | `/cli-model` | Change the model used by the current coding adapter                            |

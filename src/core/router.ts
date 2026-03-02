@@ -16,16 +16,6 @@ import { processWithOpenRouter } from "../providers/openrouter";
 import { processWithXAI } from "../providers/xai";
 import { logger } from "../shared/logger";
 import { IDEAdapter, ModelInfo } from "../shared/types";
-import { CronTool } from "../tools/cron";
-import { EnvTool } from "../tools/env";
-import { GitTool } from "../tools/git";
-import { HttpTool } from "../tools/http";
-import { NetworkTool } from "../tools/network";
-import { ProcessTool } from "../tools/process";
-import { ToolRegistry } from "../tools/registry";
-import { SearchTool } from "../tools/search";
-import { SysinfoTool } from "../tools/sysinfo";
-import { TerminalTool } from "../tools/terminal";
 import { ContextManager } from "./context-manager";
 
 export const AVAILABLE_ADAPTERS = [
@@ -43,7 +33,6 @@ export class Router {
   private provider: string;
   private apiKey: string;
   private model: string;
-  private toolRegistry: ToolRegistry;
   private contextManager: ContextManager;
   private pendingHandoff: string | null = null;
   private currentAbortController: AbortController | null = null;
@@ -52,17 +41,6 @@ export class Router {
     this.provider = process.env.AI_PROVIDER || "anthropic";
     this.apiKey = process.env.AI_API_KEY || "";
     this.model = process.env.AI_MODEL || "";
-
-    this.toolRegistry = new ToolRegistry();
-    this.toolRegistry.register(new TerminalTool());
-    this.toolRegistry.register(new ProcessTool());
-    this.toolRegistry.register(new GitTool());
-    this.toolRegistry.register(new SearchTool());
-    this.toolRegistry.register(new HttpTool());
-    this.toolRegistry.register(new EnvTool());
-    this.toolRegistry.register(new NetworkTool());
-    this.toolRegistry.register(new CronTool());
-    this.toolRegistry.register(new SysinfoTool());
 
     this.contextManager = new ContextManager();
 
@@ -151,28 +129,23 @@ export class Router {
   private async _routeToProvider(instruction: string): Promise<string> {
     switch (this.provider) {
       case "anthropic":
-        return await processWithAnthropic(instruction, this.apiKey, this.model, this.toolRegistry);
+        return await processWithAnthropic(instruction, this.apiKey, this.model);
       case "openai":
-        return await processWithOpenAI(instruction, this.apiKey, this.model, this.toolRegistry);
+        return await processWithOpenAI(instruction, this.apiKey, this.model);
       case "gemini":
-        return await processWithGemini(instruction, this.apiKey, this.model, this.toolRegistry);
+        return await processWithGemini(instruction, this.apiKey, this.model);
       case "openrouter":
-        return await processWithOpenRouter(instruction, this.apiKey, this.model, this.toolRegistry);
+        return await processWithOpenRouter(instruction, this.apiKey, this.model);
       case "moonshot":
-        return await processWithMoonshot(instruction, this.apiKey, this.model, this.toolRegistry);
+        return await processWithMoonshot(instruction, this.apiKey, this.model);
       case "minimax":
-        return await processWithMiniMax(instruction, this.apiKey, this.model, this.toolRegistry);
+        return await processWithMiniMax(instruction, this.apiKey, this.model);
       case "huggingface":
-        return await processWithHuggingFace(
-          instruction,
-          this.apiKey,
-          this.model,
-          this.toolRegistry,
-        );
+        return await processWithHuggingFace(instruction, this.apiKey, this.model);
       case "mistral":
-        return await processWithMistral(instruction, this.apiKey, this.model, this.toolRegistry);
+        return await processWithMistral(instruction, this.apiKey, this.model);
       case "xai":
-        return await processWithXAI(instruction, this.apiKey, this.model, this.toolRegistry);
+        return await processWithXAI(instruction, this.apiKey, this.model);
       default:
         return `[ERROR] Unsupported AI provider: ${this.provider}. Run: txtcode config`;
     }
