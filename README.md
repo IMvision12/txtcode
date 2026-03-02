@@ -179,15 +179,15 @@ Use `/code` mode to route messages directly to a coding adapter with full coding
 
 Send these commands in any messaging app while connected:
 
-| Command      | Description                                                                    |
-| :----------- | :----------------------------------------------------------------------------- |
-| `/chat`      | Switch to **Chat mode** to send messages to primary LLM _(default)_            |
-| `/code`      | Switch to **Code mode** to send messages to coding adapter (full CLI control)  |
-| `/switch`    | Switch primary LLM provider or coding adapter on the fly                       |
-| `/cli-model` | Change the model used by the current coding adapter                            |
-| `/cancel`    | Cancel the currently running command                                           |
-| `/status`    | Show adapter connection and current configuration                              |
-| `/help`      | Show available commands                                                        |
+| Command      | Description                                                                   |
+| :----------- | :---------------------------------------------------------------------------- |
+| `/chat`      | Switch to **Chat mode** to send messages to primary LLM _(default)_           |
+| `/code`      | Switch to **Code mode** to send messages to coding adapter (full CLI control) |
+| `/switch`    | Switch primary LLM provider or coding adapter on the fly                      |
+| `/cli-model` | Change the model used by the current coding adapter                           |
+| `/cancel`    | Cancel the currently running command                                          |
+| `/status`    | Show adapter connection and current configuration                             |
+| `/help`      | Show available commands                                                       |
 
 ---
 
