@@ -3,7 +3,7 @@ import os from "os";
 import path from "path";
 import chalk from "chalk";
 import { setBotToken } from "../../utils/keychain";
-import { centerLog, showCenteredList, showCenteredInput, showCenteredConfirm } from "../tui";
+import { centerLog, showCenteredList, showCenteredInput } from "../tui";
 import { loadConfig } from "./auth";
 
 const CONFIG_DIR = path.join(os.homedir(), ".txtcode");
