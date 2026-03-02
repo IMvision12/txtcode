@@ -14,6 +14,7 @@ import { processWithMoonshot } from "../providers/moonshot";
 import { processWithOpenAI } from "../providers/openai";
 import { processWithOpenRouter } from "../providers/openrouter";
 import { processWithXAI } from "../providers/xai";
+import { processWithZAI } from "../providers/zai";
 import { logger } from "../shared/logger";
 import { IDEAdapter, ModelInfo } from "../shared/types";
 import { ContextManager } from "./context-manager";
@@ -146,6 +147,8 @@ export class Router {
         return await processWithMistral(instruction, this.apiKey, this.model);
       case "xai":
         return await processWithXAI(instruction, this.apiKey, this.model);
+      case "zai":
+        return await processWithZAI(instruction, this.apiKey, this.model);
       default:
         return `[ERROR] Unsupported AI provider: ${this.provider}. Run: txtcode config`;
     }
