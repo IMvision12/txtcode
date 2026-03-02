@@ -70,10 +70,6 @@ Claude Code, Cursor CLI, OpenAI Codex, Gemini CLI, Kiro CLI, OpenCode, and Ollam
 
 Terminal, process manager, git, file search, HTTP client, environment variables, network diagnostics, cron jobs, and system info all callable by the LLM.
 
-### 18 MCP Servers
-
-Connect GitHub, Brave Search, Puppeteer, PostgreSQL, MongoDB, Redis, Elasticsearch, AWS, GCP, Cloudflare, Vercel, Atlassian, Supabase, CircleCI, Postman, Stripe, ElevenLabs, and Kaggle as external tools via the Model Context Protocol.
-
 ### Session Logging
 
 Per-session logs accessible from the TUI. Follow live, view by index, auto-pruned after 7 days.
@@ -125,9 +121,9 @@ docker run -it \
   txtcode
 ```
 
-| Flag | Purpose |
-| :--- | :------ |
-| `-v $(pwd):/workspace` | Mounts your project directory into the container |
+| Flag                           | Purpose                                             |
+| :----------------------------- | :-------------------------------------------------- |
+| `-v $(pwd):/workspace`         | Mounts your project directory into the container    |
 | `-v ~/.txtcode:/root/.txtcode` | Persists config, session data, and logs across runs |
 
 > **Note:** API keys are stored securely via your OS keychain when running natively. Inside Docker, txtcode uses an encrypted file-based fallback (`TXTCODE_DOCKER=1` is set automatically). You can also pass keys as environment variables with `-e`, e.g. `-e ANTHROPIC_API_KEY=sk-...`.
@@ -163,7 +159,7 @@ txtcode supports **9 LLM providers** for chat mode. Configure one or more during
 | **HuggingFace**     | _Discovered at runtime_                    | Inference Providers API     |
 | **OpenRouter**      | _Discovered at runtime_                    | Unified API for 100+ models |
 
-All providers support tool calling and LLM can invoke any built-in tool or connected MCP server.
+All providers support tool calling and the LLM can invoke any built-in tool.
 
 ---
 
@@ -201,52 +197,6 @@ The primary LLM in chat mode has access to **9 built-in tools** that it can call
 
 ---
 
-## 📟 MCP Servers
-
-txtcode integrates with the **Model Context Protocol** to connect external tool servers. Configure during initial setup or later via **Configuration** &rarr; **Manage MCP Servers** in the TUI.
-
-### Developer Tools
-
-| Server           | Transport | Description                                               |
-| :--------------- | :-------- | :-------------------------------------------------------- |
-| **GitHub**       | stdio     | Repos, issues, PRs, code search, Actions                  |
-| **Brave Search** | stdio     | Web, image, video, and news search                        |
-| **Puppeteer**    | stdio     | Browser automation, screenshots, form filling             |
-| **CircleCI**     | stdio     | Build logs, flaky tests, pipeline status, rerun workflows |
-| **Postman**      | stdio     | Collections, workspaces, API specs, code generation       |
-| **Stripe**       | stdio     | Customers, payments, invoices, subscriptions, refunds     |
-| **ElevenLabs**   | stdio     | Text-to-speech, voice cloning, audio transcription        |
-| **Kaggle**       | HTTP      | Datasets, notebooks, competitions, models, benchmarks     |
-
-### Databases
-
-| Server            | Transport | Description                                    |
-| :---------------- | :-------- | :--------------------------------------------- |
-| **PostgreSQL**    | stdio     | Read-only SQL queries and schema inspection    |
-| **MongoDB**       | stdio     | CRUD, indexes, vector search, Atlas management |
-| **Redis**         | stdio     | Data structures, caching, vectors, pub/sub     |
-| **Elasticsearch** | stdio     | Index management, search queries, cluster ops  |
-| **Supabase**      | HTTP      | Postgres, Auth, Storage, Edge Functions        |
-
-### Cloud
-
-| Server           | Transport | Description                                        |
-| :--------------- | :-------- | :------------------------------------------------- |
-| **AWS**          | stdio     | S3, Lambda, EKS, CDK, CloudFormation, 60+ services |
-| **Google Cloud** | HTTP      | BigQuery, GKE, Compute, Storage, Firebase          |
-| **Cloudflare**   | HTTP      | Workers, R2, DNS, Zero Trust, 2500+ endpoints      |
-| **Vercel**       | HTTP      | Deployments, domains, env vars, logs               |
-
-### Productivity
-
-| Server        | Transport | Description                                       |
-| :------------ | :-------- | :------------------------------------------------ |
-| **Atlassian** | HTTP      | Jira issues, Confluence pages, Compass components |
-
-> **stdio** = local process, **HTTP** = remote Streamable HTTP endpoint. You can also add custom MCP servers via **Configuration** &rarr; **Manage MCP Servers**.
-
----
-
 ## 💬 Chat Commands
 
 Send these commands in any messaging app while connected:
@@ -272,7 +222,6 @@ To modify settings, select **Configuration** from the main menu. Options include
 - Change Messaging Platform
 - Change Coding CLI Type
 - Change AI Provider
-- Manage MCP Servers (add/remove/enable/disable)
 - Change Project Path
 - View Current Config
 
@@ -324,15 +273,6 @@ Verbose and debug output goes to the log file; the terminal shows only key statu
 - Code mode: ensure the CLI for your adapter is installed and in PATH (`claude`, `codex`, `gemini`, `kiro-cli`, `ollama`, `cursor`, `opencode`)
 - Check adapter and connection state via the main menu
 - Select **View Logs** or check `~/.txtcode/logs/` for detailed errors
-
-</details>
-
-<details>
-<summary><b>MCP server connection failures</b></summary>
-
-- **stdio servers:** ensure the required npm package is installed (e.g. `npx @modelcontextprotocol/server-github`)
-- **HTTP servers:** verify the token is correct via **Configuration** &rarr; **Manage MCP Servers**
-- Check **View Logs** for specific error messages
 
 </details>
 

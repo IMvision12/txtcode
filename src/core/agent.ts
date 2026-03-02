@@ -21,11 +21,11 @@ export class AgentCore {
   }
 
   async init(): Promise<void> {
-    await this.router.initMCP();
+    // Reserved for future initialization
   }
 
   async shutdown(): Promise<void> {
-    await this.router.shutdownMCP();
+    // Reserved for future cleanup
   }
 
   private loadAuthorizedUser() {
