@@ -181,6 +181,12 @@ describe("Router", () => {
       expect(result).toContain("[ERROR]");
       expect(result).toContain("Unsupported");
     });
+
+    it("routes to zai provider without throwing", async () => {
+      router.updateProvider("zai", "test-key", "glm-5");
+      expect(router.getProviderName()).toBe("zai");
+      expect(router.getCurrentModel()).toBe("glm-5");
+    });
   });
 
   describe("abortCurrentCommand", () => {

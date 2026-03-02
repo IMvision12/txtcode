@@ -51,9 +51,9 @@ No port forwarding. No VPN. Just message and code.
 
 Connect via **6 platforms** : WhatsApp, Telegram, Discord, Slack, Microsoft Teams, and Signal.
 
-### 9 AI Providers
+### 10 AI Providers
 
-Anthropic, OpenAI, Google Gemini, Mistral, Moonshot, MiniMax, xAI Grok, HuggingFace, and OpenRouter. Instantly switch providers with `/switch` directly from your messaging app.
+Anthropic, OpenAI, Google Gemini, Mistral, Moonshot, MiniMax, xAI Grok, Z.ai (Zhipu), HuggingFace, and OpenRouter. Instantly switch providers with `/switch` directly from your messaging app.
 
 ### Hot-Switching
 
@@ -141,7 +141,7 @@ docker run -it \
 
 ## 🤖 AI Providers
 
-txtcode supports **9 LLM providers** for chat mode. Configure one or more during setup and hot-switch with `/switch`.
+txtcode supports **10 LLM providers** for chat mode. Configure one or more during setup and hot-switch with `/switch`.
 
 | Provider            | Example Models                             | Notes                       |
 | :------------------ | :----------------------------------------- | :-------------------------- |
@@ -152,6 +152,7 @@ txtcode supports **9 LLM providers** for chat mode. Configure one or more during
 | **Moonshot (Kimi)** | `kimi-k2.5`, `moonshot-v1-128k`            | Long-context models         |
 | **MiniMax**         | `MiniMax-M2.5`, `MiniMax-M2.1`             | MiniMax family              |
 | **xAI (Grok)**      | `grok-4`, `grok-3-fast`                    | Grok family                 |
+| **Z.ai (Zhipu)**    | `glm-5`, `glm-4.7`, `glm-4.6`              | GLM family                  |
 | **HuggingFace**     | _Discovered at runtime_                    | Inference Providers API     |
 | **OpenRouter**      | _Discovered at runtime_                    | Unified API for 100+ models |
 

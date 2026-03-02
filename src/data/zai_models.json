@@ -1,0 +1,21 @@
+{
+  "name": "Z.ai",
+  "models": [
+    {
+      "id": "glm-5",
+      "name": "GLM-5",
+      "description": "Flagship foundation model for agentic engineering",
+      "recommended": true
+    },
+    {
+      "id": "glm-4.7",
+      "name": "GLM-4.7",
+      "description": "High-performance general-purpose model"
+    },
+    {
+      "id": "glm-4.6",
+      "name": "GLM-4.6",
+      "description": "Balanced model for chat and reasoning tasks"
+    }
+  ]
+}
