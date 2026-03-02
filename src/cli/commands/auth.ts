@@ -847,7 +847,6 @@ export async function authCommand() {
     idePort: 3000,
     authorizedUser: "",
     configuredAt: new Date().toISOString(),
-
   };
 
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));

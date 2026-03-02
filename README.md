@@ -121,9 +121,9 @@ docker run -it \
   txtcode
 ```
 
-| Flag | Purpose |
-| :--- | :------ |
-| `-v $(pwd):/workspace` | Mounts your project directory into the container |
+| Flag                           | Purpose                                             |
+| :----------------------------- | :-------------------------------------------------- |
+| `-v $(pwd):/workspace`         | Mounts your project directory into the container    |
 | `-v ~/.txtcode:/root/.txtcode` | Persists config, session data, and logs across runs |
 
 > **Note:** API keys are stored securely via your OS keychain when running natively. Inside Docker, txtcode uses an encrypted file-based fallback (`TXTCODE_DOCKER=1` is set automatically). You can also pass keys as environment variables with `-e`, e.g. `-e ANTHROPIC_API_KEY=sk-...`.
