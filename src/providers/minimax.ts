@@ -1,18 +1,10 @@
-import fs from "fs";
-import path from "path";
 import Anthropic from "@anthropic-ai/sdk";
 import { logger } from "../shared/logger";
 
 const MINIMAX_BASE_URL = "https://api.minimax.chat/v1";
 
-function loadSystemPrompt(): string {
-  try {
-    const promptPath = path.join(__dirname, "..", "data", "primary_llm_system_prompt.txt");
-    return fs.readFileSync(promptPath, "utf-8");
-  } catch {
-    return "You are a helpful coding assistant.";
-  }
-}
+const SYSTEM_PROMPT =
+  "You are TxtCode AI — a helpful, knowledgeable coding assistant accessible via messaging. Be concise, use markdown for clarity, and suggest /code mode for deep coding work.";
 
 export async function processWithMiniMax(
   instruction: string,
@@ -31,7 +23,7 @@ export async function processWithMiniMax(
     const response = await client.messages.create({
       model,
       max_tokens: 4096,
-      system: loadSystemPrompt(),
+      system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: instruction }],
     });
 

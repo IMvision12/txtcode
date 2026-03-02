@@ -1,16 +1,8 @@
-import fs from "fs";
-import path from "path";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { logger } from "../shared/logger";
 
-function loadSystemPrompt(): string {
-  try {
-    const promptPath = path.join(__dirname, "..", "data", "primary_llm_system_prompt.txt");
-    return fs.readFileSync(promptPath, "utf-8");
-  } catch {
-    return "You are a helpful coding assistant.";
-  }
-}
+const SYSTEM_PROMPT =
+  "You are TxtCode AI — a helpful, knowledgeable coding assistant accessible via messaging. Be concise, use markdown for clarity, and suggest /code mode for deep coding work.";
 
 export async function processWithGemini(
   instruction: string,
@@ -25,7 +17,7 @@ export async function processWithGemini(
 
     const genModel = genAI.getGenerativeModel({
       model,
-      systemInstruction: loadSystemPrompt(),
+      systemInstruction: SYSTEM_PROMPT,
     });
 
     const result = await genModel.generateContent(instruction);

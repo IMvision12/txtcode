@@ -1,16 +1,8 @@
-import fs from "fs";
-import path from "path";
 import OpenAI from "openai";
 import { logger } from "../shared/logger";
 
-function loadSystemPrompt(): string {
-  try {
-    const promptPath = path.join(__dirname, "..", "data", "primary_llm_system_prompt.txt");
-    return fs.readFileSync(promptPath, "utf-8");
-  } catch {
-    return "You are a helpful coding assistant.";
-  }
-}
+const SYSTEM_PROMPT =
+  "You are TxtCode AI — a helpful, knowledgeable coding assistant accessible via messaging. Be concise, use markdown for clarity, and suggest /code mode for deep coding work.";
 
 export async function processWithXAI(
   instruction: string,
@@ -30,7 +22,7 @@ export async function processWithXAI(
       model,
       max_tokens: 4096,
       messages: [
-        { role: "system", content: loadSystemPrompt() },
+        { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: instruction },
       ],
     });
