@@ -33,26 +33,6 @@ vi.mock("../../src/core/context-store", () => ({
   loadLatestSession: vi.fn().mockReturnValue(null),
 }));
 
-vi.mock("../../src/tools/terminal", () => ({
-  TerminalTool: class {
-    name = "terminal";
-    execute() {}
-  },
-}));
-
-vi.mock("../../src/tools/process", () => ({
-  ProcessTool: class {
-    name = "process";
-    execute() {}
-  },
-}));
-
-vi.mock("../../src/tools/registry", () => ({
-  ToolRegistry: class {
-    register() {}
-  },
-}));
-
 vi.mock("fs", () => ({
   default: {
     existsSync: vi.fn().mockReturnValue(false),
